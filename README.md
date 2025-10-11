@@ -234,6 +234,11 @@ Edit `backend/app/config.py` to configure:
 - Recharts (visualizations)
 - Tailwind CSS (styling)
 
+## 📚 Documentation
+
+- **[Development Guide](docs/DEVELOPMENT.md)** - Setup, architecture, and development workflow
+- **[API Reference](docs/API.md)** - Complete REST API documentation
+
 ## 🤝 Contributing
 
 Contributions are welcome! Feel free to open issues or submit pull requests.
