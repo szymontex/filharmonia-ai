@@ -1,0 +1,45 @@
+# Python
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg
+*.egg-info/
+.env
+.venv
+
+# Node
+node_modules/
+dist/
+.cache/
+.pnpm-store/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Large files
+*.h5
+*.pth
+*.wav
+*.mp3
+*.db
+
+# Temp datasets
+temp_dataset_*/
+
+# Analysis results (optional - uncomment if you don't want to commit CSV results)
+# *.csv
+# ANALYSIS_RESULTS/
+
+# Logs
+*.log

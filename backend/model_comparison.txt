@@ -1,0 +1,99 @@
+2025-10-04 21:16:10.864597: I tensorflow/core/util/port.cc:113] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+WARNING:tensorflow:From C:\IT\code\filharmonia-ai\backend\venv\Lib\site-packages\keras\src\losses.py:2976: The name tf.losses.sparse_softmax_cross_entropy is deprecated. Please use tf.compat.v1.losses.sparse_softmax_cross_entropy instead.
+
+2025-10-04 21:16:22.957744: I tensorflow/core/platform/cpu_feature_guard.cc:182] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+To enable the following instructions: SSE SSE2 SSE3 SSE4.1 SSE4.2 AVX2 AVX512F AVX512_VNNI FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
+WARNING:tensorflow:From C:\IT\code\filharmonia-ai\backend\venv\Lib\site-packages\keras\src\backend.py:1398: The name tf.executing_eagerly_outside_functions is deprecated. Please use tf.compat.v1.executing_eagerly_outside_functions instead.
+
+WARNING:tensorflow:From C:\IT\code\filharmonia-ai\backend\venv\Lib\site-packages\keras\src\layers\pooling\max_pooling2d.py:161: The name tf.nn.max_pool is deprecated. Please use tf.nn.max_pool2d instead.
+
+WARNING:tensorflow:From C:\IT\code\filharmonia-ai\backend\venv\Lib\site-packages\keras\src\utils\tf_utils.py:492: The name tf.ragged.RaggedTensorValue is deprecated. Please use tf.compat.v1.ragged.RaggedTensorValue instead.
+
+WARNING:tensorflow:5 out of the last 9 calls to <function Model.make_predict_function.<locals>.predict_function at 0x00000208371425C0> triggered tf.function retracing. Tracing is expensive and the excessive number of tracings could be due to (1) creating @tf.function repeatedly in a loop, (2) passing tensors with different shapes, (3) passing Python objects instead of tensors. For (1), please define your @tf.function outside of the loop. For (2), @tf.function has reduce_retracing=True option that can avoid unnecessary retracing. For (3), please refer to https://www.tensorflow.org/guide/function#controlling_retracing and https://www.tensorflow.org/api_docs/python/tf/function for  more details.
+WARNING:tensorflow:6 out of the last 11 calls to <function Model.make_predict_function.<locals>.predict_function at 0x00000208213182C0> triggered tf.function retracing. Tracing is expensive and the excessive number of tracings could be due to (1) creating @tf.function repeatedly in a loop, (2) passing tensors with different shapes, (3) passing Python objects instead of tensors. For (1), please define your @tf.function outside of the loop. For (2), @tf.function has reduce_retracing=True option that can avoid unnecessary retracing. For (3), please refer to https://www.tensorflow.org/guide/function#controlling_retracing and https://www.tensorflow.org/api_docs/python/tf/function for  more details.
+====================================================================================================
+COMPREHENSIVE MODEL COMPARISON
+====================================================================================================
+
+####################################################################################################
+# LOADING DATA WITHOUT normalization
+####################################################################################################
+
+Loaded 274 samples (Train: 219, Test: 55)
+
+Evaluating: cnn_model.h5
+  Train: 10.96% (loss: 3709.2266)
+  Val:   9.09% (loss: 4139.1924)
+  Per-class: APPLAUSE=0.0% MUSIC=12.5% PUBLIC=0.0% SPEECH=80.0% TUNING=0.0%
+
+Evaluating: cnn_model_20251003_141737.h5
+  Train: 10.96% (loss: 3709.2266)
+  Val:   9.09% (loss: 4139.1924)
+  Per-class: APPLAUSE=0.0% MUSIC=12.5% PUBLIC=0.0% SPEECH=80.0% TUNING=0.0%
+
+Evaluating: cnn_model_20251004_210350.h5
+  Train: 97.26% (loss: 0.1198)
+  Val:   90.91% (loss: 0.2251)
+  Per-class: APPLAUSE=96.4% MUSIC=75.0% PUBLIC=100.0% SPEECH=80.0% TUNING=66.7%
+
+Evaluating: cnn_model_20251004_211439.h5
+  Train: 19.63% (loss: 1550.6619)
+  Val:   14.55% (loss: 1792.7333)
+  Per-class: APPLAUSE=0.0% MUSIC=100.0% PUBLIC=0.0% SPEECH=0.0% TUNING=0.0%
+
+####################################################################################################
+# LOADING DATA WITH normalization
+####################################################################################################
+
+Loaded 274 samples (Train: 219, Test: 55)
+
+Evaluating: cnn_model.h5
+  Train: 86.76% (loss: 0.4530)
+  Val:   80.00% (loss: 0.5101)
+  Per-class: APPLAUSE=96.4% MUSIC=75.0% PUBLIC=54.5% SPEECH=40.0% TUNING=100.0%
+
+Evaluating: cnn_model_20251003_141737.h5
+  Train: 86.76% (loss: 0.4530)
+  Val:   80.00% (loss: 0.5101)
+  Per-class: APPLAUSE=96.4% MUSIC=75.0% PUBLIC=54.5% SPEECH=40.0% TUNING=100.0%
+
+Evaluating: cnn_model_20251004_210350.h5
+  Train: 49.32% (loss: 1.5817)
+  Val:   50.91% (loss: 1.5810)
+  Per-class: APPLAUSE=100.0% MUSIC=0.0% PUBLIC=0.0% SPEECH=0.0% TUNING=0.0%
+
+Evaluating: cnn_model_20251004_211439.h5
+  Train: 98.63% (loss: 0.0658)
+  Val:   90.91% (loss: 0.3000)
+  Per-class: APPLAUSE=92.9% MUSIC=100.0% PUBLIC=90.9% SPEECH=80.0% TUNING=66.7%
+
+====================================================================================================
+SUMMARY TABLE
+====================================================================================================
+Model                                    Preprocessing             Train Acc    Val Acc      Val Loss    
+----------------------------------------------------------------------------------------------------
+cnn_model.h5                             WITHOUT normalization          10.96%       9.09%  4139.1924
+cnn_model_20251003_141737.h5             WITHOUT normalization          10.96%       9.09%  4139.1924
+cnn_model_20251004_210350.h5             WITHOUT normalization          97.26%      90.91%     0.2251
+cnn_model_20251004_211439.h5             WITHOUT normalization          19.63%      14.55%  1792.7333
+cnn_model.h5                             WITH normalization             86.76%      80.00%     0.5101
+cnn_model_20251003_141737.h5             WITH normalization             86.76%      80.00%     0.5101
+cnn_model_20251004_210350.h5             WITH normalization             49.32%      50.91%     1.5810
+cnn_model_20251004_211439.h5             WITH normalization             98.63%      90.91%     0.3000
+====================================================================================================
+
+RECOMMENDATION:
+====================================================================================================
+Best model: cnn_model_20251004_210350.h5
+Preprocessing: WITHOUT normalization
+Validation accuracy: 90.91%
+Validation loss: 0.2251
+
+Per-class accuracy:
+  APPLAUSE: 96.4%
+  MUSIC: 75.0%
+  PUBLIC: 100.0%
+  SPEECH: 80.0%
+  TUNING: 66.7%
+
+====================================================================================================
