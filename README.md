@@ -203,6 +203,25 @@ The system uses **Audio Spectrogram Transformer (AST)** from MIT:
   - SPEECH: 100%
   - TUNING: 85.7%
 
+## 🤖 Pre-trained Model
+
+**Optional:** Download pre-trained model (trained on classical concert recordings):
+
+🤗 **[Hugging Face Model Hub](https://huggingface.co/szymontex/filharmonia-ast)** (recommended)
+
+**Model specs:**
+- Architecture: Audio Spectrogram Transformer (MIT/PSLA)
+- Test accuracy: 97.75%
+- Training data: ~1200 min of classical concert recordings
+- Size: 1.03 GB
+
+**Installation:**
+1. Download `ast_20251009_222204.pth` from Hugging Face
+2. Place in `RECOGNITION_MODELS/ast_active.pth`
+3. Start backend and run analysis
+
+**Important:** This model is trained on classical philharmonic concerts. For other music genres (rock, jazz, pop), you'll need to retrain with your own data using the web UI.
+
 ## 🔧 Configuration
 
 Edit `backend/app/config.py` to configure:
