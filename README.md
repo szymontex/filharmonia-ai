@@ -66,7 +66,8 @@ filharmonia-ai/
 │   │   ├── pages/       # Page views
 │   │   └── api/         # API client
 │   └── package.json
-
+│
+└── docs/                # Screenshots and documentation
 ```
 
 ## 🚀 Quick Start
@@ -233,14 +234,13 @@ Edit `backend/app/config.py` to configure:
 - Recharts (visualizations)
 - Tailwind CSS (styling)
 
-
 ## 🤝 Contributing
 
-This is a private project for Filharmonia workflow automation. For questions or collaboration, contact the project maintainer.
+Contributions are welcome! Feel free to open issues or submit pull requests.
 
 ## 📄 License
 
-Private project - all rights reserved.
+MIT License - see LICENSE file for details.
 
 ## 🎉 Achievements
 
