@@ -17,6 +17,34 @@ AI-powered concert audio analysis system using **PyTorch Audio Spectrogram Trans
 - **📈 Uncertainty Review**: Filter low-confidence predictions for manual review
 - **⚡ GPU Accelerated**: CUDA support for fast training and inference
 
+## 📸 Screenshots
+
+### Main Dashboard
+![Main Dashboard](docs/images/1.png)
+*Overview of available models, training data statistics, and recent analyses*
+
+### File Browser & Sorting
+![File Browser](docs/images/browse.png)
+*Browse unsorted recordings and organize by date using ID3 tags*
+
+![Sort Recordings](docs/images/sort.png)
+*Automatic sorting of concert recordings by date*
+
+### Waveform Editor
+![CSV Waveform Editor](docs/images/csv1.png)
+*Visual waveform editor with color-coded segments for each class*
+
+![CSV Editor - Detailed View](docs/images/csv2.png)
+*Edit predictions, adjust boundaries, and export corrected segments*
+
+### Model Management
+![Model Versioning](docs/images/model.png)
+*Train new models, compare accuracy, and activate best-performing models*
+
+### Uncertainty Review (Active Learning)
+![Uncertainty Review](docs/images/uncertain.png)
+*Review low-confidence predictions for manual verification and export*
+
 ## 🏗️ Architecture
 
 ```
@@ -47,12 +75,76 @@ filharmonia-ai/
 
 ## 🚀 Quick Start
 
-### Prerequisites
+### Quickest Start (Recommended)
+
+**Windows:**
+```bash
+# Double-click start.bat or run:
+start.bat
+```
+
+**Linux/Mac:**
+```bash
+./start.sh
+
+# To stop servers:
+./stop.sh
+```
+
+The script will:
+- ✅ Check if backend venv and frontend node_modules exist
+- ✅ Start both servers automatically
+- ✅ Open browser at http://localhost:5173
+
+**Note:** First-time setup still requires manual installation (see below).
+
+---
+
+### Manual Setup
+
+#### Prerequisites
 
 - **Python 3.11+**
 - **Node.js 18+** (with pnpm)
 - **NVIDIA GPU** (optional but recommended for training)
 - **CUDA 12.x** (if using GPU)
+
+### Environment Configuration
+
+1. **Copy environment template:**
+   ```bash
+   cp .env.example .env
+   ```
+
+2. **Configure data directory** (choose one):
+
+   **Option A: Use default location** (recommended for first-time setup):
+   - Leave `.env` empty
+   - Data will be stored in `project_root/FILHARMONIA_DATA/`
+
+   **Option B: Use custom/network location:**
+   ```bash
+   # Edit .env and set:
+   FILHARMONIA_BASE_DIR=/path/to/your/data  # Linux/Mac
+   # or
+   FILHARMONIA_BASE_DIR=Y:\!_FILHARMONIA    # Windows network drive
+   ```
+
+3. **Create required folder structure:**
+   ```bash
+   # Inside your FILHARMONIA_BASE_DIR:
+   mkdir -p SORTED
+   mkdir -p NAGRANIA_KONCERTOW
+   mkdir -p TRAINING_DATA/DATA/{APPLAUSE,MUSIC,PUBLIC,SPEECH,TUNING}
+   mkdir -p RECOGNITION_MODELS
+   mkdir -p ML_EXPERIMENTS/datasets
+   ```
+
+4. **Verify configuration:**
+   ```bash
+   cd backend
+   python -c "from app.config import print_config; print_config()"
+   ```
 
 ### Backend Setup
 

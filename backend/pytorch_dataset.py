@@ -383,23 +383,3 @@ def print_dataset_info(dataset_dir: Path):
             print(f"    {class_name}: {class_weights[idx]:.4f}")
 
     print("\n" + "=" * 80)
-
-
-if __name__ == "__main__":
-    # Test with raw training data
-    data_dir = Path(r"Y:\!_FILHARMONIA\TRAINING DATA\DATA")
-
-    if data_dir.exists():
-        print("Testing with raw training data:")
-        print_dataset_info(data_dir)
-
-        print("\nCreating dataloaders...")
-        dataset = AudioDataset(data_dir, enable_chunking=True)
-
-        print(f"\nDataset ready with {len(dataset)} virtual samples!")
-
-        # Test loading one sample
-        features, label = dataset[0]
-        print(f"\nSample test:")
-        print(f"  Features shape: {features.shape}")
-        print(f"  Label: {label} ({dataset.classes[label]})")

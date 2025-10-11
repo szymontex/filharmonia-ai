@@ -650,12 +650,17 @@ class ASTTrainingService:
         print(f"[Measure] Loading model {filename}...")
 
         # Load dataset - prefer natural data over artificial balanced
-        dataset_dir = Path("Y:/!_FILHARMONIA/ML_EXPERIMENTS/datasets/direct_from_source")
+        dataset_dir = settings.get_dataset_dir("direct_from_source")
         if not dataset_dir.exists():
             # Fallback to full_balanced if direct_from_source doesn't exist
-            dataset_dir = Path("Y:/!_FILHARMONIA/ML_EXPERIMENTS/datasets/full_balanced")
+            dataset_dir = settings.get_dataset_dir("full_balanced")
             if not dataset_dir.exists():
-                raise FileNotFoundError("Dataset not found. Need Y:/!_FILHARMONIA/ML_EXPERIMENTS/datasets/direct_from_source or full_balanced")
+                raise FileNotFoundError(
+                    f"Dataset not found. Expected one of:\n"
+                    f"  - {settings.get_dataset_dir('direct_from_source')}\n"
+                    f"  - {settings.get_dataset_dir('full_balanced')}\n"
+                    f"Configure FILHARMONIA_BASE_DIR environment variable or create datasets."
+                )
 
         print(f"[Measure] Using dataset: {dataset_dir}")
 
