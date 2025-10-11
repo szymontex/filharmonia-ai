@@ -66,11 +66,7 @@ filharmonia-ai/
 │   │   ├── pages/       # Page views
 │   │   └── api/         # API client
 │   └── package.json
-│
-└── .claude/             # Project documentation
-    ├── PROJECT_OVERVIEW.md
-    ├── ARCHITECTURE.md
-    └── QUICK_START.md
+
 ```
 
 ## 🚀 Quick Start
@@ -237,13 +233,6 @@ Edit `backend/app/config.py` to configure:
 - Recharts (visualizations)
 - Tailwind CSS (styling)
 
-## 📚 Documentation
-
-Detailed documentation available in `.claude/` folder:
-- `PROJECT_OVERVIEW.md` - Project goals and architecture
-- `ARCHITECTURE.md` - Technical architecture details
-- `QUICK_START.md` - Development setup guide
-- `CLAUDE.md` - Claude Code assistant guide
 
 ## 🤝 Contributing
 
