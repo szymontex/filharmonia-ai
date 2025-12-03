@@ -69,8 +69,9 @@ async def health():
     return {"status": "healthy"}
 
 def check_gpu():
+    """Check if GPU is available for PyTorch (primary ML framework)"""
     try:
-        import tensorflow as tf
-        return len(tf.config.list_physical_devices('GPU')) > 0
+        import torch
+        return torch.cuda.is_available()
     except:
         return False

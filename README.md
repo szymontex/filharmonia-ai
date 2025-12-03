@@ -72,11 +72,39 @@ filharmonia-ai/
 
 ## 🚀 Quick Start
 
-### Quickest Start (Recommended)
+### First-Time Installation
+
+Run the automated setup script to install all dependencies:
 
 **Windows:**
 ```bash
-# Double-click start.bat or run:
+setup.bat
+```
+
+**Linux/Mac:**
+```bash
+chmod +x setup.sh
+./setup.sh
+```
+
+The setup script will automatically:
+- ✅ Check Python and Node.js installation
+- ✅ Create Python virtual environment
+- ✅ Install PyTorch with CUDA support
+- ✅ Install all backend and frontend dependencies
+- ✅ Verify installation is complete
+- ✅ Create configuration file from template
+
+> **Note:** Don't run `pip install -r requirements.txt` directly - PyTorch CUDA requires special handling which the setup script does automatically.
+
+---
+
+### Running the Application
+
+After installation, start both servers:
+
+**Windows:**
+```bash
 start.bat
 ```
 
@@ -88,93 +116,26 @@ start.bat
 ./stop.sh
 ```
 
-The script will:
-- ✅ Check if backend venv and frontend node_modules exist
-- ✅ Start both servers automatically
-- ✅ Open browser at http://localhost:5173
-
-**Note:** First-time setup still requires manual installation (see below).
+The application will be available at:
+- Frontend: http://localhost:5173
+- Backend API: http://localhost:8000
 
 ---
 
-### Manual Setup
-
-#### Prerequisites
+### Prerequisites
 
 - **Python 3.11+**
-- **Node.js 18+** (with pnpm)
+- **Node.js 18+**
 - **NVIDIA GPU** (optional but recommended for training)
 - **CUDA 12.x** (if using GPU)
 
-### Environment Configuration
+### Configuration
 
-1. **Copy environment template:**
-   ```bash
-   cp .env.example .env
-   ```
+After installation, configure your data directory (optional):
 
-2. **Configure data directory** (choose one):
-
-   **Option A: Use default location** (recommended for first-time setup):
-   - Leave `.env` empty
-   - Data will be stored in `project_root/FILHARMONIA_DATA/`
-
-   **Option B: Use custom/network location:**
-   ```bash
-   # Edit .env and set:
-   FILHARMONIA_BASE_DIR=/path/to/your/data  # Linux/Mac
-   # or
-   FILHARMONIA_BASE_DIR=Y:\!_FILHARMONIA    # Windows network drive
-   ```
-
-3. **Create required folder structure:**
-   ```bash
-   # Inside your FILHARMONIA_BASE_DIR:
-   mkdir -p SORTED
-   mkdir -p NAGRANIA_KONCERTOW
-   mkdir -p TRAINING_DATA/DATA/{APPLAUSE,MUSIC,PUBLIC,SPEECH,TUNING}
-   mkdir -p RECOGNITION_MODELS
-   mkdir -p ML_EXPERIMENTS/datasets
-   ```
-
-4. **Verify configuration:**
-   ```bash
-   cd backend
-   python -c "from app.config import print_config; print_config()"
-   ```
-
-### Backend Setup
-
-```bash
-cd backend
-
-# Create virtual environment
-python -m venv venv
-venv\Scripts\activate  # Windows
-# source venv/bin/activate  # Linux/Mac
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Run backend
-python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
-```
-
-Backend will be available at: `http://localhost:8000`
-
-### Frontend Setup
-
-```bash
-cd frontend
-
-# Install dependencies
-pnpm install
-
-# Run dev server
-pnpm dev
-```
-
-Frontend will be available at: `http://localhost:5173`
+1. Edit `.env` file (created by setup script)
+2. Set `FILHARMONIA_BASE_DIR` to your desired location
+3. If not set, defaults to `project_root/FILHARMONIA_DATA/`
 
 ## 📊 Model Training
 
@@ -276,5 +237,5 @@ MIT License - see LICENSE file for details.
 
 ---
 
-**Last Updated:** October 2025
+**Last Updated:** December 2025
 **Status:** 🚀 Production Ready (MVP)
