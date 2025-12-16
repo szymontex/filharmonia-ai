@@ -44,7 +44,7 @@ export default function WaveformEditor({ mp3Path, tracks, onBack }: WaveformEdit
     const loadWaveform = async () => {
       try {
         const response = await axios.get(
-          `http://localhost:8000/api/v1/waveform/data?path=${encodeURIComponent(mp3Path)}&samples_per_pixel=256`
+          `/api/v1/waveform/data?path=${encodeURIComponent(mp3Path)}&samples_per_pixel=256`
         )
         setWaveformData(response.data)
         setLoading(false)
@@ -255,7 +255,7 @@ export default function WaveformEditor({ mp3Path, tracks, onBack }: WaveformEdit
     alert(`Exported ${exported.length} markers! Check console for details.`)
   }
 
-  const audioUrl = `http://localhost:8000/api/v1/audio/stream?path=${encodeURIComponent(mp3Path)}`
+  const audioUrl = `/api/v1/audio/stream?path=${encodeURIComponent(mp3Path)}`
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">

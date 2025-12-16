@@ -94,7 +94,7 @@ export default function UncertaintyReview({ onBack }: { onBack: () => void }) {
       if (selectedCategory) {
         params.append('category', selectedCategory)
       }
-      const res = await axios.get(`http://localhost:8000/api/v1/uncertainty/segments?${params}`)
+      const res = await axios.get(`/api/v1/uncertainty/segments?${params}`)
       setSegments(res.data.segments)
       setLoading(false)
     } catch (error: any) {
@@ -105,7 +105,7 @@ export default function UncertaintyReview({ onBack }: { onBack: () => void }) {
 
   const loadStats = async () => {
     try {
-      const res = await axios.get('http://localhost:8000/api/v1/uncertainty/stats')
+      const res = await axios.get('/api/v1/uncertainty/stats')
       setStats(res.data)
     } catch (error) {
       console.error('Failed to load stats:', error)
@@ -177,7 +177,7 @@ export default function UncertaintyReview({ onBack }: { onBack: () => void }) {
       try {
         // Load with fewer samples = faster (512 instead of 256)
         const response = await axios.get(
-          `http://localhost:8000/api/v1/waveform/data?path=${encodeURIComponent(currentSegment.mp3_path)}&samples_per_pixel=512`
+          `/api/v1/waveform/data?path=${encodeURIComponent(currentSegment.mp3_path)}&samples_per_pixel=512`
         )
 
         // Calculate segment position BEFORE setting state
@@ -464,7 +464,7 @@ export default function UncertaintyReview({ onBack }: { onBack: () => void }) {
 
     setExporting(true)
     try {
-      await axios.post('http://localhost:8000/api/v1/uncertainty/export-range', {
+      await axios.post('/api/v1/uncertainty/export-range', {
         csv_path: currentSegment.csv_path,
         mp3_path: currentSegment.mp3_path,
         segment_index: currentSegment.segment_index,
@@ -510,7 +510,7 @@ export default function UncertaintyReview({ onBack }: { onBack: () => void }) {
 
     setExporting(true)
     try {
-      const response = await axios.post('http://localhost:8000/api/v1/uncertainty/undo-export', {
+      const response = await axios.post('/api/v1/uncertainty/undo-export', {
         csv_path: currentSegment.csv_path,
         segment_index: currentSegment.segment_index
       })
@@ -548,7 +548,7 @@ export default function UncertaintyReview({ onBack }: { onBack: () => void }) {
     setExporting(true)
     try {
       // Call backend to mark all remaining uncertain segments from this CSV as skipped
-      const response = await axios.post('http://localhost:8000/api/v1/uncertainty/skip-file', {
+      const response = await axios.post('/api/v1/uncertainty/skip-file', {
         csv_path: currentSegment.csv_path
       })
 
@@ -860,7 +860,7 @@ export default function UncertaintyReview({ onBack }: { onBack: () => void }) {
 
         <audio
           ref={audioRef}
-          src={`http://localhost:8000/api/v1/audio/stream?path=${encodeURIComponent(currentSegment.mp3_path)}`}
+          src={`/api/v1/audio/stream?path=${encodeURIComponent(currentSegment.mp3_path)}`}
           preload="auto"
           onPlay={() => setIsPlaying(true)}
           onPause={() => setIsPlaying(false)}

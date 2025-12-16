@@ -59,7 +59,7 @@ export default function StickyPlayer({ mp3Path, tracks, onClose, onTrackUpdate, 
     const loadWaveform = async () => {
       try {
         const response = await axios.get(
-          `http://localhost:8000/api/v1/waveform/data?path=${encodeURIComponent(mp3Path)}&samples_per_pixel=256`
+          `/api/v1/waveform/data?path=${encodeURIComponent(mp3Path)}&samples_per_pixel=256`
         )
         setWaveformData(response.data)
         setLoading(false)
@@ -544,7 +544,7 @@ export default function StickyPlayer({ mp3Path, tracks, onClose, onTrackUpdate, 
     audio.currentTime = newTime
   }
 
-  const audioUrl = `http://localhost:8000/api/v1/audio/stream?path=${encodeURIComponent(mp3Path)}`
+  const audioUrl = `/api/v1/audio/stream?path=${encodeURIComponent(mp3Path)}`
 
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-white border-t-2 border-gray-300 shadow-2xl z-50">

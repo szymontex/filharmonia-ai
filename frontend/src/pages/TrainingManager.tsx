@@ -82,7 +82,7 @@ export default function TrainingManager({ onBack }: TrainingManagerProps) {
 
   const checkForActiveJob = async () => {
     try {
-      const response = await axios.get('http://localhost:8000/api/v1/training/active-job')
+      const response = await axios.get('/api/v1/training/active-job')
       if (response.data.job_id) {
         setActiveJobId(response.data.job_id)
         setTrainingStatus(response.data)
@@ -106,7 +106,7 @@ export default function TrainingManager({ onBack }: TrainingManagerProps) {
 
   const loadDataStats = async () => {
     try {
-      const response = await axios.get('http://localhost:8000/api/v1/training/data-stats')
+      const response = await axios.get('/api/v1/training/data-stats')
       setDataStats(response.data)
     } catch (error: any) {
       console.error('Error loading data stats:', error)
@@ -116,7 +116,7 @@ export default function TrainingManager({ onBack }: TrainingManagerProps) {
 
   const loadModels = async () => {
     try {
-      const response = await axios.get('http://localhost:8000/api/v1/training/models')
+      const response = await axios.get('/api/v1/training/models')
       setModels(response.data)
     } catch (error: any) {
       console.error('Error loading models:', error)
@@ -125,7 +125,7 @@ export default function TrainingManager({ onBack }: TrainingManagerProps) {
 
   const fetchTrainingStatus = async (jobId: string) => {
     try {
-      const response = await axios.get(`http://localhost:8000/api/v1/training/status/${jobId}`)
+      const response = await axios.get(`/api/v1/training/status/${jobId}`)
       setTrainingStatus(response.data)
 
       // Stop auto-refresh when completed/failed/cancelled
@@ -150,7 +150,7 @@ export default function TrainingManager({ onBack }: TrainingManagerProps) {
     }
 
     try {
-      const response = await axios.post('http://localhost:8000/api/v1/training/start')
+      const response = await axios.post('/api/v1/training/start')
       const jobId = response.data.job_id
       setActiveJobId(jobId)
       setAutoRefresh(true)
@@ -166,7 +166,7 @@ export default function TrainingManager({ onBack }: TrainingManagerProps) {
     if (!activeJobId) return
 
     try {
-      await axios.post(`http://localhost:8000/api/v1/training/${activeJobId}/cancel`)
+      await axios.post(`/api/v1/training/${activeJobId}/cancel`)
       setSuccessToast({ show: true, message: 'Training cancellation requested' })
     } catch (error: any) {
       console.error('Error cancelling training:', error)
@@ -177,7 +177,7 @@ export default function TrainingManager({ onBack }: TrainingManagerProps) {
   const handleActivateModel = async (filename: string) => {
     try {
       setSuccessToast({ show: true, message: 'Activating and loading model...' })
-      const response = await axios.post('http://localhost:8000/api/v1/training/activate-model', { filename })
+      const response = await axios.post('/api/v1/training/activate-model', { filename })
 
       setSuccessToast({
         show: true,
@@ -194,7 +194,7 @@ export default function TrainingManager({ onBack }: TrainingManagerProps) {
 
   const handleDeleteModel = async (filename: string) => {
     try {
-      await axios.delete(`http://localhost:8000/api/v1/training/models/${filename}`)
+      await axios.delete(`/api/v1/training/models/${filename}`)
       setSuccessToast({ show: true, message: `Model ${filename} deleted` })
       loadModels()
       setConfirmToast({ show: false, message: '', action: () => {} })
@@ -208,7 +208,7 @@ export default function TrainingManager({ onBack }: TrainingManagerProps) {
     try {
       setMeasuringModel(filename)
       setSuccessToast({ show: true, message: 'Measuring accuracy... This may take 1-2 minutes.' })
-      const response = await axios.post(`http://localhost:8000/api/v1/training/measure-accuracy/${filename}`)
+      const response = await axios.post(`/api/v1/training/measure-accuracy/${filename}`)
       const { train_acc, val_acc, test_acc, per_class_acc, dataset_used } = response.data
 
       // Build per-class summary

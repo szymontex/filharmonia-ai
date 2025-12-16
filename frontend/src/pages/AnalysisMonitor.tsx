@@ -46,7 +46,7 @@ export default function AnalysisMonitor({ onBack }: AnalysisMonitorProps) {
 
   const loadAvailableJobs = async () => {
     try {
-      const response = await axios.get('http://localhost:8000/api/v1/analyze/batch')
+      const response = await axios.get('/api/v1/analyze/batch')
       setAvailableJobs(response.data)
     } catch (error) {
       console.error('Error loading jobs:', error)
@@ -58,7 +58,7 @@ export default function AnalysisMonitor({ onBack }: AnalysisMonitorProps) {
 
     try {
       setLoading(true)
-      const response = await axios.get(`http://localhost:8000/api/v1/analyze/batch/${jobId}`)
+      const response = await axios.get(`/api/v1/analyze/batch/${jobId}`)
       setJobStatus(response.data)
 
       // Stop auto-refresh when completed
@@ -85,7 +85,7 @@ export default function AnalysisMonitor({ onBack }: AnalysisMonitorProps) {
     if (!jobId) return
 
     try {
-      await axios.post(`http://localhost:8000/api/v1/analyze/batch/${jobId}/cancel`)
+      await axios.post(`/api/v1/analyze/batch/${jobId}/cancel`)
       setSuccessToast({ show: true, message: 'Job cancellation requested' })
       fetchJobStatus()
     } catch (error: any) {
@@ -138,7 +138,7 @@ export default function AnalysisMonitor({ onBack }: AnalysisMonitorProps) {
                     // Fetch status immediately
                     try {
                       setLoading(true)
-                      const response = await axios.get(`http://localhost:8000/api/v1/analyze/batch/${job.job_id}`)
+                      const response = await axios.get(`/api/v1/analyze/batch/${job.job_id}`)
                       setJobStatus(response.data)
                     } catch (error) {
                       console.error('Error fetching job status:', error)

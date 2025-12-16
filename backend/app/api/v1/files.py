@@ -27,7 +27,10 @@ async def list_sorted_files():
     """
     files = []
 
-    for mp3_file in settings.SORTED_FOLDER.rglob("*.mp3"):
+    # Search both .mp3 and .MP3 extensions
+    mp3_files = list(settings.SORTED_FOLDER.rglob("*.mp3")) + list(settings.SORTED_FOLDER.rglob("*.MP3"))
+
+    for mp3_file in mp3_files:
         # Parse date from folder structure: SORTED/YYYY/MM/DD/file.mp3
         rel_path = mp3_file.relative_to(settings.SORTED_FOLDER)
         parts = rel_path.parts

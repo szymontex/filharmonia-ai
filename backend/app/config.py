@@ -51,13 +51,9 @@ class Settings:
     # Database
     DATABASE_URL: str = f"sqlite:///{FILHARMONIA_BASE / '.claude' / 'filharmonia.db'}"
 
-    # API settings
-    CORS_ORIGINS: List[str] = [
-        "http://localhost:5173",  # Vite default
-        "http://localhost:3000",  # Alternative frontend port
-        "http://127.0.0.1:5173",
-        "http://127.0.0.1:3000",
-    ]
+    # API settings - read from .env
+    _cors_env = os.getenv("CORS_ORIGINS", "http://localhost:5173,http://localhost:3000")
+    CORS_ORIGINS: List[str] = [o.strip() for o in _cors_env.split(",") if o.strip()]
 
     @classmethod
     def get_dataset_dir(cls, dataset_name: str = "direct_from_source") -> Path:

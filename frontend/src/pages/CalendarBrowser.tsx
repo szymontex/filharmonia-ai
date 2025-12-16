@@ -30,8 +30,8 @@ export default function CalendarBrowser({ onBack, onOpenCsv }: CalendarBrowserPr
     try {
       setLoading(true)
       const [recordingsRes, csvRes] = await Promise.all([
-        axios.get('http://localhost:8000/api/v1/files/sorted'),
-        axios.get('http://localhost:8000/api/v1/files/analysis-results')
+        axios.get('/api/v1/files/sorted'),
+        axios.get('/api/v1/files/analysis-results')
       ])
       setRecordings(recordingsRes.data)
 
@@ -114,7 +114,7 @@ export default function CalendarBrowser({ onBack, onOpenCsv }: CalendarBrowserPr
       // Add to analyzing set
       setAnalyzing(prev => new Set(prev).add(recording.path))
 
-      const response = await axios.post('http://localhost:8000/api/v1/analyze/', {
+      const response = await axios.post('/api/v1/analyze/', {
         mp3_path: recording.path
       })
 
@@ -123,7 +123,7 @@ export default function CalendarBrowser({ onBack, onOpenCsv }: CalendarBrowserPr
       // Monitor job status
       const checkStatus = async () => {
         try {
-          const statusRes = await axios.get(`http://localhost:8000/api/v1/analyze/status/${jobId}`)
+          const statusRes = await axios.get(`/api/v1/analyze/status/${jobId}`)
 
           if (statusRes.data.status === 'completed') {
             // Remove from analyzing set and progress
@@ -222,7 +222,7 @@ export default function CalendarBrowser({ onBack, onOpenCsv }: CalendarBrowserPr
         : filteredRecordings.filter(r => !isAnalyzed(r))
 
       const paths = recordingsToAnalyze.map(r => r.path)
-      const response = await axios.post('http://localhost:8000/api/v1/analyze/batch', {
+      const response = await axios.post('/api/v1/analyze/batch', {
         mp3_paths: paths
       })
       setBatchJobId(response.data.job_id)
@@ -236,7 +236,7 @@ export default function CalendarBrowser({ onBack, onOpenCsv }: CalendarBrowserPr
   const startBatchMonitoring = (jobId: string) => {
     const interval = setInterval(async () => {
       try {
-        const response = await axios.get(`http://localhost:8000/api/v1/analyze/batch/${jobId}`)
+        const response = await axios.get(`/api/v1/analyze/batch/${jobId}`)
         setBatchProgress(response.data)
 
         if (response.data.status === 'completed') {

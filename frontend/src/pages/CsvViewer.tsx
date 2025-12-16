@@ -61,13 +61,13 @@ export default function CsvViewer({ onBack, initialCsv }: CsvViewerProps = {}) {
     // Poll for active analysis jobs every 2 seconds
     const interval = setInterval(async () => {
       try {
-        const response = await axios.get('http://localhost:8000/api/v1/analyze/batch')
+        const response = await axios.get('/api/v1/analyze/batch')
         const runningJobs = response.data.filter((job: any) => job.status === 'running')
 
         const newAnalyzingFiles = new Map<string, number>()
         for (const job of runningJobs) {
           // Fetch detailed status to get current file
-          const detailRes = await axios.get(`http://localhost:8000/api/v1/analyze/batch/${job.job_id}`)
+          const detailRes = await axios.get(`/api/v1/analyze/batch/${job.job_id}`)
           if (detailRes.data.current_file) {
             newAnalyzingFiles.set(detailRes.data.current_file, detailRes.data.current_file_progress || 0)
           }
@@ -84,7 +84,7 @@ export default function CsvViewer({ onBack, initialCsv }: CsvViewerProps = {}) {
 
   const loadEditedList = async () => {
     try {
-      const res = await axios.get('http://localhost:8000/api/v1/csv/edited-list')
+      const res = await axios.get('/api/v1/csv/edited-list')
       setEditedCsvs(new Set(res.data.edited_files))
     } catch (error) {
       console.error('Error loading edited CSV list:', error)
@@ -93,7 +93,7 @@ export default function CsvViewer({ onBack, initialCsv }: CsvViewerProps = {}) {
 
   const loadExportedSegments = async (csvPath: string) => {
     try {
-      const res = await axios.get(`http://localhost:8000/api/v1/export/check-exported?csv_path=${encodeURIComponent(csvPath)}`)
+      const res = await axios.get(`/api/v1/export/check-exported?csv_path=${encodeURIComponent(csvPath)}`)
       setExportedSegments(new Set(res.data.exported_indices))
 
       // Update csvsWithExports if this CSV has any exports
@@ -109,7 +109,7 @@ export default function CsvViewer({ onBack, initialCsv }: CsvViewerProps = {}) {
     if (!selectedCsv) return
 
     try {
-      await axios.delete(`http://localhost:8000/api/v1/export/segment?csv_path=${encodeURIComponent(selectedCsv)}&segment_index=${segmentIndex}`)
+      await axios.delete(`/api/v1/export/segment?csv_path=${encodeURIComponent(selectedCsv)}&segment_index=${segmentIndex}`)
 
       // Remove from exported segments set
       setExportedSegments(prev => {
@@ -128,7 +128,7 @@ export default function CsvViewer({ onBack, initialCsv }: CsvViewerProps = {}) {
   const loadCsvsWithExports = async () => {
     try {
       // Read exported_segments.csv to find all CSVs with exports
-      const response = await axios.get('http://localhost:8000/api/v1/export/all-exported-csvs')
+      const response = await axios.get('/api/v1/export/all-exported-csvs')
       setCsvsWithExports(new Set(response.data.csv_paths))
     } catch (error) {
       console.error('Error loading CSVs with exports:', error)
@@ -159,7 +159,7 @@ export default function CsvViewer({ onBack, initialCsv }: CsvViewerProps = {}) {
 
   const loadCsvList = async () => {
     try {
-      const res = await axios.get('http://localhost:8000/api/v1/files/analysis-results')
+      const res = await axios.get('/api/v1/files/analysis-results')
       console.log('CSV files loaded:', res.data)
       setCsvFiles(res.data)
     } catch (error) {
@@ -172,7 +172,7 @@ export default function CsvViewer({ onBack, initialCsv }: CsvViewerProps = {}) {
     setSelectedCsv(csvPath)
 
     // Check for autosave
-    const autosaveCheck = await axios.get(`http://localhost:8000/api/v1/csv/check-autosave?path=${encodeURIComponent(csvPath)}`)
+    const autosaveCheck = await axios.get(`/api/v1/csv/check-autosave?path=${encodeURIComponent(csvPath)}`)
 
     let pathToLoad = csvPath
 
@@ -186,7 +186,7 @@ export default function CsvViewer({ onBack, initialCsv }: CsvViewerProps = {}) {
     }
 
     // Load and parse CSV with threshold
-    const res = await axios.get(`http://localhost:8000/api/v1/csv/parse?path=${encodeURIComponent(pathToLoad)}&threshold=${debouncedThreshold}`)
+    const res = await axios.get(`/api/v1/csv/parse?path=${encodeURIComponent(pathToLoad)}&threshold=${debouncedThreshold}`)
     setTracks(res.data.tracks)
     setHasUnsavedChanges(false)
 
@@ -597,7 +597,7 @@ export default function CsvViewer({ onBack, initialCsv }: CsvViewerProps = {}) {
     if (!selectedCsv) return
 
     try {
-      await axios.post('http://localhost:8000/api/v1/csv/save', {
+      await axios.post('/api/v1/csv/save', {
         path: selectedCsv,
         tracks: tracks
       })
@@ -621,7 +621,7 @@ export default function CsvViewer({ onBack, initialCsv }: CsvViewerProps = {}) {
     if (!confirm) return
 
     try {
-      await axios.delete(`http://localhost:8000/api/v1/csv/discard-autosave?path=${encodeURIComponent(selectedCsv)}`)
+      await axios.delete(`/api/v1/csv/discard-autosave?path=${encodeURIComponent(selectedCsv)}`)
       await loadCsv(selectedCsv)
     } catch (error) {
       console.error('Discard failed:', error)
@@ -635,7 +635,7 @@ export default function CsvViewer({ onBack, initialCsv }: CsvViewerProps = {}) {
 
   const confirmDelete = async () => {
     try {
-      await axios.delete(`http://localhost:8000/api/v1/files/delete-csv?path=${encodeURIComponent(deleteConfirm.path)}`)
+      await axios.delete(`/api/v1/files/delete-csv?path=${encodeURIComponent(deleteConfirm.path)}`)
       await loadCsvList()
       if (selectedCsv === deleteConfirm.path) {
         setSelectedCsv(null)
@@ -668,7 +668,7 @@ export default function CsvViewer({ onBack, initialCsv }: CsvViewerProps = {}) {
 
     const performAutosave = async () => {
       try {
-        await axios.post('http://localhost:8000/api/v1/csv/autosave', {
+        await axios.post('/api/v1/csv/autosave', {
           path: selectedCsv,
           tracks: tracks
         })
@@ -765,7 +765,7 @@ export default function CsvViewer({ onBack, initialCsv }: CsvViewerProps = {}) {
         }
       })
 
-      const response = await axios.post('http://localhost:8000/api/v1/export/training-data', {
+      const response = await axios.post('/api/v1/export/training-data', {
         csv_path: selectedCsv,
         mp3_path: mp3Path,
         segments: segments

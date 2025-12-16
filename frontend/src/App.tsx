@@ -49,10 +49,10 @@ function HomePage({ onNavigate }: { onNavigate: (page: 'home' | 'csv' | 'calenda
   const [gpuAvailable, setGpuAvailable] = useState<boolean>(false)
 
   useEffect(() => {
-    axios.get('http://localhost:8000/health')
+    axios.get('/health')
       .then(res => {
         setStatus(`✅ Backend: ${res.data.status}`)
-        return axios.get('http://localhost:8000/')
+        return axios.get('/')
       })
       .then(res => {
         setGpuAvailable(res.data.gpu_available)

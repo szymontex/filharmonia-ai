@@ -35,7 +35,7 @@ export default function SortManager({ onBack }: SortManagerProps) {
   const handleScan = async () => {
     try {
       setScanning(true)
-      const response = await axios.get('http://localhost:8000/api/v1/sort/scan')
+      const response = await axios.get('/api/v1/sort/scan')
       setFiles(response.data.files)
       setStats({
         total: response.data.total,
@@ -76,7 +76,7 @@ export default function SortManager({ onBack }: SortManagerProps) {
       const filePaths = Array.from(selectedFiles)
       setSortProgress({ current: 0, total: filePaths.length })
 
-      const response = await axios.post('http://localhost:8000/api/v1/sort/execute', {
+      const response = await axios.post('/api/v1/sort/execute', {
         file_paths: filePaths
       })
 
@@ -111,7 +111,7 @@ export default function SortManager({ onBack }: SortManagerProps) {
     setSortSuccess({ show: false, moved: 0, duplicates: 0, renamed: 0, errors: 0, movedPaths: [] })
 
     try {
-      const response = await axios.post('http://localhost:8000/api/v1/analyze/batch', {
+      const response = await axios.post('/api/v1/analyze/batch', {
         mp3_paths: paths
       })
       setSuccessToast({
@@ -158,7 +158,7 @@ export default function SortManager({ onBack }: SortManagerProps) {
     setDeleteDuplicatesConfirm({ show: false, count: 0 })
 
     try {
-      const response = await axios.post('http://localhost:8000/api/v1/sort/delete-duplicates', {
+      const response = await axios.post('/api/v1/sort/delete-duplicates', {
         file_paths: duplicates.map(f => f.path)
       })
 
