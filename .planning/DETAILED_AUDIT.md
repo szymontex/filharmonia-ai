@@ -981,7 +981,493 @@ class Settings(BaseSettings):
 | MEDIUM | 6 | Dead code, bare except (×4), print→logging |
 | LOW | 3 | Magic numbers, wavesurfer migration, type hints |
 
-**Total: 25 specific issues with file:line references**
+---
+
+## EVEN MORE FINDINGS (Deeper Analysis)
+
+### 23. Training Service: Another Memory Leak
+
+**Location:** `backend/app/services/ast_training.py:72`
+
+```python
+class ASTTrainingService:
+    def __init__(self):
+        self.jobs: Dict[str, TrainingStatus] = {}  # ← GROWS FOREVER
+        self.active_threads: Dict[str, threading.Thread] = {}  # ← NEVER CLEANED
+        self.cancel_flags: Dict[str, bool] = {}  # ← NEVER CLEANED
+```
+
+**Same problem as analyze.py** — no cleanup of old jobs.
+
+---
+
+### 24. Training Runs in Daemon Thread — Dies Silently
+
+**Location:** `backend/app/services/ast_training.py:103-108`
+
+```python
+thread = threading.Thread(
+    target=self._train_model_background,
+    args=(job_id,),
+    daemon=True  # ← If main process exits, training DIES without saving!
+)
+```
+
+**Problem:** `daemon=True` means thread is killed when main process exits. Training could be 90% complete and lose everything.
+
+**FIX:**
+```python
+thread = threading.Thread(
+    target=self._train_model_background,
+    args=(job_id,),
+    daemon=False  # Keep alive until complete
+)
+
+# Add graceful shutdown handler
+import atexit
+atexit.register(self._wait_for_training_completion)
+```
+
+---
+
+### 25. More Bare Except in Training
+
+**Location:** `backend/app/services/ast_training.py:169-171`
+
+```python
+try:
+    info = torchaudio.info(str(wav_file))
+    duration = info.num_frames / info.sample_rate
+    chunk_count += int(duration / settings.FRAME_DURATION_SEC)
+except Exception as e:  # At least catches specific!
+    print(f"[Training {job_id}]   ERROR reading {wav_file.name}: {e}", flush=True)
+    chunk_count += 1
+```
+
+**Location:** `backend/app/services/ast_training.py:213-216`
+
+```python
+try:
+    os.link(str(wav_file), str(link_path))  # Hardlink
+except:
+    shutil.copy(str(wav_file), str(link_path))  # ← BARE EXCEPT
+```
+
+---
+
+### 26. Training Uses print() Extensively
+
+**Location:** `backend/app/services/ast_training.py` — 30+ print statements
+
+```python
+print(f"[Training {job_id}] [{datetime.now().strftime('%H:%M:%S')}] Starting dataset preparation...", flush=True)
+print(f"[Training {job_id}] Created temp folder: {dataset_folder}", flush=True)
+print(f"[Training {job_id}] Scanning {class_name}...", flush=True)
+# ... 30 more
+```
+
+**Fix:** Use logging module with training-specific logger.
+
+---
+
+### 27. Model Registry Uses print() for Errors
+
+**Location:** `backend/app/services/model_registry.py:38`, `145`
+
+```python
+except Exception as e:
+    print(f"Error loading metadata: {e}")  # ← LOST IN VOID
+    return {"active_model": None, "models": []}
+
+except Exception as e:
+    print(f"Error reading edited CSVs: {e}")  # ← LOST IN VOID
+    return False
+```
+
+**Fix:**
+```python
+import logging
+logger = logging.getLogger(__name__)
+
+except Exception as e:
+    logger.error(f"Error loading metadata: {e}")
+```
+
+---
+
+### 28. Worker Has Hardcoded /tmp Path
+
+**Location:** `backend/app/workers/analyze_worker.py:22`
+
+```python
+JOBS_DIR = Path("/tmp/filharmonia_jobs")  # ← HARDCODED LINUX PATH!
+```
+
+**Problem:** Doesn't work on Windows (no `/tmp/`).
+
+**FIX:**
+```python
+import tempfile
+JOBS_DIR = Path(tempfile.gettempdir()) / "filharmonia_jobs"
+```
+
+---
+
+### 29. Waveform API: No Path Validation
+
+**Location:** `backend/app/api/v1/waveform.py:23-26`
+
+```python
+@router.get("/data")
+async def get_waveform_data(path: str = Query(...)):
+    mp3_path = Path(path)  # ← NO VALIDATION!
+
+    if not mp3_path.exists():
+        raise HTTPException(404, f"File not found: {path}")
+```
+
+**Attack:** `GET /api/v1/waveform/data?path=/etc/passwd` — might reveal file existence
+
+**FIX:** Same path validation as other endpoints.
+
+---
+
+### 30. Waveform Generated On Every Request (No Cache)
+
+**Location:** `backend/app/api/v1/waveform.py:29-46`
+
+```python
+# Load audio (mono, lower sample rate for speed)
+y, sr = librosa.load(str(mp3_path), sr=8000, mono=True)  # ← EVERY REQUEST!
+
+# Calculate how many data points we need
+num_pixels = len(y) // samples_per_pixel
+
+# Generate min/max for each pixel
+data = []
+for i in range(num_pixels):  # ← SLOW LOOP EVERY TIME!
+```
+
+**Problem:** For 40-minute file, this takes 2-5 seconds EVERY time UI opens it.
+
+**FIX:**
+```python
+import hashlib
+from functools import lru_cache
+
+WAVEFORM_CACHE_DIR = Path(tempfile.gettempdir()) / "filharmonia_waveforms"
+
+def get_cache_path(mp3_path: Path, samples_per_pixel: int) -> Path:
+    """Generate cache path based on file content hash"""
+    stat = mp3_path.stat()
+    key = f"{mp3_path}:{stat.st_size}:{stat.st_mtime}:{samples_per_pixel}"
+    hash_key = hashlib.md5(key.encode()).hexdigest()
+    return WAVEFORM_CACHE_DIR / f"{hash_key}.json"
+
+@router.get("/data")
+async def get_waveform_data(path: str, samples_per_pixel: int = 512):
+    mp3_path = Path(path)
+    cache_path = get_cache_path(mp3_path, samples_per_pixel)
+
+    # Return cached if exists
+    if cache_path.exists():
+        return JSONResponse(json.loads(cache_path.read_text()))
+
+    # Generate and cache
+    data = generate_waveform(mp3_path, samples_per_pixel)
+    cache_path.parent.mkdir(exist_ok=True)
+    cache_path.write_text(json.dumps(data))
+    return JSONResponse(data)
+```
+
+---
+
+### 31. Export API: No Path Validation
+
+**Location:** `backend/app/api/v1/export.py:124-126`
+
+```python
+@router.post("/training-data")
+async def export_training_data(request: ExportRequest):
+    mp3_path = Path(request.mp3_path)  # ← NO VALIDATION
+    if not mp3_path.exists():
+        raise HTTPException(404, f"MP3 file not found: {mp3_path}")
+```
+
+**Same issue** — arbitrary file access possible.
+
+---
+
+### 32. Config: Settings Created at Import Time
+
+**Location:** `backend/app/config.py:27-28`
+
+```python
+# Ensure base directory exists
+FILHARMONIA_BASE.mkdir(parents=True, exist_ok=True)  # ← RUNS ON IMPORT!
+```
+
+**Problem:** Importing config module creates directories. Side effects on import are bad practice.
+
+**FIX:**
+```python
+class Settings(BaseSettings):
+    # Use Pydantic BaseSettings for proper lazy loading
+
+    @property
+    def FILHARMONIA_BASE(self) -> Path:
+        path = Path(os.getenv("FILHARMONIA_BASE_DIR", ...))
+        path.mkdir(parents=True, exist_ok=True)
+        return path
+```
+
+---
+
+### 33. Librosa Load Entire File to RAM
+
+**Location:** `backend/app/services/analyze.py:38`
+
+```python
+y, sr = librosa.load(str(mp3_path), sr=settings.SAMPLE_RATE)
+# For 40-minute file at 48kHz: 40*60*48000 = 115M samples × 4 bytes = 460 MB RAM!
+```
+
+**Location:** `backend/app/api/v1/export.py:133`
+
+```python
+y, sr = librosa.load(str(mp3_path), sr=44100, mono=False)
+# Same file, stereo: 460 MB × 2 channels = 920 MB RAM!
+```
+
+**Problem:** Multiple concurrent analyses could exhaust memory.
+
+**FIX (streaming):**
+```python
+import soundfile as sf
+
+# Stream audio in chunks
+with sf.SoundFile(str(mp3_path)) as audio:
+    sr = audio.samplerate
+    block_size = int(settings.FRAME_DURATION_SEC * sr)
+
+    for block in audio.blocks(blocksize=block_size):
+        # Process chunk, don't accumulate
+        prediction = model.predict(block)
+        writer.writerow([...])
+```
+
+---
+
+### 34. Settings Class Not Using Pydantic Properly
+
+**Location:** `backend/app/config.py:14-52`
+
+```python
+class Settings:  # ← Plain class, not BaseSettings!
+    FILHARMONIA_BASE: Path = Path(...)
+
+    # No validation, no .env support beyond manual load_dotenv
+    # No type coercion
+```
+
+**FIX:**
+```python
+from pydantic_settings import BaseSettings
+
+class Settings(BaseSettings):
+    FILHARMONIA_BASE_DIR: Path = Path.cwd() / "FILHARMONIA_DATA"
+
+    model_config = ConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+    )
+
+    @property
+    def SORTED_FOLDER(self) -> Path:
+        return self.FILHARMONIA_BASE_DIR / "SORTED"
+```
+
+---
+
+## FULL ISSUE COUNT (UPDATED)
+
+| Severity | Count | Examples |
+|----------|-------|----------|
+| CRITICAL | 7 | Path traversal (×5), memory leaks (×2), race condition |
+| HIGH | 14 | CSV double-read, N+1 query, hardcoded paths (×3), blocking I/O, daemon threads, waveform no cache |
+| MEDIUM | 10 | Bare except (×8), print→logging (×2) |
+| LOW | 4 | Magic numbers, wavesurfer, type hints, Settings class |
+
+---
+
+## FINAL FINDINGS
+
+### 35. Shutdown Uses print() Not Logging
+
+**Location:** `backend/app/main.py:12-28`
+
+```python
+print("🔄 Graceful shutdown: marking active analysis jobs as interrupted...")
+# ...
+print(f"  ⚠️  Batch job {job_id[:8]} interrupted")
+print("✓ Shutdown complete")
+```
+
+**FIX:** Use logging.info()
+
+---
+
+### 36. Debug console.log Left in Production Code
+
+**Location:** `frontend/src/pages/UncertaintyReview.tsx:67-68`
+
+```typescript
+useEffect(() => {
+  console.log('[UncertaintyReview] Zoom changed to:', zoom)  // ← DEBUG LEFT IN!
+}, [zoom])
+```
+
+**Location:** `frontend/src/pages/UncertaintyReview.tsx:172`
+
+```typescript
+console.log('[UncertaintyReview] loadWaveform triggered for segment:', ...)  // ← DEBUG!
+```
+
+**FIX:** Remove or use conditional debug flag.
+
+---
+
+### 37. Duplicated Wheel Zoom Logic
+
+**Location:** `frontend/src/pages/UncertaintyReview.tsx:115-166` and `frontend/src/components/StickyPlayer.tsx:86-141`
+
+Same 50+ lines of wheel zoom handler copy-pasted between components.
+
+**FIX:**
+```typescript
+// hooks/useWheelZoom.ts
+export function useWheelZoom(canvasRef: RefObject<HTMLCanvasElement>, scrollContainerRef: RefObject<HTMLDivElement>) {
+  const [zoom, setZoom] = useState(1)
+
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+
+    const handleWheel = (e: WheelEvent) => {
+      // ... unified logic
+    }
+
+    canvas.addEventListener('wheel', handleWheel, { passive: false })
+    return () => canvas.removeEventListener('wheel', handleWheel)
+  }, [zoom])
+
+  return { zoom, setZoom }
+}
+```
+
+---
+
+### 38. Hardcoded Frame Duration in Frontend
+
+**Location:** `frontend/src/pages/UncertaintyReview.tsx:185`
+
+```typescript
+const segmentEndSec = segmentStartSec + 2.97  // FRAME_DURATION_SEC ← HARDCODED!
+```
+
+**Problem:** If backend changes FRAME_DURATION_SEC, frontend breaks.
+
+**FIX:** Get from API or environment variable.
+
+---
+
+### 39. No Global Error Handler
+
+**Location:** `backend/app/main.py` — missing
+
+**Problem:** Unhandled exceptions return ugly 500 errors without error IDs for debugging.
+
+**FIX:**
+```python
+from fastapi import Request
+from fastapi.responses import JSONResponse
+import uuid
+import logging
+
+logger = logging.getLogger(__name__)
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    error_id = str(uuid.uuid4())[:8]
+    logger.error(f"[{error_id}] Unhandled exception: {exc}", exc_info=True)
+
+    return JSONResponse(
+        status_code=500,
+        content={
+            "status": "error",
+            "message": "Internal server error",
+            "error_id": error_id,
+            "detail": str(exc) if settings.DEBUG else None
+        }
+    )
+```
+
+---
+
+### 40. No Request Logging/Tracing
+
+**Location:** `backend/app/main.py` — missing
+
+**Problem:** No way to track which requests are slow or failing.
+
+**FIX:**
+```python
+import time
+from fastapi import Request
+
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    start = time.time()
+    response = await call_next(request)
+    duration = time.time() - start
+
+    logger.info(
+        f"{request.method} {request.url.path} "
+        f"status={response.status_code} "
+        f"duration={duration:.3f}s"
+    )
+    return response
+```
+
+---
+
+## COMPLETE ISSUE SUMMARY
+
+| Severity | Count | Key Issues |
+|----------|-------|------------|
+| **CRITICAL** | 7 | Path traversal (×5), memory leaks (×2), race condition |
+| **HIGH** | 16 | CSV double-read, N+1 query, hardcoded paths (×3), blocking I/O, zombie processes, daemon threads, waveform no cache, no error handler |
+| **MEDIUM** | 12 | Bare except (×8), print→logging (×4) |
+| **LOW** | 5 | Magic numbers, type hints, debug console.log, duplicated code, Settings class |
+
+**Total: 40 specific issues with file:line references**
+
+---
+
+## TOP 10 HIGHEST IMPACT FIXES
+
+| # | Issue | Impact | Effort |
+|---|-------|--------|--------|
+| 1 | **Path traversal fixes** | Security | 30min |
+| 2 | **pandas → Polars** | 5-30x CSV speedup | 2-4h |
+| 3 | **Waveform caching** | 2-5s → instant UI | 1-2h |
+| 4 | **Memory leak fixes** | Stability | 1h |
+| 5 | **Hardcoded path elimination** | Cross-platform | 1h |
+| 6 | **CsvViewer split** | Maintainability | 4-6h |
+| 7 | **Global error handler** | Debugging | 30min |
+| 8 | **Logging infrastructure** | Debugging | 1h |
+| 9 | **Bare except cleanup** | Debugging | 2h |
+| 10 | **Polling → exponential backoff** | 90% fewer API calls | 1h |
 
 ---
 
