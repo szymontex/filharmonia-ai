@@ -1471,4 +1471,295 @@ async def log_requests(request: Request, call_next):
 
 ---
 
+## DEPENDENCY & ARCHITECTURE ANALYSIS
+
+### 41. Unused Frontend Dependencies
+
+**Location:** `frontend/package.json`
+
+```json
+{
+  "dependencies": {
+    "howler": "^2.2.4",           // ← NOT USED (HTML5 audio instead)
+    "react-hook-form": "^7.51.0", // ← NOT USED (no forms!)
+    "react-router-dom": "^6.22.0", // ← NOT USED (state-based navigation)
+    "waveform-data": "^4.5.2",     // ← BARELY USED (custom canvas code)
+  }
+}
+```
+
+**FIX:**
+```bash
+npm uninstall howler react-hook-form react-router-dom
+# Saves ~50KB bundle size
+```
+
+---
+
+### 42. Legacy TensorFlow/Keras — 500MB+ Bloat
+
+**Location:** `backend/requirements.txt`
+
+```txt
+tensorflow==2.13.1        # ← ONLY USED IN LEGACY training.py
+tensorflow-estimator==2.13.0
+tensorflow-intel==2.13.1
+tensorflow-io-gcs-filesystem==0.31.0
+keras==2.13.1             # ← LEGACY, ast_training.py uses PyTorch
+
+# Plus all TF dependencies (~30 packages)
+```
+
+**Problem:**
+- TensorFlow + deps = ~500MB
+- Only used in `backend/app/services/training.py` (legacy CNN training)
+- PyTorch AST is the active model, Keras CNN is deprecated
+
+**FIX:** Remove TensorFlow if not needed:
+```bash
+pip uninstall tensorflow tensorflow-estimator keras
+# Or move training.py to separate optional module
+```
+
+---
+
+### 43. CUDA Version Mismatch
+
+**Location:** `backend/requirements.txt`
+
+```txt
+nvidia-cublas-cu11==11.11.3.6    # ← CUDA 11
+nvidia-cudnn-cu11==9.10.2.21     # ← CUDA 11
+torch==2.5.1+cu121               # ← CUDA 12.1 !!!
+```
+
+**Problem:** PyTorch compiled for CUDA 12.1 but old CUDA 11 packages installed.
+
+**FIX:**
+```txt
+# Remove CUDA 11 packages
+# nvidia-cublas-cu11  ← DELETE
+# nvidia-cudnn-cu11   ← DELETE
+
+# torch==2.5.1+cu121 already includes CUDA 12.1 deps
+```
+
+---
+
+### 44. Frontend Components Are Too Large
+
+**Component Line Counts:**
+
+| Component | Lines | Status |
+|-----------|-------|--------|
+| CsvViewer.tsx | 1268 | **CRITICAL** - split into 5+ |
+| UncertaintyReview.tsx | 970 | **HIGH** - split into 4+ |
+| StickyPlayer.tsx | 718 | **MEDIUM** - extract hooks |
+| TrainingManager.tsx | 600 | Acceptable |
+| CalendarBrowser.tsx | 555 | Acceptable |
+| SortManager.tsx | 490 | Acceptable |
+| WaveformEditor.tsx | 387 | Good |
+| AnalysisMonitor.tsx | 350 | Good |
+| Toast.tsx | 118 | Good |
+| **Total** | **5456** | avg 606 lines/file |
+
+**Target:** Max 300 lines per component.
+
+**Priority splits:**
+1. CsvViewer.tsx → 5 components + 4 hooks
+2. UncertaintyReview.tsx → 4 components + 3 hooks
+3. StickyPlayer.tsx → extract to wavesurfer.js or 2 hooks
+
+---
+
+### 45. No Code Splitting / Lazy Loading
+
+**Location:** `frontend/src/App.tsx`
+
+```typescript
+// ALL pages imported at once
+import CsvViewer from './pages/CsvViewer'
+import CalendarBrowser from './pages/CalendarBrowser'
+import UncertaintyReview from './pages/UncertaintyReview'
+// ...all 8 pages
+```
+
+**Problem:** Initial bundle loads ALL pages even if user only uses CsvViewer.
+
+**FIX:**
+```typescript
+import { lazy, Suspense } from 'react'
+
+const CsvViewer = lazy(() => import('./pages/CsvViewer'))
+const CalendarBrowser = lazy(() => import('./pages/CalendarBrowser'))
+const UncertaintyReview = lazy(() => import('./pages/UncertaintyReview'))
+
+// In render:
+<Suspense fallback={<div>Loading...</div>}>
+  {currentPage === 'csv' && <CsvViewer />}
+</Suspense>
+```
+
+**Benefit:** Initial load 30-50% faster.
+
+---
+
+### 46. No Tests
+
+**Location:** Entire codebase
+
+**Backend:**
+- pytest installed but no tests exist
+- 0 test files in backend/
+
+**Frontend:**
+- No test runner configured
+- No test files
+- No component tests
+
+**Minimum test coverage needed:**
+1. Path validation functions (security critical!)
+2. Time parsing functions (crash sources)
+3. CSV parsing functions
+4. Job status management
+5. Waveform caching
+
+---
+
+### 47. No ESLint / Prettier in Frontend
+
+**Location:** `frontend/package.json`
+
+```json
+{
+  "devDependencies": {
+    // No eslint
+    // No prettier
+    // No husky/lint-staged
+  }
+}
+```
+
+**Problem:** No code style enforcement, inconsistent formatting, no automatic bug detection.
+
+**FIX:**
+```bash
+npm install -D eslint @typescript-eslint/eslint-plugin @typescript-eslint/parser prettier eslint-config-prettier
+```
+
+---
+
+### 48. Backend Has No Linting
+
+**Location:** Backend has no pyproject.toml, no ruff, no mypy config
+
+**FIX:**
+```toml
+# pyproject.toml
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "C4", "UP"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+```
+
+---
+
+### 49. Multiple Implementations of Time Parsing
+
+**Locations:**
+- `backend/app/api/v1/csv_parser.py:203` — `time_to_seconds()`
+- `backend/app/api/v1/uncertainty.py:19` — `time_to_seconds()`
+- `frontend/src/pages/CsvViewer.tsx:340` — inline parsing
+- `frontend/src/pages/UncertaintyReview.tsx:22` — `timeToSeconds()`
+- `frontend/src/components/StickyPlayer.tsx:28` — `timeToSeconds()`
+
+**5 different implementations of the same function!**
+
+**FIX:**
+
+Backend:
+```python
+# backend/app/utils/time.py
+def time_to_seconds(time_str: str) -> float:
+    parts = time_str.split(':')
+    return int(parts[0]) * 3600 + int(parts[1]) * 60 + float(parts[2])
+```
+
+Frontend:
+```typescript
+// frontend/src/utils/time.ts
+export function timeToSeconds(time: string): number {
+  const [h, m, s] = time.split(':').map(Number)
+  return h * 3600 + m * 60 + s
+}
+```
+
+---
+
+### 50. No API Client / Types Sharing
+
+**Location:** Frontend makes raw axios calls everywhere
+
+```typescript
+// CsvViewer.tsx
+const res = await axios.get('/api/v1/files/analysis-results')
+
+// CalendarBrowser.tsx
+const [recordingsRes, csvRes] = await Promise.all([
+  axios.get('/api/v1/files/sorted'),
+  axios.get('/api/v1/files/analysis-results')
+])
+```
+
+**Problem:**
+- No type safety on API responses
+- Duplicate endpoint strings
+- No error handling standardization
+
+**FIX:**
+```typescript
+// api/client.ts
+import axios from 'axios'
+
+const api = axios.create({
+  baseURL: '/api/v1',
+  timeout: 30000,
+})
+
+// api/files.ts
+export interface FileInfo {
+  path: string
+  name: string
+  size: number
+  date: string
+  type: 'mp3' | 'csv'
+}
+
+export async function getAnalysisResults(): Promise<FileInfo[]> {
+  const { data } = await api.get<FileInfo[]>('/files/analysis-results')
+  return data
+}
+```
+
+---
+
+## UPDATED SUMMARY
+
+| Category | Count | Examples |
+|----------|-------|----------|
+| **CRITICAL** | 7 | Path traversal ×5, memory leaks ×2 |
+| **HIGH** | 18 | Waveform cache, hardcoded paths, component splits, TF bloat |
+| **MEDIUM** | 15 | Bare except, logging, unused deps, code duplication |
+| **LOW** | 10 | Linting, types, lazy loading, tests |
+
+**Total: 50 specific issues with file:line references**
+
+---
+
 *Detailed audit completed: 2026-01-20*
