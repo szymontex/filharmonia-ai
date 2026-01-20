@@ -1,9 +1,10 @@
 # Requirements: Filharmonia AI
 
 **Defined:** 2026-01-20
-**Core Value:** Zamiast ręcznie słuchać ~6-8h nagrań/tyg, AI robi to za ciebie.
+**Updated:** 2026-01-21 for v0.9 milestone
+**Core Value:** Zamiast reczenie sluchac ~6-8h nagran/tyg, AI robi to za ciebie.
 
-## v1 Requirements
+## v0.9 Requirements
 
 Based on deep code audit and technology review. Each requirement references specific code location.
 
@@ -36,7 +37,7 @@ Based on deep code audit and technology review. Each requirement references spec
 - [ ] **PERF-04**: Add waveform caching — pre-generate during analysis, cache to filesystem
 - [ ] **PERF-05**: Replace polling (2s interval) with exponential backoff — `CsvViewer.tsx:62-80`
 
-### HIGH — Technology Migration: pandas → Polars
+### HIGH — Technology Migration: pandas to Polars
 
 - [ ] **TECH-01**: Install polars: `pip install polars`
 - [ ] **TECH-02**: Migrate `csv_parser.py` from pandas to polars (5-30x faster CSV)
@@ -110,7 +111,7 @@ Based on deep code audit and technology review. Each requirement references spec
 
 ### LOW — Frontend Upgrades (Optional)
 
-- [ ] **FRONT-01**: Upgrade React 18 → React 19
+- [ ] **FRONT-01**: Upgrade React 18 to React 19
 - [ ] **FRONT-02**: Consider wavesurfer.js migration for better waveform UX
 - [ ] **FRONT-03**: Add confidence threshold auto-tuning (dynamic instead of hardcoded 0.7)
 
@@ -126,20 +127,85 @@ Based on deep code audit and technology review. Each requirement references spec
 
 | Feature | Reason |
 |---------|--------|
-| FastAPI → Litestar migration | Bottleneck is audio I/O, not API layer |
-| AST → FastAST migration | Requires retraining, current accuracy is fine |
+| FastAPI to Litestar migration | Bottleneck is audio I/O, not API layer |
+| AST to FastAST migration | Requires retraining, current accuracy is fine |
 | PostgreSQL migration | SQLite sufficient for single-user |
 | Authentication | Local tool, trusted network |
 
 ## Traceability
 
-| Category | Requirements | Priority |
-|----------|--------------|----------|
-| CRITICAL (security, memory, crashes) | 15 | Must fix |
-| HIGH (performance, paths, components) | 21 | Should fix |
-| MEDIUM (cleanup, UX, infra) | 17 | Nice to fix |
-| LOW (GPU, frontend) | 9 | Optional |
-| **Total** | **62** | |
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| CRIT-01 | 1 | Pending |
+| CRIT-02 | 1 | Pending |
+| CRIT-03 | 1 | Pending |
+| CRIT-04 | 1 | Pending |
+| CRIT-05 | 1 | Pending |
+| CRIT-06 | 1 | Pending |
+| CRIT-07 | 1 | Pending |
+| CRIT-08 | 1 | Pending |
+| CRIT-09 | 1 | Pending |
+| CRIT-10 | 1 | Pending |
+| CRIT-11 | 3 | Pending |
+| CRIT-12 | 3 | Pending |
+| CRIT-13 | 3 | Pending |
+| CRIT-14 | 3 | Pending |
+| CRIT-15 | 3 | Pending |
+| PERF-01 | 4 | Pending |
+| PERF-02 | 4 | Pending |
+| PERF-03 | 4 | Pending |
+| PERF-04 | 4 | Pending |
+| PERF-05 | 3 | Pending |
+| TECH-01 | 4 | Pending |
+| TECH-02 | 4 | Pending |
+| TECH-03 | 4 | Pending |
+| TECH-04 | 4 | Pending |
+| TECH-05 | 4 | Pending |
+| PATH-01 | 1 | Pending |
+| PATH-02 | 1 | Pending |
+| PATH-03 | 1 | Pending |
+| PATH-04 | 1 | Pending |
+| PATH-05 | 1 | Pending |
+| PATH-06 | 1 | Pending |
+| COMP-01 | 5 | Pending |
+| COMP-02 | 5 | Pending |
+| COMP-03 | 5 | Pending |
+| COMP-04 | 5 | Pending |
+| COMP-05 | 5 | Pending |
+| TYPE-01 | 1 | Pending |
+| TYPE-02 | 1 | Pending |
+| TYPE-03 | 1 | Pending |
+| TYPE-04 | 1 | Pending |
+| CLEAN-01 | 5 | Pending |
+| CLEAN-02 | 5 | Pending |
+| CLEAN-03 | 5 | Pending |
+| CLEAN-04 | 2 | Pending |
+| CLEAN-05 | 2 | Pending |
+| CLEAN-06 | 5 | Pending |
+| UX-01 | 2 | Pending |
+| UX-02 | 2 | Pending |
+| UX-03 | 2 | Pending |
+| UX-04 | 2 | Pending |
+| UX-05 | 2 | Pending |
+| UX-06 | 2 | Pending |
+| UX-07 | 2 | Pending |
+| INFRA-01 | 3 | Pending |
+| INFRA-02 | 3 | Pending |
+| INFRA-03 | 3 | Pending |
+| INFRA-04 | 1 | Pending |
+| INFRA-05 | 1 | Pending |
+| GPU-01 | 6 | Pending |
+| GPU-02 | 6 | Pending |
+| GPU-03 | 6 | Pending |
+| GPU-04 | 6 | Pending |
+| GPU-05 | 6 | Pending |
+| GPU-06 | 6 | Pending |
+| FRONT-01 | 6 | Pending |
+| FRONT-02 | 6 | Pending |
+| FRONT-03 | 6 | Pending |
+
+**Coverage:** 62/62 requirements mapped to phases
 
 ---
 *Requirements defined: 2026-01-20 after deep code audit*
+*Traceability added: 2026-01-21 with roadmap creation*

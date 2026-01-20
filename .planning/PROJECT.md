@@ -8,6 +8,17 @@ Narzędzie do automatycznej analizy nagrań koncertowych. Wrzucasz MP3 z koncert
 
 **Zamiast ręcznie słuchać ~6-8h nagrań tygodniowo i spisywać czasy, AI robi to za ciebie.** Wszystko inne może być uproszczone — ta automatyzacja musi działać.
 
+## Current Milestone: v0.9 — Polish & Stability
+
+**Goal:** Make the existing tool production-ready: fix security issues, improve performance, enable cross-platform deployment, and polish the UX.
+
+**Target features:**
+- Security hardening (path traversal prevention, proper error handling)
+- Performance improvements (pandas→Polars, waveform caching)
+- Cross-platform paths (eliminate hardcoded Windows paths)
+- Component refactoring (split 1268-line CsvViewer)
+- UX polish (keyboard shortcuts, undo, better feedback)
+
 ## Requirements
 
 ### Validated
@@ -104,4 +115,4 @@ Narzędzie do automatycznej analizy nagrań koncertowych. Wrzucasz MP3 z koncert
 | Brownfield improvement | Istniejący kod działa, refactor > rewrite | — Pending |
 
 ---
-*Last updated: 2026-01-20 after initialization*
+*Last updated: 2026-01-21 after v0.9 milestone start*
