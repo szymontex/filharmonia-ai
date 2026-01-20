@@ -1758,8 +1758,295 @@ export async function getAnalysisResults(): Promise<FileInfo[]> {
 | **MEDIUM** | 15 | Bare except, logging, unused deps, code duplication |
 | **LOW** | 10 | Linting, types, lazy loading, tests |
 
-**Total: 50 specific issues with file:line references**
+---
+
+## FINAL BATCH: Security, Accessibility, Performance
+
+### 51. ANOTHER Delete Endpoint Without Path Validation
+
+**Location:** `backend/app/api/v1/sort.py:79-106`
+
+```python
+@router.post("/delete-duplicates")
+async def delete_duplicates(request: DeleteDuplicatesRequest):
+    for file_path in request.file_paths:
+        if os.path.exists(file_path):
+            os.remove(file_path)  # ← DELETES ANY FILE!
+```
+
+**Attack:** POST with `file_paths: ["/etc/passwd", "/boot/vmlinuz"]` → deletes system files
+
+**Total path traversal vulnerabilities: 6**
+
+---
+
+### 52. Audio Stream Has No Path Validation
+
+**Location:** `backend/app/api/v1/audio.py:21-24`
+
+```python
+@router.get("/stream")
+async def stream_audio(path: str = Query(...)):
+    mp3_path = Path(path)  # ← NO VALIDATION
+    if not mp3_path.exists():
+        raise HTTPException(404, f"File not found: {path}")
+```
+
+**Total endpoints without path validation: 7**
+
+---
+
+### 53. Zero Accessibility (a11y)
+
+**Location:** Entire frontend
+
+```
+aria-* attributes: 0
+role= attributes: 0
+tabIndex attributes: 0
+onKeyDown handlers: 0 (except wheel zoom)
+```
+
+**Problems:**
+- Screen readers cannot navigate
+- Keyboard-only users blocked
+- Not WCAG compliant
+
+**Minimum fixes needed:**
+```tsx
+// Buttons need labels
+<button aria-label="Play segment" onClick={...}>▶</button>
+
+// Interactive elements need keyboard support
+<div
+  role="button"
+  tabIndex={0}
+  onKeyDown={(e) => e.key === 'Enter' && handleClick()}
+>
+
+// Tables need headers
+<table role="grid" aria-label="Tracks">
+  <thead><tr><th scope="col">Time</th></tr></thead>
+```
+
+---
+
+### 54. Bare Except in Sort Service
+
+**Location:** `backend/app/services/sort.py:88-95`
+
+```python
+except Exception as e:
+    new_files.append({
+        'path': path,
+        'status': 'error',
+        'error': str(e)  # At least captures error, but too broad
+    })
+```
+
+**Total bare/broad except blocks: 12**
+
+---
+
+### 55. os.walk on Network Drive Can Be Slow
+
+**Location:** `backend/app/services/sort.py:25-28`
+
+```python
+for root, dirs, files in os.walk(self.source_folder):
+    # This scans ENTIRE folder tree synchronously
+    # On network drive = minutes of blocking
+```
+
+**FIX:**
+```python
+# Use async with aiofiles or run in executor
+import asyncio
+loop = asyncio.get_event_loop()
+files = await loop.run_in_executor(None, self._scan_sync)
+```
+
+---
+
+### 56. No Rate Limiting
+
+**Location:** `backend/app/main.py` — missing
+
+**Problem:** Any endpoint can be called unlimited times. DoS attack trivial.
+
+**FIX:**
+```python
+from slowapi import Limiter
+from slowapi.util import get_remote_address
+
+limiter = Limiter(key_func=get_remote_address)
+app.state.limiter = limiter
+
+@app.get("/api/v1/files/sorted")
+@limiter.limit("60/minute")
+async def list_sorted_files(request: Request):
+    ...
+```
+
+---
+
+### 57. No Health Check for Dependencies
+
+**Location:** `backend/app/main.py:75-77`
+
+```python
+@app.get("/health")
+async def health():
+    return {"status": "healthy"}  # ← Always returns healthy!
+```
+
+**Problem:** Doesn't check if model loaded, GPU available, disk space, etc.
+
+**FIX:**
+```python
+@app.get("/health")
+async def health():
+    checks = {
+        "api": "healthy",
+        "gpu": "available" if torch.cuda.is_available() else "unavailable",
+        "model": "loaded" if _service and _service.model else "not_loaded",
+        "disk_space": "ok" if shutil.disk_usage("/").free > 1e9 else "low",
+    }
+    status = "healthy" if all(v in ("healthy", "available", "loaded", "ok") for v in checks.values()) else "degraded"
+    return {"status": status, "checks": checks}
+```
+
+---
+
+### 58. No Graceful Degradation for GPU
+
+**Location:** `backend/app/services/ast_inference.py:26`
+
+```python
+self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+# Set once at init, never rechecked
+```
+
+**Problem:** If GPU becomes unavailable (driver crash, OOM), inference fails completely.
+
+**FIX:**
+```python
+def get_device(self) -> torch.device:
+    """Get best available device, with fallback"""
+    try:
+        if torch.cuda.is_available():
+            # Test that CUDA actually works
+            torch.zeros(1).cuda()
+            return torch.device('cuda')
+    except RuntimeError as e:
+        logger.warning(f"CUDA unavailable: {e}, falling back to CPU")
+    return torch.device('cpu')
+```
+
+---
+
+### 59. Frontend Has No Error Boundaries
+
+**Location:** `frontend/src/App.tsx` — missing
+
+**Problem:** Any component crash kills entire app with white screen.
+
+**FIX:**
+```tsx
+import { ErrorBoundary } from 'react-error-boundary'
+
+function ErrorFallback({ error, resetErrorBoundary }) {
+  return (
+    <div role="alert">
+      <p>Something went wrong:</p>
+      <pre>{error.message}</pre>
+      <button onClick={resetErrorBoundary}>Try again</button>
+    </div>
+  )
+}
+
+<ErrorBoundary FallbackComponent={ErrorFallback}>
+  <App />
+</ErrorBoundary>
+```
+
+---
+
+### 60. No Loading States for Async Operations
+
+**Location:** Multiple components
+
+```tsx
+// CsvViewer.tsx - loading state exists but not always shown
+const [loading, setLoading] = useState(false)
+
+// But many operations don't set loading:
+const handleExport = async () => {
+  // setLoading(true) ← MISSING
+  await axios.post('/api/v1/export/training-data', ...)
+  // setLoading(false) ← MISSING
+}
+```
+
+**User sees: Frozen UI, no feedback that something is happening.**
+
+---
+
+## COMPLETE AUDIT STATISTICS
+
+### By Category
+
+| Category | Count |
+|----------|-------|
+| **Security** | 8 (path traversal ×7, no rate limiting) |
+| **Memory/Stability** | 5 (leaks, zombies, race conditions) |
+| **Performance** | 12 (caching, queries, blocking I/O) |
+| **Architecture** | 10 (component size, dependencies, patterns) |
+| **Code Quality** | 15 (bare except, logging, duplication) |
+| **DX/Tooling** | 5 (linting, tests, types) |
+| **Accessibility** | 3 (keyboard, screen readers, WCAG) |
+| **UX** | 2 (error boundaries, loading states) |
+
+### By Severity
+
+| Severity | Count | Action |
+|----------|-------|--------|
+| **CRITICAL** | 8 | Fix before any deployment |
+| **HIGH** | 20 | Fix in v1 |
+| **MEDIUM** | 18 | Fix in v1 if time |
+| **LOW** | 14 | Nice to have |
+
+**Total: 60 specific issues with file:line references**
+
+---
+
+## RECOMMENDED FIX ORDER
+
+### Week 1: Security & Stability
+1. Path validation on ALL 7 endpoints (CRITICAL)
+2. Memory leak fixes (CRITICAL)
+3. Global error handler + logging (HIGH)
+4. Waveform caching (HIGH)
+
+### Week 2: Performance
+5. pandas → Polars migration (HIGH)
+6. CSV double-read fixes (HIGH)
+7. Polling → exponential backoff (MEDIUM)
+8. Remove TensorFlow bloat (MEDIUM)
+
+### Week 3: Architecture
+9. CsvViewer.tsx split (HIGH)
+10. Extract shared hooks (MEDIUM)
+11. Add API client layer (MEDIUM)
+12. Code splitting / lazy loading (LOW)
+
+### Week 4: Quality & Polish
+13. Bare except cleanup (MEDIUM)
+14. Add logging throughout (MEDIUM)
+15. Add ESLint + Prettier (LOW)
+16. Basic test coverage (LOW)
 
 ---
 
 *Detailed audit completed: 2026-01-20*
+*60 issues identified across 8 categories*
