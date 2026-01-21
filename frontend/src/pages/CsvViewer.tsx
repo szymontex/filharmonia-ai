@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import axios from 'axios'
 import { CLASS_COLORS } from '../constants/colors'
 import StickyPlayer from '../components/StickyPlayer'
 import Toast from '../components/Toast'
+import { useExponentialPolling } from '../hooks/useExponentialPolling'
 
 interface Track {
   id: string
@@ -53,34 +54,48 @@ export default function CsvViewer({ onBack, initialCsv }: CsvViewerProps = {}) {
   const [threshold, setThreshold] = useState(5)  // Threshold for noise filtering
   const [debouncedThreshold, setDebouncedThreshold] = useState(5)  // Debounced threshold for API calls
 
+  // Fetch function for exponential backoff polling
+  const fetchAnalysisStatus = useCallback(async () => {
+    const response = await axios.get('/api/v1/analyze/batch')
+    const runningJobs = response.data.filter((job: any) => job.status === 'running')
+
+    const newAnalyzingFiles = new Map<string, number>()
+    for (const job of runningJobs) {
+      const detailRes = await axios.get(`/api/v1/analyze/batch/${job.job_id}`)
+      if (detailRes.data.current_file) {
+        newAnalyzingFiles.set(detailRes.data.current_file, detailRes.data.current_file_progress || 0)
+      }
+    }
+
+    return { runningJobs, analyzingFiles: newAnalyzingFiles }
+  }, [])
+
+  // Exponential backoff polling for analysis jobs
+  const { data: analysisData, startPolling, stopPolling } = useExponentialPolling(
+    fetchAnalysisStatus,
+    {
+      initialInterval: 1000,   // Start at 1 second
+      maxInterval: 10000,      // Max 10 seconds
+      multiplier: 1.5,         // 1s -> 1.5s -> 2.25s -> 3.4s -> 5s -> 7.5s -> 10s
+      resetOnChange: true      // Reset to fast when status changes
+    }
+  )
+
+  // Update analyzingFiles when polling data changes
+  useEffect(() => {
+    if (analysisData?.analyzingFiles) {
+      setAnalyzingFiles(analysisData.analyzingFiles)
+    }
+  }, [analysisData])
+
+  // Load initial data and start polling on mount
   useEffect(() => {
     loadCsvList()
     loadEditedList()
     loadCsvsWithExports()
-
-    // Poll for active analysis jobs every 2 seconds
-    const interval = setInterval(async () => {
-      try {
-        const response = await axios.get('/api/v1/analyze/batch')
-        const runningJobs = response.data.filter((job: any) => job.status === 'running')
-
-        const newAnalyzingFiles = new Map<string, number>()
-        for (const job of runningJobs) {
-          // Fetch detailed status to get current file
-          const detailRes = await axios.get(`/api/v1/analyze/batch/${job.job_id}`)
-          if (detailRes.data.current_file) {
-            newAnalyzingFiles.set(detailRes.data.current_file, detailRes.data.current_file_progress || 0)
-          }
-        }
-
-        setAnalyzingFiles(newAnalyzingFiles)
-      } catch (error) {
-        console.error('Error fetching analysis status:', error)
-      }
-    }, 2000)
-
-    return () => clearInterval(interval)
-  }, [])
+    startPolling()
+    return () => stopPolling()
+  }, [startPolling, stopPolling])
 
   const loadEditedList = async () => {
     try {
