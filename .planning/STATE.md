@@ -2,12 +2,12 @@
 
 ## Current Position
 
-**Phase:** 2 of 6 — Core UX Polish (next)
+**Phase:** 3 of 6 — Backend Stability
 **Previous:** Phase 1 Foundation Stability ✓ Complete
-**Status:** Ready for planning
-**Progress:** [█░░░░░░░░░] 1/6 phases complete
+**Status:** In progress
+**Progress:** [██░░░░░░░░] 2/6 phases complete (03-02: 2/4 plans)
 
-**Last activity:** 2026-01-21 — Phase 1 verified and complete
+**Last activity:** 2026-01-21 — Completed 03-02-PLAN.md (Memory Leak & Race Condition Fixes)
 
 ## Project Reference
 
@@ -15,7 +15,16 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 
 **Core value:** Zamiast reczenie sluchac ~6-8h nagran/tyg, AI robi to za ciebie.
 **Current focus:** v0.9 — Polish & Stability
-**Next phase goal:** Users can efficiently edit audio classifications with keyboard shortcuts and undo mistakes.
+**Next phase goal:** Backend memory and I/O stability - no leaks, atomic writes, proper caching.
+
+## Phase 3 Progress
+
+| Plan | Name | Status | Commit |
+|------|------|--------|--------|
+| 03-01 | SQLite Job Registry | Pending | - |
+| 03-02 | Memory Leak & Race Condition Fixes | Complete | c03d39f, 185dc73 |
+| 03-03 | Resource Cleanup | Pending | - |
+| 03-04 | Frontend Polling Optimization | Complete | (external) |
 
 ## Phase 1 Success Criteria
 
@@ -61,6 +70,8 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 - 8-character UUID prefix for error_id correlation
 - CalendarBrowser extracts SORTED base from recording.path via regex (no API call needed)
 - UncertaintyReview uses regex split for cross-platform path parsing
+- TTLCache for job dicts: 1h/100 for single jobs, 4h/50 for batch jobs
+- Atomic write pattern: temp file + os.replace (works on Unix and Windows)
 
 ### Research Completed (2026-01-20)
 - .planning/research/STACK.md — PyTorch/torchaudio recommendations
@@ -82,6 +93,7 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 - .planning/phases/01-foundation-stability/01-05-SUMMARY.md — MP3 path resolution endpoint
 - .planning/phases/01-foundation-stability/01-06-SUMMARY.md — Remove hardcoded paths
 - .planning/phases/01-foundation-stability/01-07-SUMMARY.md — Audio backend startup validation
+- .planning/phases/03-backend-stability/03-02-SUMMARY.md — Memory leak & race condition fixes
 
 ### Blockers
 (None)
@@ -89,6 +101,7 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 ### TODOs
 - [x] Execute Phase 1 plans - COMPLETE (7/7)
 - [x] Verify Phase 1 goal achievement - PASSED
+- [ ] Execute Phase 3 plans - IN PROGRESS (2/4)
 - [ ] Plan Phase 2: Core UX Polish
 
 ### Open Questions
@@ -97,14 +110,14 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 ## Session Continuity
 
 **Last session:** 2026-01-21
-**Stopped at:** Completed Phase 1 (all 7 plans)
+**Stopped at:** Completed 03-02-PLAN.md
 **Resume file:** None
 
 **If context is lost, read these files in order:**
 1. .planning/PROJECT.md — Core value and constraints
 2. .planning/ROADMAP.md — Phase structure and requirements
 3. .planning/STATE.md — Current position (this file)
-4. .planning/phases/01-foundation-stability/01-06-SUMMARY.md — Last completed plan
+4. .planning/phases/03-backend-stability/03-02-SUMMARY.md — Last completed plan
 
 ---
-*State updated: 2026-01-21 — Phase 1 Foundation Stability verified and complete*
+*State updated: 2026-01-21 — Completed 03-02 Memory Leak & Race Condition Fixes*
