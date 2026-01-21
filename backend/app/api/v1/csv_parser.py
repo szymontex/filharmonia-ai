@@ -1,6 +1,7 @@
 """
 CSV Parser API - parse predictions CSV into tracks
 """
+import asyncio
 import logging
 import pandas as pd
 from fastapi import APIRouter, Query, Body
@@ -191,9 +192,13 @@ async def parse_csv(
     if not csv_path.exists():
         return ParseResponse(tracks=[], total_segments=0)
 
-    # Read CSV with proper encoding - handle quoted fields (for names with commas)
-    df = pd.read_csv(csv_path, encoding='utf-8', quoting=1)  # QUOTE_ALL=1, QUOTE_MINIMAL=0
-    df.columns = [col.strip() for col in df.columns]  # Strip whitespace
+    # Read CSV asynchronously to avoid blocking the event loop
+    def _read_csv():
+        df = pd.read_csv(csv_path, encoding='utf-8', quoting=1)  # QUOTE_ALL=1, QUOTE_MINIMAL=0
+        df.columns = [col.strip() for col in df.columns]  # Strip whitespace
+        return df
+
+    df = await asyncio.to_thread(_read_csv)
 
     # Extract tracks
     tracks = extract_tracks(df, threshold=threshold)
@@ -279,10 +284,14 @@ async def check_autosave(path: str = Query(..., description="Path to original CS
 
     # Compare file contents - if identical, no need to notify user
     if original_path.exists():
-        with open(original_path, 'r', encoding='utf-8') as f1:
-            original_content = f1.read()
-        with open(autosave_path, 'r', encoding='utf-8') as f2:
-            autosave_content = f2.read()
+        def _read_files():
+            with open(original_path, 'r', encoding='utf-8') as f1:
+                original_content = f1.read()
+            with open(autosave_path, 'r', encoding='utf-8') as f2:
+                autosave_content = f2.read()
+            return original_content, autosave_content
+
+        original_content, autosave_content = await asyncio.to_thread(_read_files)
 
         if original_content == autosave_content:
             # Files are identical - silently delete autosave and report no autosave
@@ -310,7 +319,10 @@ async def autosave_csv(request: SaveRequest = Body(...)):
     autosave_path = get_autosave_path(str(validated_path))
     csv_content = tracks_to_csv_content(request.tracks)
 
-    Path(autosave_path).write_text(csv_content, encoding='utf-8')
+    # Write asynchronously to avoid blocking the event loop
+    await asyncio.to_thread(
+        lambda: Path(autosave_path).write_text(csv_content, encoding='utf-8')
+    )
 
     return {"success": True, "autosave_path": autosave_path}
 
@@ -341,7 +353,10 @@ async def save_csv(request: SaveRequest = Body(...)):
     validated_path = validate_path_or_raise_http(request.path, settings.SORTED_FOLDER, must_exist=False)
     csv_content = tracks_to_csv_content(request.tracks)
 
-    validated_path.write_text(csv_content, encoding='utf-8')
+    # Write asynchronously to avoid blocking the event loop
+    await asyncio.to_thread(
+        lambda: validated_path.write_text(csv_content, encoding='utf-8')
+    )
 
     # Remove autosave file if it exists
     autosave_path = Path(get_autosave_path(str(validated_path)))
