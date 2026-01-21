@@ -2,6 +2,7 @@
 PyTorch AST Training Service
 Replaces Keras CNN training with Audio Spectrogram Transformer
 """
+import logging
 import os
 import time
 import threading
@@ -12,6 +13,8 @@ from datetime import datetime
 from typing import Dict, List, Optional
 from dataclasses import dataclass
 import uuid
+
+logger = logging.getLogger(__name__)
 
 import torch
 import torch.nn as nn
@@ -211,8 +214,9 @@ class ASTTrainingService:
                     try:
                         # Try hardlink (zero space, Windows compatible)
                         os.link(str(wav_file), str(link_path))
-                    except:
+                    except OSError as e:
                         # Fallback: copy file if hardlink fails
+                        logger.debug(f"Hardlink failed for {wav_file.name}, copying instead: {e}")
                         shutil.copy(str(wav_file), str(link_path))
 
         print(f"[Training {job_id}] Dataset splits ready at {datetime.now().strftime('%H:%M:%S')}", flush=True)
@@ -809,8 +813,9 @@ class ASTTrainingService:
                     try:
                         info = sf.info(str(wav_file))
                         total_duration += info.duration
-                    except:
+                    except Exception as e:
                         # Fallback: assume 2.97s per file
+                        logger.debug(f"Could not read duration for {wav_file}: {e}")
                         total_duration += 2.97
 
             stats[class_name] = {
