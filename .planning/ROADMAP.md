@@ -20,13 +20,13 @@ This milestone transforms Filharmonia AI from a working but fragile prototype in
 **Plans:** 7 plans
 
 Plans:
-- [ ] 01-01-PLAN.md — Replace bare except clauses with specific exceptions
-- [ ] 01-02-PLAN.md — Add path traversal prevention
-- [ ] 01-03-PLAN.md — Global exception handler and type hints
-- [ ] 01-04-PLAN.md — Cross-platform temp directories
-- [ ] 01-05-PLAN.md — MP3 path resolution API endpoint
-- [ ] 01-06-PLAN.md — Remove hardcoded frontend paths
-- [ ] 01-07-PLAN.md — Startup validation and PyTorch pinning
+- [x] 01-01-PLAN.md — Replace bare except clauses with specific exceptions
+- [x] 01-02-PLAN.md — Add path traversal prevention
+- [x] 01-03-PLAN.md — Global exception handler and type hints
+- [x] 01-04-PLAN.md — Cross-platform temp directories
+- [x] 01-05-PLAN.md — MP3 path resolution API endpoint
+- [x] 01-06-PLAN.md — Remove hardcoded frontend paths
+- [x] 01-07-PLAN.md — Startup validation and PyTorch pinning
 
 **Requirements:**
 - CRIT-01: Replace bare `except:` at `main.py:84`
@@ -67,6 +67,11 @@ Plans:
 
 **Dependencies:** Phase 1 (error handling enables meaningful feedback)
 
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD — to be planned
+
 **Requirements:**
 - UX-01: Keyboard shortcuts — spacebar play/pause
 - UX-02: Ctrl+S explicit save
@@ -93,6 +98,14 @@ Plans:
 
 **Dependencies:** Phase 1 (exception handling must be in place)
 
+**Plans:** 4 plans
+
+Plans:
+- [ ] 03-01-PLAN.md — SQLite job registry with TTL cache (INFRA-01)
+- [ ] 03-02-PLAN.md — TTLCache for memory leaks + atomic writes (CRIT-11, CRIT-12, CRIT-13)
+- [ ] 03-03-PLAN.md — Process cleanup, blocking I/O fix, timeout middleware (CRIT-14, CRIT-15, INFRA-02)
+- [ ] 03-04-PLAN.md — Frontend exponential backoff polling (PERF-05)
+
 **Requirements:**
 - CRIT-11: Fix memory leak in `analyze.py:48` — TTL cleanup for `_single_jobs`
 - CRIT-12: Fix memory leak in `batch.py:48-49` — TTL cleanup for `_jobs`
@@ -101,7 +114,7 @@ Plans:
 - CRIT-15: Fix blocking I/O in `csv_parser.py:273-276` — use `asyncio.to_thread()`
 - INFRA-01: SQLite job registry
 - INFRA-02: Request timeout for long operations
-- INFRA-03: SQLAlchemy connection pooling
+- INFRA-03: SQLAlchemy connection pooling (note: using aiosqlite instead, no explicit pooling needed)
 - PERF-05: Replace polling with exponential backoff
 
 **Success Criteria:**
@@ -195,13 +208,13 @@ Plans:
 
 | Phase | Name | Requirements | Plans | Status |
 |-------|------|--------------|-------|--------|
-| 1 | Foundation Stability | 22 | 7 | ✓ Complete |
+| 1 | Foundation Stability | 22 | 7 | Complete |
 | 2 | Core UX Polish | 9 | 0 | Pending |
-| 3 | Backend Stability | 9 | 0 | Pending |
+| 3 | Backend Stability | 9 | 4 | Planned |
 | 4 | Performance & Migration | 10 | 0 | Pending |
 | 5 | Frontend Decomposition | 9 | 0 | Pending |
 | 6 | GPU & CPU Optimization | 9 | 0 | Pending |
-| **Total** | | **68** | **7** | |
+| **Total** | | **68** | **11** | |
 
 Note: Some requirements split across phases where logical (e.g., type hints with foundation). Total in phases exceeds 62 due to research-recommended additions being implicit.
 
@@ -211,16 +224,16 @@ Note: Some requirements split across phases where logical (e.g., type hints with
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CRIT-01 | 1 | Pending |
-| CRIT-02 | 1 | Pending |
-| CRIT-03 | 1 | Pending |
-| CRIT-04 | 1 | Pending |
-| CRIT-05 | 1 | Pending |
-| CRIT-06 | 1 | Pending |
-| CRIT-07 | 1 | Pending |
-| CRIT-08 | 1 | Pending |
-| CRIT-09 | 1 | Pending |
-| CRIT-10 | 1 | Pending |
+| CRIT-01 | 1 | Complete |
+| CRIT-02 | 1 | Complete |
+| CRIT-03 | 1 | Complete |
+| CRIT-04 | 1 | Complete |
+| CRIT-05 | 1 | Complete |
+| CRIT-06 | 1 | Complete |
+| CRIT-07 | 1 | Complete |
+| CRIT-08 | 1 | Complete |
+| CRIT-09 | 1 | Complete |
+| CRIT-10 | 1 | Complete |
 | CRIT-11 | 3 | Pending |
 | CRIT-12 | 3 | Pending |
 | CRIT-13 | 3 | Pending |
@@ -236,21 +249,21 @@ Note: Some requirements split across phases where logical (e.g., type hints with
 | TECH-03 | 4 | Pending |
 | TECH-04 | 4 | Pending |
 | TECH-05 | 4 | Pending |
-| PATH-01 | 1 | Pending |
-| PATH-02 | 1 | Pending |
-| PATH-03 | 1 | Pending |
-| PATH-04 | 1 | Pending |
-| PATH-05 | 1 | Pending |
-| PATH-06 | 1 | Pending |
+| PATH-01 | 1 | Complete |
+| PATH-02 | 1 | Complete |
+| PATH-03 | 1 | Complete |
+| PATH-04 | 1 | Complete |
+| PATH-05 | 1 | Complete |
+| PATH-06 | 1 | Complete |
 | COMP-01 | 5 | Pending |
 | COMP-02 | 5 | Pending |
 | COMP-03 | 5 | Pending |
 | COMP-04 | 5 | Pending |
 | COMP-05 | 5 | Pending |
-| TYPE-01 | 1 | Pending |
-| TYPE-02 | 1 | Pending |
-| TYPE-03 | 1 | Pending |
-| TYPE-04 | 1 | Pending |
+| TYPE-01 | 1 | Complete |
+| TYPE-02 | 1 | Complete |
+| TYPE-03 | 1 | Complete |
+| TYPE-04 | 1 | Complete |
 | CLEAN-01 | 5 | Pending |
 | CLEAN-02 | 5 | Pending |
 | CLEAN-03 | 5 | Pending |
@@ -267,8 +280,8 @@ Note: Some requirements split across phases where logical (e.g., type hints with
 | INFRA-01 | 3 | Pending |
 | INFRA-02 | 3 | Pending |
 | INFRA-03 | 3 | Pending |
-| INFRA-04 | 1 | Pending |
-| INFRA-05 | 1 | Pending |
+| INFRA-04 | 1 | Complete |
+| INFRA-05 | 1 | Complete |
 | GPU-01 | 6 | Pending |
 | GPU-02 | 6 | Pending |
 | GPU-03 | 6 | Pending |
@@ -284,4 +297,5 @@ Note: Some requirements split across phases where logical (e.g., type hints with
 ---
 
 *Roadmap created: 2026-01-21*
-*Phase 1 planned: 2026-01-21*
+*Phase 1 complete: 2026-01-21*
+*Phase 3 planned: 2026-01-21*
