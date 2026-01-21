@@ -132,6 +132,16 @@ Plans:
 
 **Dependencies:** Phase 3 (job registry enables caching metadata)
 
+**Plans:** 6 plans
+
+Plans:
+- [ ] 04-01-PLAN.md — Install polars + fix regex recompilation (TECH-01, PERF-03)
+- [ ] 04-02-PLAN.md — Waveform caching (PERF-04)
+- [ ] 04-03-PLAN.md — Migrate csv_parser.py to polars (TECH-02)
+- [ ] 04-04-PLAN.md — Migrate uncertainty.py to polars + fix N+1 (TECH-03, PERF-02)
+- [ ] 04-05-PLAN.md — Migrate batch.py to polars + fix double-read (TECH-04, PERF-01)
+- [ ] 04-06-PLAN.md — Remove pandas from requirements (TECH-05)
+
 **Requirements:**
 - TECH-01: Install polars
 - TECH-02: Migrate `csv_parser.py` to polars
@@ -211,10 +221,10 @@ Plans:
 | 1 | Foundation Stability | 22 | 7 | Complete |
 | 2 | Core UX Polish | 9 | 0 | Pending |
 | 3 | Backend Stability | 9 | 4 | Complete |
-| 4 | Performance & Migration | 10 | 0 | Pending |
+| 4 | Performance & Migration | 10 | 6 | Planned |
 | 5 | Frontend Decomposition | 9 | 0 | Pending |
 | 6 | GPU & CPU Optimization | 9 | 0 | Pending |
-| **Total** | | **68** | **11** | |
+| **Total** | | **68** | **17** | |
 
 Note: Some requirements split across phases where logical (e.g., type hints with foundation). Total in phases exceeds 62 due to research-recommended additions being implicit.
 
@@ -299,3 +309,4 @@ Note: Some requirements split across phases where logical (e.g., type hints with
 *Roadmap created: 2026-01-21*
 *Phase 1 complete: 2026-01-21*
 *Phase 3 complete: 2026-01-21*
+*Phase 4 planned: 2026-01-21*
