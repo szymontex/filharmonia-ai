@@ -259,8 +259,9 @@ async def check_autosave(path: str = Query(..., description="Path to original CS
     """
     Check if autosave exists and is newer than original
     """
-    original_path = Path(path)
-    autosave_path = Path(get_autosave_path(path))
+    # Validate path is within SORTED_FOLDER
+    original_path = validate_path_or_raise_http(path, settings.SORTED_FOLDER, must_exist=False)
+    autosave_path = Path(get_autosave_path(str(original_path)))
 
     if not autosave_path.exists():
         return AutosaveCheckResponse(
@@ -300,7 +301,9 @@ async def autosave_csv(request: SaveRequest = Body(...)):
     """
     Save tracks to autosave file
     """
-    autosave_path = get_autosave_path(request.path)
+    # Validate path is within SORTED_FOLDER
+    validated_path = validate_path_or_raise_http(request.path, settings.SORTED_FOLDER, must_exist=False)
+    autosave_path = get_autosave_path(str(validated_path))
     csv_content = tracks_to_csv_content(request.tracks)
 
     Path(autosave_path).write_text(csv_content, encoding='utf-8')
@@ -330,19 +333,21 @@ async def save_csv(request: SaveRequest = Body(...)):
     """
     Save tracks to original CSV file (overwrite)
     """
+    # Validate path is within SORTED_FOLDER
+    validated_path = validate_path_or_raise_http(request.path, settings.SORTED_FOLDER, must_exist=False)
     csv_content = tracks_to_csv_content(request.tracks)
 
-    Path(request.path).write_text(csv_content, encoding='utf-8')
+    validated_path.write_text(csv_content, encoding='utf-8')
 
     # Remove autosave file if it exists
-    autosave_path = Path(get_autosave_path(request.path))
+    autosave_path = Path(get_autosave_path(str(validated_path)))
     if autosave_path.exists():
         autosave_path.unlink()
 
     # Mark as edited
-    mark_csv_as_edited(request.path)
+    mark_csv_as_edited(str(validated_path))
 
-    return {"success": True, "path": request.path}
+    return {"success": True, "path": str(validated_path)}
 
 @router.get("/edited-list")
 async def get_edited_csvs():
@@ -366,7 +371,9 @@ async def discard_autosave(path: str = Query(..., description="Path to original 
     """
     Delete autosave file
     """
-    autosave_path = Path(get_autosave_path(path))
+    # Validate path is within SORTED_FOLDER
+    validated_path = validate_path_or_raise_http(path, settings.SORTED_FOLDER, must_exist=False)
+    autosave_path = Path(get_autosave_path(str(validated_path)))
 
     if autosave_path.exists():
         autosave_path.unlink()
