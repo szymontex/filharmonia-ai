@@ -195,17 +195,13 @@ export default function CsvViewer({ onBack, initialCsv }: CsvViewerProps = {}) {
 
     setLoading(false)
 
-    // Extract MP3 path from CSV path (remove _autosave if present)
-    // predictions_SONG059_2025-05-13.csv or predictions_SONG059_2025-05-13_14-30.csv or predictions_SONG059_2025-05-13_autosave.csv
-    // -> find SONG059.MP3 in SORTED/2025/05/13/
-    const cleanPath = csvPath.replace('_autosave', '')
-    // Match: predictions_{songName}_{YYYY-MM-DD}[_{HH-MM}].csv
-    const match = cleanPath.match(/predictions_(.+?)_(\d{4})-(\d{2})-(\d{2})(?:_\d{2}-\d{2})?\.csv/)
-    if (match) {
-      const [, songName, year, month, day] = match
-      const mp3 = `Y:\\!_FILHARMONIA\\SORTED\\${year}\\${month}\\${day}\\${songName}.MP3`
-      setMp3Path(mp3)
-      setRecordingDate(`${year}-${month}-${day}`)
+    // Resolve MP3 path from CSV via backend API
+    try {
+      const response = await axios.get(`/api/v1/files/mp3-for-csv?csv_path=${encodeURIComponent(csvPath)}`)
+      setMp3Path(response.data.mp3_path)
+      setRecordingDate(response.data.recording_date)
+    } catch (error) {
+      console.error('Error resolving MP3 path:', error)
     }
   }
 
