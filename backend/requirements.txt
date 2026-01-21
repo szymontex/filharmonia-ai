@@ -112,6 +112,19 @@ threadpoolctl==3.6.0
 tifffile==2025.9.30
 tokenizers==0.22.1
 toml==0.10.2
+# ====================
+# PyTorch with CUDA 12.1
+# ====================
+# Pinned to specific CUDA version for reproducibility.
+# The +cuXXX suffix packages are hosted on PyTorch's custom index.
+#
+# Alternative platform installations:
+# - CPU-only: pip install torch==2.5.1 torchaudio==2.5.1 torchvision==0.20.1
+# - CUDA 11.8: pip install torch==2.5.1+cu118 --index-url https://download.pytorch.org/whl/cu118
+# - ROCm 6.0:  pip install torch==2.5.1+rocm6.0 --index-url https://download.pytorch.org/whl/rocm6.0
+#
+# Install these packages:
+# pip install torch==2.5.1+cu121 torchaudio==2.5.1+cu121 torchvision==0.20.1+cu121 --index-url https://download.pytorch.org/whl/cu121
 torch==2.5.1+cu121
 torchaudio==2.5.1+cu121
 torchvision==0.20.1+cu121
