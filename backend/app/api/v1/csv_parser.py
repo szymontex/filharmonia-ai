@@ -9,6 +9,9 @@ from pydantic import BaseModel
 from datetime import datetime, timedelta
 import os
 
+from app.config import settings
+from app.core.security import validate_path_or_raise_http
+
 router = APIRouter(prefix="/csv", tags=["csv"])
 
 class Track(BaseModel):
@@ -178,7 +181,8 @@ async def parse_csv(
     """
     Parse predictions CSV and extract tracks with threshold filtering
     """
-    csv_path = Path(path)
+    # Validate path is within SORTED_FOLDER
+    csv_path = validate_path_or_raise_http(path, settings.SORTED_FOLDER, must_exist=False)
 
     if not csv_path.exists():
         return ParseResponse(tracks=[], total_segments=0)
@@ -303,7 +307,7 @@ async def autosave_csv(request: SaveRequest = Body(...)):
 
     return {"success": True, "autosave_path": autosave_path}
 
-def mark_csv_as_edited(csv_path: str):
+def mark_csv_as_edited(csv_path: str) -> None:
     """Mark CSV as manually edited by logging to edited_csvs.txt"""
     from app.config import settings
 

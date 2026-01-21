@@ -7,6 +7,9 @@ from pathlib import Path
 import librosa
 import numpy as np
 
+from app.config import settings
+from app.core.security import validate_path_or_raise_http
+
 router = APIRouter(prefix="/waveform", tags=["waveform"])
 
 @router.get("/data")
@@ -20,10 +23,8 @@ async def get_waveform_data(
     Returns min/max amplitude values for each pixel
     Much faster than full waveform rendering
     """
-    mp3_path = Path(path)
-
-    if not mp3_path.exists():
-        raise HTTPException(status_code=404, detail=f"File not found: {path}")
+    # Validate path is within SORTED_FOLDER
+    mp3_path = validate_path_or_raise_http(path, settings.SORTED_FOLDER)
 
     try:
         # Load audio (mono, lower sample rate for speed)
