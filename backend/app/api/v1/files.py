@@ -1,6 +1,8 @@
 """
 File Browser API
 """
+import logging
+import re
 import time
 from datetime import datetime
 from fastapi import APIRouter, HTTPException, Query
@@ -9,6 +11,9 @@ from typing import List
 from pydantic import BaseModel
 import eyed3
 from app.config import settings
+from app.core.security import validate_path_or_raise_http
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/files", tags=["files"])
 
@@ -46,8 +51,8 @@ async def list_sorted_files():
             if audiofile and audiofile.tag and audiofile.tag.title:
                 record_date = datetime.strptime(audiofile.tag.title, 'Untitled %m/%d/%Y %H:%M:%S')
                 time_str = f"{record_date.hour:02d}:{record_date.minute:02d}"
-        except:
-            pass
+        except Exception as e:
+            logger.debug(f"Could not read ID3 tag from {mp3_file}: {e}")
 
         files.append(FileInfo(
             path=str(mp3_file),
@@ -81,7 +86,6 @@ async def list_analysis_results():
             continue
 
         # Extract recording date from filename: predictions_SONG042_2025-09-27.csv
-        import re
         date_str = "Unknown"
         match = re.search(r'_(\d{4})-(\d{2})-(\d{2})', csv_file.name)
         if match:
@@ -105,10 +109,8 @@ async def delete_csv(path: str = Query(..., description="Path to CSV file to del
     """
     Delete a CSV file and its autosave if exists
     """
-    csv_path = Path(path)
-
-    if not csv_path.exists():
-        raise HTTPException(status_code=404, detail="CSV file not found")
+    # Validate path is within SORTED_FOLDER (includes ANALYSIS_RESULTS)
+    csv_path = validate_path_or_raise_http(path, settings.SORTED_FOLDER)
 
     # Delete main file
     csv_path.unlink()
@@ -119,3 +121,49 @@ async def delete_csv(path: str = Query(..., description="Path to CSV file to del
         autosave_path.unlink()
 
     return {"success": True, "message": "CSV deleted successfully"}
+
+
+class Mp3PathResponse(BaseModel):
+    mp3_path: str
+    recording_date: str
+    exists: bool
+
+
+@router.get("/mp3-for-csv", response_model=Mp3PathResponse)
+async def get_mp3_for_csv(csv_path: str = Query(..., description="Path to CSV file")):
+    """
+    Resolve MP3 file path from CSV prediction file path.
+
+    CSV filename format: predictions_{songName}_{YYYY-MM-DD}[_{HH-MM}].csv
+    Returns: MP3 path in SORTED_FOLDER/{year}/{month}/{day}/{songName}.MP3
+    """
+    # Remove _autosave suffix if present
+    clean_path = csv_path.replace('_autosave', '')
+
+    # Parse CSV filename: predictions_{songName}_{YYYY-MM-DD}[_{HH-MM}].csv
+    match = re.search(r'predictions_(.+?)_(\d{4})-(\d{2})-(\d{2})(?:_\d{2}-\d{2})?\.csv', clean_path)
+
+    if not match:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Could not parse CSV filename. Expected format: predictions_{{songName}}_{{YYYY-MM-DD}}.csv"
+        )
+
+    song_name, year, month, day = match.groups()
+
+    # Build MP3 path: SORTED_FOLDER/year/month/day/songName.MP3
+    mp3_path = settings.SORTED_FOLDER / year / month / day / f"{song_name}.MP3"
+
+    # Check if exists (also try lowercase .mp3)
+    exists = mp3_path.exists()
+    if not exists:
+        mp3_path_lower = mp3_path.with_suffix('.mp3')
+        if mp3_path_lower.exists():
+            mp3_path = mp3_path_lower
+            exists = True
+
+    return Mp3PathResponse(
+        mp3_path=str(mp3_path),
+        recording_date=f"{year}-{month}-{day}",
+        exists=exists
+    )
