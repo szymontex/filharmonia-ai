@@ -101,10 +101,10 @@ Plans:
 **Plans:** 4 plans
 
 Plans:
-- [ ] 03-01-PLAN.md — SQLite job registry with TTL cache (INFRA-01)
-- [ ] 03-02-PLAN.md — TTLCache for memory leaks + atomic writes (CRIT-11, CRIT-12, CRIT-13)
-- [ ] 03-03-PLAN.md — Process cleanup, blocking I/O fix, timeout middleware (CRIT-14, CRIT-15, INFRA-02)
-- [ ] 03-04-PLAN.md — Frontend exponential backoff polling (PERF-05)
+- [x] 03-01-PLAN.md — SQLite job registry with TTL cache (INFRA-01)
+- [x] 03-02-PLAN.md — TTLCache for memory leaks + atomic writes (CRIT-11, CRIT-12, CRIT-13)
+- [x] 03-03-PLAN.md — Process cleanup, blocking I/O fix, timeout middleware (CRIT-14, CRIT-15, INFRA-02)
+- [x] 03-04-PLAN.md — Frontend exponential backoff polling (PERF-05)
 
 **Requirements:**
 - CRIT-11: Fix memory leak in `analyze.py:48` — TTL cleanup for `_single_jobs`
@@ -210,7 +210,7 @@ Plans:
 |-------|------|--------------|-------|--------|
 | 1 | Foundation Stability | 22 | 7 | Complete |
 | 2 | Core UX Polish | 9 | 0 | Pending |
-| 3 | Backend Stability | 9 | 4 | Planned |
+| 3 | Backend Stability | 9 | 4 | Complete |
 | 4 | Performance & Migration | 10 | 0 | Pending |
 | 5 | Frontend Decomposition | 9 | 0 | Pending |
 | 6 | GPU & CPU Optimization | 9 | 0 | Pending |
@@ -234,16 +234,16 @@ Note: Some requirements split across phases where logical (e.g., type hints with
 | CRIT-08 | 1 | Complete |
 | CRIT-09 | 1 | Complete |
 | CRIT-10 | 1 | Complete |
-| CRIT-11 | 3 | Pending |
-| CRIT-12 | 3 | Pending |
-| CRIT-13 | 3 | Pending |
-| CRIT-14 | 3 | Pending |
-| CRIT-15 | 3 | Pending |
+| CRIT-11 | 3 | Complete |
+| CRIT-12 | 3 | Complete |
+| CRIT-13 | 3 | Complete |
+| CRIT-14 | 3 | Complete |
+| CRIT-15 | 3 | Complete |
 | PERF-01 | 4 | Pending |
 | PERF-02 | 4 | Pending |
 | PERF-03 | 4 | Pending |
 | PERF-04 | 4 | Pending |
-| PERF-05 | 3 | Pending |
+| PERF-05 | 3 | Complete |
 | TECH-01 | 4 | Pending |
 | TECH-02 | 4 | Pending |
 | TECH-03 | 4 | Pending |
@@ -277,9 +277,9 @@ Note: Some requirements split across phases where logical (e.g., type hints with
 | UX-05 | 2 | Pending |
 | UX-06 | 2 | Pending |
 | UX-07 | 2 | Pending |
-| INFRA-01 | 3 | Pending |
-| INFRA-02 | 3 | Pending |
-| INFRA-03 | 3 | Pending |
+| INFRA-01 | 3 | Complete |
+| INFRA-02 | 3 | Complete |
+| INFRA-03 | 3 | Complete |
 | INFRA-04 | 1 | Complete |
 | INFRA-05 | 1 | Complete |
 | GPU-01 | 6 | Pending |
@@ -298,4 +298,4 @@ Note: Some requirements split across phases where logical (e.g., type hints with
 
 *Roadmap created: 2026-01-21*
 *Phase 1 complete: 2026-01-21*
-*Phase 3 planned: 2026-01-21*
+*Phase 3 complete: 2026-01-21*
