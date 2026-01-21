@@ -2,6 +2,7 @@
 Analyze API - uses subprocess to avoid blocking the server
 """
 import logging
+import os
 from fastapi import APIRouter, HTTPException
 from pathlib import Path
 from pydantic import BaseModel
@@ -10,6 +11,7 @@ import json
 import subprocess
 import sys
 import tempfile
+from cachetools import TTLCache
 
 logger = logging.getLogger(__name__)
 
@@ -42,14 +44,35 @@ def read_job_status(job_id: str) -> dict:
     return None
 
 def write_job_status(job_id: str, status: dict):
+    """Atomic write using temp file + rename pattern"""
     job_file = get_job_file(job_id)
-    job_file.write_text(json.dumps(status))
+
+    # Create temp file in same directory (ensures same filesystem)
+    fd, tmp_path = tempfile.mkstemp(
+        suffix='.tmp',
+        prefix=f'{job_id}_',
+        dir=JOBS_DIR
+    )
+    try:
+        with os.fdopen(fd, 'w') as f:
+            json.dump(status, f)
+            f.flush()
+            os.fsync(f.fileno())  # Ensure data is on disk
+
+        # Atomic replace (works on both Unix and Windows)
+        os.replace(tmp_path, job_file)
+    except Exception:
+        # Clean up temp file on error
+        if os.path.exists(tmp_path):
+            os.unlink(tmp_path)
+        raise
 
 # Keep track of running processes (for cleanup)
 _processes = {}
 
 # Also maintain in-memory cache for quick access
-_single_jobs = {}
+# TTL cache: 1 hour expiry, max 100 entries (single jobs are short-lived)
+_single_jobs: TTLCache = TTLCache(maxsize=100, ttl=3600)
 
 @router.post("/", response_model=AnalyzeResponse)
 async def analyze_file(request: AnalyzeRequest):
