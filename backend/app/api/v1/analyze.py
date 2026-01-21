@@ -3,6 +3,7 @@ Analyze API - uses subprocess to avoid blocking the server
 """
 import logging
 import os
+from datetime import datetime
 from fastapi import APIRouter, HTTPException
 from pathlib import Path
 from pydantic import BaseModel
@@ -12,6 +13,8 @@ import subprocess
 import sys
 import tempfile
 from cachetools import TTLCache
+
+from app.services.job_registry import get_job_registry
 
 logger = logging.getLogger(__name__)
 
@@ -95,10 +98,22 @@ async def analyze_file(request: AnalyzeRequest):
         "file": str(mp3_path),
         "progress": 0,
         "current_segment": 0,
-        "total_segments": 0
+        "total_segments": 0,
+        "started_at": datetime.now().isoformat()
     }
     write_job_status(job_id, initial_status)
     _single_jobs[job_id] = initial_status
+
+    # Persist job to SQLite for restart recovery
+    try:
+        registry = await get_job_registry()
+        await registry.create_job(
+            job_id=job_id,
+            job_type="single_analysis",
+            initial_data=initial_status
+        )
+    except Exception as e:
+        logger.warning(f"Could not persist job to SQLite: {e}")
 
     # Get the Python executable from current virtualenv
     python_exe = sys.executable
@@ -127,15 +142,32 @@ async def analyze_file(request: AnalyzeRequest):
 @router.get("/status/{job_id}")
 async def get_analysis_status(job_id: str):
     """Get status of single file analysis"""
-    # Try to read from file first (most up-to-date)
+    # Try to read from temp file first (most up-to-date during active processing)
     status = read_job_status(job_id)
     if status:
         # Update in-memory cache
         _single_jobs[job_id] = status
+
+        # Also update SQLite for persistence (non-blocking)
+        try:
+            registry = await get_job_registry()
+            await registry.update_job(job_id, status)
+        except Exception as e:
+            logger.debug(f"Could not update job in SQLite: {e}")
+
         return status
 
     # Fallback to in-memory cache
     if job_id in _single_jobs:
         return _single_jobs[job_id]
+
+    # Final fallback: SQLite (for jobs that survived a server restart)
+    try:
+        registry = await get_job_registry()
+        job = await registry.get_job(job_id)
+        if job:
+            return job
+    except Exception as e:
+        logger.debug(f"Could not fetch job from SQLite: {e}")
 
     raise HTTPException(status_code=404, detail="Job not found")

@@ -14,6 +14,7 @@ import json
 import multiprocessing
 from cachetools import TTLCache
 from app.config import settings
+from app.services.job_registry import get_job_registry
 
 logger = logging.getLogger(__name__)
 
@@ -257,10 +258,22 @@ async def batch_analyze(request: BatchRequest):
         "results": [],
         "errors": [],
         "cancelled": False,
-        "type": "batch"
+        "type": "batch",
+        "started_at": datetime.now().isoformat()
     }
     write_job_status(job_id, initial_status)
     _jobs[job_id] = initial_status
+
+    # Persist job to SQLite for restart recovery
+    try:
+        registry = await get_job_registry()
+        await registry.create_job(
+            job_id=job_id,
+            job_type="batch_analysis",
+            initial_data=initial_status
+        )
+    except Exception as e:
+        logger.warning(f"Could not persist batch job to SQLite: {e}")
 
     # Start in separate PROCESS
     process = multiprocessing.Process(
@@ -276,19 +289,38 @@ async def batch_analyze(request: BatchRequest):
         job_id=job_id,
         files_queued=len(mp3_files),
         files=[f.name for f in mp3_files],
-        message=f"✓ Batch analysis started in process (PID: {process.pid}): {len(mp3_files)} files"
+        message=f"Batch analysis started in process (PID: {process.pid}): {len(mp3_files)} files"
     )
 
 @router.get("/batch/{job_id}")
 async def get_batch_status(job_id: str):
     """Get status of batch analysis job"""
+    # Try to read from temp file first (most up-to-date during active processing)
     status = read_job_status(job_id)
     if status:
         _jobs[job_id] = status
+
+        # Also update SQLite for persistence (non-blocking)
+        try:
+            registry = await get_job_registry()
+            await registry.update_job(job_id, status)
+        except Exception as e:
+            logger.debug(f"Could not update batch job in SQLite: {e}")
+
         return status
 
+    # Fallback to in-memory cache
     if job_id in _jobs:
         return _jobs[job_id]
+
+    # Final fallback: SQLite (for jobs that survived a server restart)
+    try:
+        registry = await get_job_registry()
+        job = await registry.get_job(job_id)
+        if job:
+            return job
+    except Exception as e:
+        logger.debug(f"Could not fetch batch job from SQLite: {e}")
 
     raise HTTPException(status_code=404, detail="Job not found")
 
