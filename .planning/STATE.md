@@ -2,12 +2,12 @@
 
 ## Current Position
 
-**Phase:** 3 of 6 — Backend Stability
+**Phase:** 3 of 6 — Backend Stability ✓ Complete
 **Previous:** Phase 1 Foundation Stability ✓ Complete
-**Status:** In progress
-**Progress:** [██░░░░░░░░] 2/6 phases complete (03: 3/4 plans)
+**Status:** Phase 3 complete
+**Progress:** [███░░░░░░░] 2/6 phases complete (03: 4/4 plans)
 
-**Last activity:** 2026-01-21 — Completed 03-04-PLAN.md (Frontend Exponential Backoff)
+**Last activity:** 2026-01-21 — Completed 03-03-PLAN.md (Resource Cleanup)
 
 ## Project Reference
 
@@ -23,7 +23,7 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 |------|------|--------|--------|
 | 03-01 | SQLite Job Registry | Complete | 6435beb, 692d45d, 06c5b4e |
 | 03-02 | Memory Leak & Race Condition Fixes | Complete | c03d39f, 185dc73 |
-| 03-03 | Resource Cleanup | Pending | - |
+| 03-03 | Resource Cleanup | Complete | 6cdc584, 13d4fb1, 7ba548d, c217e90 |
 | 03-04 | Frontend Polling Optimization | Complete | dd7b371, 3771f2d |
 
 ## Phase 1 Success Criteria
@@ -74,6 +74,9 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 - Atomic write pattern: temp file + os.replace (works on Unix and Windows)
 - POLL-001: 1.5x multiplier for exponential backoff polling (1s->1.5s->2.25s->10s max)
 - aiosqlite for job registry (not SQLAlchemy async) — simpler, no ORM overhead
+- 5s timeout then force kill for process termination on shutdown
+- TimeoutMiddleware: 60s for all endpoints except /analyze (long-running by design)
+- Job lookup order: temp file -> TTLCache -> SQLite (most current to restart recovery)
 
 ### Research Completed (2026-01-20)
 - .planning/research/STACK.md — PyTorch/torchaudio recommendations
@@ -97,6 +100,7 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 - .planning/phases/01-foundation-stability/01-07-SUMMARY.md — Audio backend startup validation
 - .planning/phases/03-backend-stability/03-01-SUMMARY.md — SQLite job registry
 - .planning/phases/03-backend-stability/03-02-SUMMARY.md — Memory leak & race condition fixes
+- .planning/phases/03-backend-stability/03-03-SUMMARY.md — Resource cleanup
 - .planning/phases/03-backend-stability/03-04-SUMMARY.md — Frontend exponential backoff
 
 ### Blockers
@@ -105,7 +109,7 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 ### TODOs
 - [x] Execute Phase 1 plans - COMPLETE (7/7)
 - [x] Verify Phase 1 goal achievement - PASSED
-- [ ] Execute Phase 3 plans - IN PROGRESS (3/4)
+- [x] Execute Phase 3 plans - COMPLETE (4/4)
 - [ ] Plan Phase 2: Core UX Polish
 
 ### Open Questions
@@ -114,14 +118,14 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 ## Session Continuity
 
 **Last session:** 2026-01-21
-**Stopped at:** Completed 03-04-PLAN.md (Frontend Exponential Backoff)
+**Stopped at:** Completed 03-03-PLAN.md (Resource Cleanup) - Phase 3 now complete
 **Resume file:** None
 
 **If context is lost, read these files in order:**
 1. .planning/PROJECT.md — Core value and constraints
 2. .planning/ROADMAP.md — Phase structure and requirements
 3. .planning/STATE.md — Current position (this file)
-4. .planning/phases/03-backend-stability/03-04-SUMMARY.md — Last completed plan
+4. .planning/phases/03-backend-stability/03-03-SUMMARY.md — Last completed plan
 
 ---
-*State updated: 2026-01-21 — Completed 03-04 Frontend Exponential Backoff*
+*State updated: 2026-01-21 — Completed 03-03 Resource Cleanup (Phase 3 complete)*
