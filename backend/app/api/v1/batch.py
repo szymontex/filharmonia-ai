@@ -2,6 +2,7 @@
 Batch Analysis API - uses multiprocessing to avoid blocking the server
 """
 import logging
+import os
 import tempfile
 from fastapi import APIRouter, HTTPException
 from pathlib import Path
@@ -11,6 +12,7 @@ from datetime import datetime
 import uuid
 import json
 import multiprocessing
+from cachetools import TTLCache
 from app.config import settings
 
 logger = logging.getLogger(__name__)
@@ -45,11 +47,32 @@ def read_job_status(job_id: str) -> dict:
     return None
 
 def write_job_status(job_id: str, status: dict):
+    """Atomic write using temp file + rename pattern (CRIT-13)"""
     job_file = get_job_file(job_id)
-    job_file.write_text(json.dumps(status))
+
+    # Create temp file in same directory (ensures same filesystem)
+    fd, tmp_path = tempfile.mkstemp(
+        suffix='.tmp',
+        prefix=f'{job_id}_',
+        dir=JOBS_DIR
+    )
+    try:
+        with os.fdopen(fd, 'w') as f:
+            json.dump(status, f)
+            f.flush()
+            os.fsync(f.fileno())  # Ensure data is on disk
+
+        # Atomic replace (works on both Unix and Windows)
+        os.replace(tmp_path, job_file)
+    except Exception:
+        # Clean up temp file on error
+        if os.path.exists(tmp_path):
+            os.unlink(tmp_path)
+        raise
 
 # In-memory cache for job tracking
-_jobs = {}
+# TTL cache: 4 hour expiry, max 50 entries (batch jobs can be long-running)
+_jobs: TTLCache = TTLCache(maxsize=50, ttl=14400)
 _processes = {}
 
 def get_unanalyzed_files(year: Optional[int] = None, month: Optional[int] = None) -> List[Path]:
