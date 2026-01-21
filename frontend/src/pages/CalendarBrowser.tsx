@@ -263,9 +263,23 @@ export default function CalendarBrowser({ onBack, onOpenCsv }: CalendarBrowserPr
   }
 
   const getCsvPath = (recording: Recording) => {
+    // recording.path = /full/path/SORTED/2025/09/27/SONG.MP3
+    // CSV = /full/path/SORTED/ANALYSIS_RESULTS/predictions_SONG_2025-09-27.csv
+
     const stem = recording.name.replace('.MP3', '').replace('.mp3', '')
     const date = recording.date
-    return `Y:\\!_FILHARMONIA\\SORTED\\ANALYSIS_RESULTS\\predictions_${stem}_${date}.csv`
+
+    // Find SORTED in path and build CSV path relative to it
+    const sortedMatch = recording.path.match(/^(.+?SORTED)[/\\]/)
+    if (sortedMatch) {
+      const sortedBase = sortedMatch[1]
+      return `${sortedBase}/ANALYSIS_RESULTS/predictions_${stem}_${date}.csv`
+    }
+
+    // Fallback for unexpected path format - let backend figure it out
+    // This shouldn't happen in practice since all paths come from backend
+    console.warn('Could not parse SORTED folder from path:', recording.path)
+    return `predictions_${stem}_${date}.csv`
   }
 
   return (
