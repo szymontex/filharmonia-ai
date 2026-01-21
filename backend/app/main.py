@@ -199,7 +199,31 @@ async def info():
 
 @app.get("/health")
 async def health():
-    return {"status": "healthy"}
+    """Health check with system information"""
+    import torch
+
+    # Determine audio backend
+    audio_backend = "unknown"
+    try:
+        import torchaudio
+        audio_backend = f"torchaudio {torchaudio.__version__}"
+    except ImportError:
+        try:
+            import soundfile
+            audio_backend = f"soundfile {soundfile.__version__}"
+        except ImportError:
+            try:
+                import audioread
+                audio_backend = "audioread (ffmpeg)"
+            except ImportError:
+                audio_backend = "none"
+
+    return {
+        "status": "healthy",
+        "device": "cuda" if torch.cuda.is_available() else "cpu",
+        "audio_backend": audio_backend,
+        "torch_version": torch.__version__
+    }
 
 def check_gpu():
     """Check if GPU is available for PyTorch (primary ML framework)"""

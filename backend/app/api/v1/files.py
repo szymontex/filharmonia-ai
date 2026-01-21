@@ -167,3 +167,53 @@ async def get_mp3_for_csv(csv_path: str = Query(..., description="Path to CSV fi
         recording_date=f"{year}-{month}-{day}",
         exists=exists
     )
+
+
+class CsvMetadataResponse(BaseModel):
+    csv_path: str
+    mp3_path: str
+    recording_date: str
+    song_name: str
+    mp3_exists: bool
+    csv_exists: bool
+
+
+@router.get("/csv-metadata", response_model=CsvMetadataResponse)
+async def get_csv_metadata(csv_path: str = Query(..., description="Path to CSV file")):
+    """
+    Get full metadata for a CSV file including resolved MP3 path.
+
+    Useful for frontend to get all needed info in a single call.
+    """
+    csv_path_obj = Path(csv_path)
+    clean_name = csv_path_obj.name.replace('_autosave', '')
+
+    # Parse filename
+    match = re.search(r'predictions_(.+?)_(\d{4})-(\d{2})-(\d{2})(?:_\d{2}-\d{2})?\.csv', clean_name)
+
+    if not match:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Could not parse CSV filename format"
+        )
+
+    song_name, year, month, day = match.groups()
+
+    # Build MP3 path
+    mp3_path = settings.SORTED_FOLDER / year / month / day / f"{song_name}.MP3"
+    mp3_exists = mp3_path.exists()
+
+    if not mp3_exists:
+        mp3_path_lower = mp3_path.with_suffix('.mp3')
+        if mp3_path_lower.exists():
+            mp3_path = mp3_path_lower
+            mp3_exists = True
+
+    return CsvMetadataResponse(
+        csv_path=csv_path,
+        mp3_path=str(mp3_path),
+        recording_date=f"{year}-{month}-{day}",
+        song_name=song_name,
+        mp3_exists=mp3_exists,
+        csv_exists=csv_path_obj.exists()
+    )
