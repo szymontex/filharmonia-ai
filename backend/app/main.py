@@ -223,6 +223,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Request timeout (excludes /analyze endpoints)
+from app.core.middleware import TimeoutMiddleware
+app.add_middleware(TimeoutMiddleware, timeout=60.0)
+
 # Include routers
 app.include_router(files.router, prefix="/api/v1")
 app.include_router(analyze.router, prefix="/api/v1")
