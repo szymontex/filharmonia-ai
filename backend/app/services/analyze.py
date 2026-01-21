@@ -2,6 +2,7 @@
 Audio Analysis Service
 Uses PyTorch AST (Audio Spectrogram Transformer) for inference
 """
+import logging
 import os
 import time
 import csv
@@ -12,6 +13,8 @@ import librosa
 import eyed3
 from app.config import settings
 from app.services.ast_inference import get_ast_inference_service
+
+logger = logging.getLogger(__name__)
 
 class AnalyzeService:
     def __init__(self):
@@ -63,8 +66,8 @@ class AnalyzeService:
                     # Parse: "Untitled %m/%d/%Y %H:%M:%S"
                     record_date = datetime.strptime(audiofile.tag.title, 'Untitled %m/%d/%Y %H:%M:%S')
                     time_str = f"_{record_date.hour:02d}-{record_date.minute:02d}"
-            except:
-                pass  # If can't extract time, leave empty
+            except Exception as e:
+                logger.debug(f"Could not read ID3 tag from {mp3_path}: {e}")
 
             output_csv = settings.SORTED_FOLDER / "ANALYSIS_RESULTS" / f"predictions_{mp3_path.stem}_{concert_date}{time_str}.csv"
 

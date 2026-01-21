@@ -2,6 +2,7 @@
 Training Service - Model Retraining
 Based on trenowanie3.py with real-time progress updates
 """
+import logging
 import os
 import time
 import threading
@@ -11,6 +12,8 @@ from datetime import datetime
 from typing import Dict, List, Optional, Callable
 from dataclasses import dataclass, asdict
 import uuid
+
+logger = logging.getLogger(__name__)
 
 import numpy as np
 import librosa
@@ -511,8 +514,9 @@ class TrainingService:
                         import soundfile as sf
                         info = sf.info(str(wav_file))
                         total_duration += info.duration
-                    except:
+                    except Exception as e:
                         # Fallback: assume 2.97s per file if can't read
+                        logger.debug(f"Could not read duration for {wav_file}: {e}")
                         total_duration += 2.97
 
             stats[class_name] = {

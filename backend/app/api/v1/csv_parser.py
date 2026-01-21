@@ -1,6 +1,7 @@
 """
 CSV Parser API - parse predictions CSV into tracks
 """
+import logging
 import pandas as pd
 from fastapi import APIRouter, Query, Body
 from pathlib import Path
@@ -11,6 +12,8 @@ import os
 
 from app.config import settings
 from app.core.security import validate_path_or_raise_http
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/csv", tags=["csv"])
 
@@ -67,7 +70,8 @@ def get_duration(start: str, stop: str) -> str:
         seconds = diff_sec % 60
 
         return f"{minutes}'{seconds}\""
-    except:
+    except (ValueError, IndexError) as e:
+        logger.debug(f"Could not calculate duration from {start} to {stop}: {e}")
         return "0'0\""
 
 def extract_tracks(df: pd.DataFrame, threshold: int = 5) -> List[Track]:
