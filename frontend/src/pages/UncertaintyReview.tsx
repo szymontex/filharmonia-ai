@@ -788,8 +788,9 @@ export default function UncertaintyReview({ onBack }: { onBack: () => void }) {
           <p className="text-gray-600">
             📅 Concert date: <span className="font-medium">
               {(() => {
-                // Extract date from path: Y:\...\SORTED\2025\06\27\SONG001.MP3
-                const pathParts = currentSegment.mp3_path.split('\\').filter(p => p)
+                // Extract date from path: .../SORTED/2025/06/27/SONG001.MP3
+                // Handle both Windows (\) and Unix (/) path separators
+                const pathParts = currentSegment.mp3_path.split(/[/\\]/).filter(p => p)
                 const year = pathParts[pathParts.length - 4]
                 const month = pathParts[pathParts.length - 3]
                 const day = pathParts[pathParts.length - 2]
