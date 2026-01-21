@@ -17,6 +17,17 @@ This milestone transforms Filharmonia AI from a working but fragile prototype in
 
 **Dependencies:** None (first phase)
 
+**Plans:** 7 plans
+
+Plans:
+- [ ] 01-01-PLAN.md — Replace bare except clauses with specific exceptions
+- [ ] 01-02-PLAN.md — Add path traversal prevention
+- [ ] 01-03-PLAN.md — Global exception handler and type hints
+- [ ] 01-04-PLAN.md — Cross-platform temp directories
+- [ ] 01-05-PLAN.md — MP3 path resolution API endpoint
+- [ ] 01-06-PLAN.md — Remove hardcoded frontend paths
+- [ ] 01-07-PLAN.md — Startup validation and PyTorch pinning
+
 **Requirements:**
 - CRIT-01: Replace bare `except:` at `main.py:84`
 - CRIT-02: Replace bare `except:` at `analyze.py:36,49`
@@ -182,15 +193,15 @@ This milestone transforms Filharmonia AI from a working but fragile prototype in
 
 ## Progress
 
-| Phase | Name | Requirements | Status |
-|-------|------|--------------|--------|
-| 1 | Foundation Stability | 22 | Pending |
-| 2 | Core UX Polish | 9 | Pending |
-| 3 | Backend Stability | 9 | Pending |
-| 4 | Performance & Migration | 10 | Pending |
-| 5 | Frontend Decomposition | 9 | Pending |
-| 6 | GPU & CPU Optimization | 9 | Pending |
-| **Total** | | **68** | |
+| Phase | Name | Requirements | Plans | Status |
+|-------|------|--------------|-------|--------|
+| 1 | Foundation Stability | 22 | 7 | Planned |
+| 2 | Core UX Polish | 9 | 0 | Pending |
+| 3 | Backend Stability | 9 | 0 | Pending |
+| 4 | Performance & Migration | 10 | 0 | Pending |
+| 5 | Frontend Decomposition | 9 | 0 | Pending |
+| 6 | GPU & CPU Optimization | 9 | 0 | Pending |
+| **Total** | | **68** | **7** | |
 
 Note: Some requirements split across phases where logical (e.g., type hints with foundation). Total in phases exceeds 62 due to research-recommended additions being implicit.
 
@@ -273,3 +284,4 @@ Note: Some requirements split across phases where logical (e.g., type hints with
 ---
 
 *Roadmap created: 2026-01-21*
+*Phase 1 planned: 2026-01-21*
