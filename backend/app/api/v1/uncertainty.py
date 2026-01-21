@@ -17,7 +17,7 @@ router = APIRouter(prefix="/uncertainty", tags=["uncertainty"])
 
 
 def time_to_seconds(time_str: str) -> float:
-    """Convert HH:MM:SS to seconds"""
+    """Convert HH:MM:SS or HH:MM:SS.mmm to seconds"""
     parts = time_str.split(':')
     return int(parts[0]) * 3600 + int(parts[1]) * 60 + float(parts[2])
 
