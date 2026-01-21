@@ -5,11 +5,47 @@ from fastapi.middleware.cors import CORSMiddleware
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from contextlib import asynccontextmanager
 import logging
+import signal
+import subprocess
 import uuid
 from app.config import settings
 
 logger = logging.getLogger(__name__)
 from app.api.v1 import files, analyze, csv_parser, batch, audio, waveform, sort, export, training, uncertainty
+
+
+def terminate_all_workers():
+    """Terminate all worker processes from both analyze and batch modules"""
+    from app.api.v1.analyze import _processes as single_processes
+    from app.api.v1.batch import _processes as batch_processes
+
+    all_processes = {**single_processes, **batch_processes}
+
+    for job_id, proc in list(all_processes.items()):
+        # Check if process is still running
+        if isinstance(proc, subprocess.Popen):
+            if proc.poll() is None:  # Still running
+                logger.info(f"Terminating worker for job {job_id[:8]}...")
+                proc.terminate()
+                try:
+                    proc.wait(timeout=5)
+                except subprocess.TimeoutExpired:
+                    logger.warning(f"Force killing worker for job {job_id[:8]}")
+                    proc.kill()
+                    proc.wait()
+        elif hasattr(proc, 'terminate'):  # multiprocessing.Process
+            if proc.is_alive():
+                logger.info(f"Terminating batch worker for job {job_id[:8]}...")
+                proc.terminate()
+                proc.join(timeout=5)
+                if proc.is_alive():
+                    logger.warning(f"Force killing batch worker for job {job_id[:8]}")
+                    proc.kill()
+                    proc.join()
+
+    single_processes.clear()
+    batch_processes.clear()
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -82,26 +118,44 @@ async def lifespan(app: FastAPI):
     print("Startup complete!")
     print("=" * 50)
 
+    # Register signal handlers for graceful shutdown
+    def signal_handler(signum, frame):
+        logger.info(f"Received signal {signum}, initiating graceful shutdown...")
+        terminate_all_workers()
+
+    signal.signal(signal.SIGTERM, signal_handler)
+    signal.signal(signal.SIGINT, signal_handler)
+
     yield
-    # Shutdown: Mark all running jobs as interrupted
-    print("🔄 Graceful shutdown: marking active analysis jobs as interrupted...")
+
+    # Shutdown
+    logger.info("Shutting down, terminating workers...")
+    terminate_all_workers()
+
+    # Mark running jobs as interrupted in cache
     from app.api.v1.batch import _jobs
     from app.api.v1.analyze import _single_jobs
 
-    # Mark batch jobs as cancelled
     for job_id, job in _jobs.items():
         if job.get("status") == "running":
             job["cancelled"] = True
             job["status"] = "interrupted"
-            print(f"  ⚠️  Batch job {job_id[:8]} interrupted (was processing: {job.get('current_file', 'unknown')})")
 
-    # Mark single jobs as interrupted
     for job_id, job in _single_jobs.items():
         if job.get("status") == "running":
             job["status"] = "interrupted"
-            print(f"  ⚠️  Single job {job_id[:8]} interrupted")
 
-    print("✓ Shutdown complete")
+    # Cleanup old jobs from SQLite
+    try:
+        from app.services.job_registry import get_job_registry
+        import asyncio
+        registry = asyncio.get_event_loop().run_until_complete(get_job_registry())
+        asyncio.get_event_loop().run_until_complete(registry.cleanup_old_jobs(days=7))
+        logger.info("Old jobs cleaned up from SQLite")
+    except Exception as e:
+        logger.warning(f"Could not cleanup old jobs: {e}")
+
+    logger.info("Shutdown complete")
 
 app = FastAPI(
     title="Filharmonia AI API",
