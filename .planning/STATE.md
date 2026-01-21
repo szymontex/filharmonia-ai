@@ -7,7 +7,7 @@
 **Status:** In progress
 **Progress:** [██░░░░░░░░] 2/6 phases complete (03: 3/4 plans)
 
-**Last activity:** 2026-01-21 — Completed 03-01-PLAN.md (SQLite Job Registry)
+**Last activity:** 2026-01-21 — Completed 03-04-PLAN.md (Frontend Exponential Backoff)
 
 ## Project Reference
 
@@ -72,6 +72,7 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 - UncertaintyReview uses regex split for cross-platform path parsing
 - TTLCache for job dicts: 1h/100 for single jobs, 4h/50 for batch jobs
 - Atomic write pattern: temp file + os.replace (works on Unix and Windows)
+- POLL-001: 1.5x multiplier for exponential backoff polling (1s->1.5s->2.25s->10s max)
 - aiosqlite for job registry (not SQLAlchemy async) — simpler, no ORM overhead
 
 ### Research Completed (2026-01-20)
@@ -113,14 +114,14 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 ## Session Continuity
 
 **Last session:** 2026-01-21
-**Stopped at:** Completed 03-01-PLAN.md (SQLite Job Registry)
+**Stopped at:** Completed 03-04-PLAN.md (Frontend Exponential Backoff)
 **Resume file:** None
 
 **If context is lost, read these files in order:**
 1. .planning/PROJECT.md — Core value and constraints
 2. .planning/ROADMAP.md — Phase structure and requirements
 3. .planning/STATE.md — Current position (this file)
-4. .planning/phases/03-backend-stability/03-01-SUMMARY.md — Last completed plan
+4. .planning/phases/03-backend-stability/03-04-SUMMARY.md — Last completed plan
 
 ---
-*State updated: 2026-01-21 — Completed 03-01 SQLite Job Registry*
+*State updated: 2026-01-21 — Completed 03-04 Frontend Exponential Backoff*
