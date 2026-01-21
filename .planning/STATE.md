@@ -3,11 +3,11 @@
 ## Current Position
 
 **Phase:** 1 of 6 — Foundation Stability
-**Plan:** 01 of 7 (Bare Except Replacement)
-**Status:** Complete
-**Progress:** [######....] 6/7 phase 1 plans complete
+**Plan:** 07 of 7 (Audio Backend Startup)
+**Status:** PHASE COMPLETE
+**Progress:** [##########] 7/7 phase 1 plans complete
 
-**Last activity:** 2026-01-21 — Completed 01-01-PLAN.md (Bare except replacement)
+**Last activity:** 2026-01-21 — Completed 01-06-PLAN.md (Remove hardcoded paths)
 
 ## Project Reference
 
@@ -15,15 +15,15 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 
 **Core value:** Zamiast reczenie sluchac ~6-8h nagran/tyg, AI robi to za ciebie.
 **Current focus:** v0.9 — Polish & Stability
-**Current phase goal:** Users see meaningful error messages instead of silent failures; paths work cross-platform.
+**Current phase goal:** ACHIEVED - Users see meaningful error messages; paths work cross-platform.
 
 ## Phase 1 Success Criteria
 
-1. When an error occurs, user sees specific message with error ID (not "Internal Server Error")
-2. Application starts successfully on Windows, Linux, and macOS without path modifications
-3. File operations reject paths outside allowed directories (path traversal blocked)
-4. Application logs show which audio backend initialized at startup
-5. All function signatures in csv_parser.py have return type hints
+1. [x] When an error occurs, user sees specific message with error ID (not "Internal Server Error")
+2. [x] Application starts successfully on Windows, Linux, and macOS without path modifications
+3. [x] File operations reject paths outside allowed directories (path traversal blocked)
+4. [x] Application logs show which audio backend initialized at startup
+5. [x] All function signatures in csv_parser.py have return type hints
 
 ## Phase 1 Progress
 
@@ -34,17 +34,17 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 | 01-03 | Global Exception Handler | Complete | 49b1694 |
 | 01-04 | Cross-Platform Temp | Complete | 94094fb |
 | 01-05 | MP3 Path Resolution | Complete | a17e914 |
-| 01-06 | Remove Hardcoded Paths | Pending | - |
+| 01-06 | Remove Hardcoded Paths | Complete | 0c8a310 |
 | 01-07 | Audio Backend Startup | Complete | 5138e8c |
 
 ## Performance Metrics
 
 | Metric | Target | Current |
 |--------|--------|---------|
-| Phase completion | 6 | 0 |
-| Phase 1 plans | 7 | 6 |
-| Requirements done | 62 | 20 (CRIT-01, CRIT-02, CRIT-03, CRIT-04, CRIT-05, CRIT-06, CRIT-07, CRIT-08, CRIT-09, CRIT-10, TYPE-01, TYPE-02, TYPE-03, TYPE-04, PATH-03, PATH-04, PATH-05, PATH-06, INFRA-04, INFRA-05) |
-| Critical issues fixed | 15 | 10 |
+| Phase completion | 6 | 1 |
+| Phase 1 plans | 7 | 7 |
+| Requirements done | 62 | 22 (CRIT-01 to CRIT-10, TYPE-01 to TYPE-04, PATH-01 to PATH-06, INFRA-04, INFRA-05) |
+| Critical issues fixed | 15 | 12 |
 
 ## Accumulated Context
 
@@ -59,6 +59,8 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 - Centralized security utility at backend/app/core/security.py
 - Three-handler exception chain: StarletteHTTPException, RequestValidationError, Exception
 - 8-character UUID prefix for error_id correlation
+- CalendarBrowser extracts SORTED base from recording.path via regex (no API call needed)
+- UncertaintyReview uses regex split for cross-platform path parsing
 
 ### Research Completed (2026-01-20)
 - .planning/research/STACK.md — PyTorch/torchaudio recommendations
@@ -78,13 +80,14 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 - .planning/phases/01-foundation-stability/01-03-SUMMARY.md — Exception handlers & type hints
 - .planning/phases/01-foundation-stability/01-04-SUMMARY.md — Cross-platform temp directories
 - .planning/phases/01-foundation-stability/01-05-SUMMARY.md — MP3 path resolution endpoint
+- .planning/phases/01-foundation-stability/01-06-SUMMARY.md — Remove hardcoded paths
 - .planning/phases/01-foundation-stability/01-07-SUMMARY.md — Audio backend startup validation
 
 ### Blockers
 (None)
 
 ### TODOs
-- [ ] Execute remaining Phase 1 plan (01-06)
+- [x] Execute remaining Phase 1 plan (01-06) - COMPLETE
 
 ### Open Questions
 (None)
@@ -92,14 +95,14 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 ## Session Continuity
 
 **Last session:** 2026-01-21
-**Stopped at:** Completed 01-01-PLAN.md
+**Stopped at:** Completed Phase 1 (all 7 plans)
 **Resume file:** None
 
 **If context is lost, read these files in order:**
 1. .planning/PROJECT.md — Core value and constraints
 2. .planning/ROADMAP.md — Phase structure and requirements
 3. .planning/STATE.md — Current position (this file)
-4. .planning/phases/01-foundation-stability/01-01-SUMMARY.md — Last completed plan
+4. .planning/phases/01-foundation-stability/01-06-SUMMARY.md — Last completed plan
 
 ---
-*State updated: 2026-01-21 — Completed 01-01 bare except replacement*
+*State updated: 2026-01-21 — Completed 01-06 Remove Hardcoded Paths (Phase 1 Complete)*
