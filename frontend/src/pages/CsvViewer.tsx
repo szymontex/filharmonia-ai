@@ -4,16 +4,9 @@ import { CLASS_COLORS } from '../constants/colors'
 import StickyPlayer from '../components/StickyPlayer'
 import Toast from '../components/Toast'
 import { useExponentialPolling } from '../hooks/useExponentialPolling'
+import { useTrackEditor, Track } from '../hooks/useTrackEditor'
+import { calculateDuration, timeToSeconds } from '../utils/timeCalculations'
 
-interface Track {
-  id: string
-  selected: boolean
-  name: string
-  predicted_class: string
-  start: string
-  stop: string
-  duration: string
-}
 
 interface CsvFile {
   path: string
@@ -27,16 +20,32 @@ interface CsvViewerProps {
 }
 
 export default function CsvViewer({ onBack, initialCsv }: CsvViewerProps = {}) {
+  // Track editing state (from hook)
+  const {
+    tracks,
+    setTracks,
+    hasUnsavedChanges,
+    setHasUnsavedChanges,
+    toggleSelect,
+    updateName,
+    updateStart,
+    updateStop,
+    updateClass,
+    deleteTrack,
+    mergeWithNext,
+    cutSegmentAtTime,
+    addSegmentAtTime,
+    addSegmentBelow
+  } = useTrackEditor()
+
   const [csvFiles, setCsvFiles] = useState<CsvFile[]>([])
   const [selectedCsv, setSelectedCsv] = useState<string | null>(null)
-  const [tracks, setTracks] = useState<Track[]>([])
   const [loading, setLoading] = useState(false)
   const [mp3Path, setMp3Path] = useState<string>('')
   const [showPlayer, setShowPlayer] = useState(false)
   const [selectedTrackId, setSelectedTrackId] = useState<string | null>(null)
   const [seekToTime, setSeekToTime] = useState<string | null>(null)
   const [playingTrackId, setPlayingTrackId] = useState<string | null>(null)
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
   const [lastAutosave, setLastAutosave] = useState<Date | null>(null)
   const [showSaveModal, setShowSaveModal] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; path: string; name: string }>({ show: false, path: '', name: '' })
@@ -224,336 +233,6 @@ export default function CsvViewer({ onBack, initialCsv }: CsvViewerProps = {}) {
     setShowPlayer(!showPlayer)
   }
 
-  const toggleSelect = (id: string) => {
-    setTracks(tracks.map(t =>
-      t.id === id ? { ...t, selected: !t.selected } : t
-    ))
-    setHasUnsavedChanges(true)
-  }
-
-  const updateName = (id: string, name: string) => {
-    setTracks(tracks.map(t =>
-      t.id === id ? { ...t, name } : t
-    ))
-    setHasUnsavedChanges(true)
-  }
-
-  const updateStart = (id: string, start: string) => {
-    setTracks(prevTracks => {
-      const trackIndex = prevTracks.findIndex(t => t.id === id)
-      if (trackIndex === -1) return prevTracks
-
-      const updatedTracks = [...prevTracks]
-      const currentTrack = { ...updatedTracks[trackIndex], start }
-
-      if (currentTrack.start && currentTrack.stop) {
-        currentTrack.duration = calculateDuration(currentTrack.start, currentTrack.stop)
-      }
-
-      updatedTracks[trackIndex] = currentTrack
-
-      // Update stop time of previous track to match this track's start time
-      if (trackIndex > 0) {
-        const prevTrack = { ...updatedTracks[trackIndex - 1], stop: start }
-        if (prevTrack.start && prevTrack.stop) {
-          prevTrack.duration = calculateDuration(prevTrack.start, prevTrack.stop)
-        }
-        updatedTracks[trackIndex - 1] = prevTrack
-      }
-
-      return updatedTracks
-    })
-    setHasUnsavedChanges(true)
-  }
-
-  const updateStop = (id: string, stop: string) => {
-    setTracks(prevTracks => {
-      const trackIndex = prevTracks.findIndex(t => t.id === id)
-      if (trackIndex === -1) return prevTracks
-
-      const updatedTracks = [...prevTracks]
-      const currentTrack = { ...updatedTracks[trackIndex], stop }
-
-      if (currentTrack.start && currentTrack.stop) {
-        currentTrack.duration = calculateDuration(currentTrack.start, currentTrack.stop)
-      }
-
-      updatedTracks[trackIndex] = currentTrack
-
-      // Update start time of next track to match this track's stop time
-      if (trackIndex < updatedTracks.length - 1) {
-        const nextTrack = { ...updatedTracks[trackIndex + 1], start: stop }
-        if (nextTrack.start && nextTrack.stop) {
-          nextTrack.duration = calculateDuration(nextTrack.start, nextTrack.stop)
-        }
-        updatedTracks[trackIndex + 1] = nextTrack
-      }
-
-      return updatedTracks
-    })
-    setHasUnsavedChanges(true)
-  }
-
-  const updateClass = (id: string, predicted_class: string) => {
-    setTracks(tracks.map(t =>
-      t.id === id ? { ...t, predicted_class } : t
-    ))
-    setHasUnsavedChanges(true)
-  }
-
-  const deleteTrack = (id: string) => {
-    const idx = tracks.findIndex(t => t.id === id)
-    if (idx === -1) return
-
-    // Merge with previous track if it exists
-    if (idx > 0) {
-      const prevTrack = tracks[idx - 1]
-      const deletedTrack = tracks[idx]
-
-      // Extend previous track to cover deleted track's time
-      const updatedPrevTrack = {
-        ...prevTrack,
-        stop: deletedTrack.stop,
-        duration: calculateDuration(prevTrack.start, deletedTrack.stop)
-      }
-
-      const newTracks = [
-        ...tracks.slice(0, idx - 1),
-        updatedPrevTrack,
-        ...tracks.slice(idx + 1)
-      ]
-      setTracks(newTracks)
-    } else if (idx === 0 && tracks.length > 1) {
-      // If deleting first track, extend next track to cover its time
-      const nextTrack = tracks[1]
-      const deletedTrack = tracks[0]
-
-      const updatedNextTrack = {
-        ...nextTrack,
-        start: deletedTrack.start,
-        duration: calculateDuration(deletedTrack.start, nextTrack.stop)
-      }
-
-      const newTracks = [
-        updatedNextTrack,
-        ...tracks.slice(2)
-      ]
-      setTracks(newTracks)
-    } else {
-      // Only one track - just remove it
-      setTracks(tracks.filter(t => t.id !== id))
-    }
-
-    setHasUnsavedChanges(true)
-  }
-
-  const cutSegmentAtTime = (timeStr: string) => {
-    const timeSeconds = parseInt(timeStr.split(':')[0]) * 3600 + parseInt(timeStr.split(':')[1]) * 60 + parseInt(timeStr.split(':')[2])
-
-    // Find which segment this time falls into
-    let segmentIndex = -1
-    for (let i = 0; i < tracks.length; i++) {
-      const startSeconds = parseInt(tracks[i].start.split(':')[0]) * 3600 + parseInt(tracks[i].start.split(':')[1]) * 60 + parseInt(tracks[i].start.split(':')[2])
-      const stopSeconds = parseInt(tracks[i].stop.split(':')[0]) * 3600 + parseInt(tracks[i].stop.split(':')[1]) * 60 + parseInt(tracks[i].stop.split(':')[2])
-
-      if (timeSeconds > startSeconds && timeSeconds < stopSeconds) {
-        segmentIndex = i
-        break
-      }
-    }
-
-    if (segmentIndex === -1) {
-      // Time is outside existing segments or exactly at boundary
-      return
-    }
-
-    const currentSegment = tracks[segmentIndex]
-    const cutTime = secondsToTimeFormat(timeSeconds)
-
-    // Split into two segments with same class
-    const firstSegment: Track = {
-      ...currentSegment,
-      id: `track-${Date.now()}-first`,
-      stop: cutTime,
-      duration: calculateDuration(currentSegment.start, cutTime)
-    }
-
-    const secondSegment: Track = {
-      ...currentSegment,
-      id: `track-${Date.now()}-second`,
-      start: cutTime,
-      duration: calculateDuration(cutTime, currentSegment.stop)
-    }
-
-    // Replace current segment with two segments
-    const newTracks = [
-      ...tracks.slice(0, segmentIndex),
-      firstSegment,
-      secondSegment,
-      ...tracks.slice(segmentIndex + 1)
-    ]
-
-    setTracks(newTracks)
-    setHasUnsavedChanges(true)
-  }
-
-  const addSegmentAtTime = (timeStr: string, totalDuration?: number) => {
-    const timeSeconds = parseInt(timeStr.split(':')[0]) * 3600 + parseInt(timeStr.split(':')[1]) * 60 + parseInt(timeStr.split(':')[2])
-
-    // Find which segment this time falls into
-    let segmentIndex = -1
-    for (let i = 0; i < tracks.length; i++) {
-      const startSeconds = parseInt(tracks[i].start.split(':')[0]) * 3600 + parseInt(tracks[i].start.split(':')[1]) * 60 + parseInt(tracks[i].start.split(':')[2])
-      const stopSeconds = parseInt(tracks[i].stop.split(':')[0]) * 3600 + parseInt(tracks[i].stop.split(':')[1]) * 60 + parseInt(tracks[i].stop.split(':')[2])
-
-      if (timeSeconds >= startSeconds && timeSeconds < stopSeconds) {
-        segmentIndex = i
-        break
-      }
-    }
-
-    if (segmentIndex === -1) {
-      // Time is outside existing segments, don't add
-      return
-    }
-
-    const currentSegment = tracks[segmentIndex]
-    const currentStopSeconds = parseInt(currentSegment.stop.split(':')[0]) * 3600 + parseInt(currentSegment.stop.split(':')[1]) * 60 + parseInt(currentSegment.stop.split(':')[2])
-
-    // Create new segment: 6-10 seconds duration (let's use 8 seconds as default)
-    const duration = 8
-    const newStartSeconds = timeSeconds
-    const newStopSeconds = Math.min(timeSeconds + duration, currentStopSeconds)
-
-    const newStart = secondsToTimeFormat(newStartSeconds)
-    const newStop = secondsToTimeFormat(newStopSeconds)
-
-    const newSegment: Track = {
-      id: `track-${Date.now()}`,
-      selected: false,
-      name: '',
-      predicted_class: 'MUSIC',
-      start: newStart,
-      stop: newStop,
-      duration: calculateDuration(newStart, newStop)
-    }
-
-    // Update current segment's stop time to newStart
-    const updatedCurrentSegment = {
-      ...currentSegment,
-      stop: newStart,
-      duration: calculateDuration(currentSegment.start, newStart)
-    }
-
-    // Create next segment from newStop to original stop
-    const nextSegment: Track = {
-      id: `track-${Date.now()}-next`,
-      selected: false,
-      name: currentSegment.name,
-      predicted_class: currentSegment.predicted_class,
-      start: newStop,
-      stop: currentSegment.stop,
-      duration: calculateDuration(newStop, currentSegment.stop)
-    }
-
-    // Replace current segment with: updated current + new segment + next segment
-    const newTracks = [
-      ...tracks.slice(0, segmentIndex),
-      updatedCurrentSegment,
-      newSegment,
-      nextSegment,
-      ...tracks.slice(segmentIndex + 1)
-    ]
-
-    setTracks(newTracks)
-    setHasUnsavedChanges(true)
-  }
-
-  const secondsToTimeFormat = (seconds: number): string => {
-    const h = Math.floor(seconds / 3600)
-    const m = Math.floor((seconds % 3600) / 60)
-    const s = Math.floor(seconds % 60)
-    return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`
-  }
-
-  const mergeWithNext = (id: string) => {
-    const idx = tracks.findIndex(t => t.id === id)
-    if (idx === -1 || idx === tracks.length - 1) return
-
-    const current = tracks[idx]
-    const next = tracks[idx + 1]
-
-    const merged = {
-      ...current,
-      stop: next.stop,
-      duration: calculateDuration(current.start, next.stop)
-    }
-
-    setTracks([
-      ...tracks.slice(0, idx),
-      merged,
-      ...tracks.slice(idx + 2)
-    ])
-    setHasUnsavedChanges(true)
-  }
-
-  const addSegmentBelow = (id: string) => {
-    const idx = tracks.findIndex(t => t.id === id)
-    if (idx === -1) return
-
-    const current = tracks[idx]
-    const stopSeconds = parseInt(current.stop.split(':')[0]) * 3600 + parseInt(current.stop.split(':')[1]) * 60 + parseInt(current.stop.split(':')[2])
-
-    // Create new segment starting at current segment's stop time, 8 seconds duration
-    const duration = 8
-    const newStartSeconds = stopSeconds
-    const newStopSeconds = stopSeconds + duration
-
-    const newStart = secondsToTimeFormat(newStartSeconds)
-    const newStop = secondsToTimeFormat(newStopSeconds)
-
-    const newSegment: Track = {
-      id: `track-${Date.now()}`,
-      selected: false,
-      name: '',
-      predicted_class: current.predicted_class, // Copy class from segment above
-      start: newStart,
-      stop: newStop,
-      duration: calculateDuration(newStart, newStop)
-    }
-
-    // Update next segment's start time if it exists
-    const updatedTracks = [...tracks]
-    if (idx + 1 < tracks.length) {
-      const nextSegment = { ...updatedTracks[idx + 1], start: newStop }
-      nextSegment.duration = calculateDuration(nextSegment.start, nextSegment.stop)
-      updatedTracks[idx + 1] = nextSegment
-    }
-
-    // Insert right after current segment
-    const newTracks = [
-      ...updatedTracks.slice(0, idx + 1),
-      newSegment,
-      ...updatedTracks.slice(idx + 1)
-    ]
-
-    setTracks(newTracks)
-    setHasUnsavedChanges(true)
-  }
-
-  const calculateDuration = (start: string, stop: string): string => {
-    const [sh, sm, ss] = start.split(':').map(Number)
-    const [eh, em, es] = stop.split(':').map(Number)
-
-    const startSec = sh * 3600 + sm * 60 + ss
-    const endSec = eh * 3600 + em * 60 + es
-    const diffSec = endSec - startSec
-
-    const minutes = Math.floor(diffSec / 60)
-    const seconds = diffSec % 60
-
-    return `${minutes}'${seconds}"`
-  }
 
   const handleTrackUpdate = (trackId: string, updates: { start?: string; stop?: string }) => {
     setTracks(prevTracks => prevTracks.map(t => {
