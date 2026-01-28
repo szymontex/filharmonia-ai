@@ -67,7 +67,7 @@ Plans:
 
 **Dependencies:** Phase 1 (error handling enables meaningful feedback)
 
-**Plans:** 6 plans
+**Plans:** 7 plans
 
 Plans:
 - [ ] 02-01-PLAN.md — Create useUndoRedo and useKeyboardShortcuts hooks
@@ -76,6 +76,7 @@ Plans:
 - [ ] 02-04-PLAN.md — Wire shortcuts, undo/redo, and toasts into CsvViewer
 - [ ] 02-05-PLAN.md — Progress indicators, debounce abort, handlePlayRecording
 - [ ] 02-06-PLAN.md — Keyboard help panel
+- [ ] 02-07-PLAN.md — Gap closure: AbortController wiring, spacebar play/pause, cleanup
 
 **Requirements:**
 - UX-01: Keyboard shortcuts — spacebar play/pause
