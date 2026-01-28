@@ -173,6 +173,7 @@ async def http_exception_handler(request: Request, exc: StarletteHTTPException):
         content={
             "status": "error",
             "message": exc.detail,
+            "code": f"HTTP_{exc.status_code}",
             "type": "http_error"
         }
     )
@@ -186,6 +187,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
         content={
             "status": "error",
             "message": "Validation error",
+            "code": "VALIDATION_ERROR",
             "details": exc.errors(),
             "type": "validation_error"
         }
@@ -208,6 +210,7 @@ async def global_exception_handler(request: Request, exc: Exception):
         content={
             "status": "error",
             "message": "Internal server error",
+            "code": "INTERNAL_ERROR",
             "error_id": error_id,
             "type": "server_error"
         }
