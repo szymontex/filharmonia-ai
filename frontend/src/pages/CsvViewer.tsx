@@ -6,6 +6,7 @@ import Toast from '../components/Toast'
 import { useExponentialPolling } from '../hooks/useExponentialPolling'
 import { useAudioPlayer } from '../hooks/useAudioPlayer'
 import { useTrackEditor, Track } from '../hooks/useTrackEditor'
+import { useAutosave } from '../hooks/useAutosave'
 import { calculateDuration, timeToSeconds } from '../utils/timeCalculations'
 
 
@@ -57,7 +58,6 @@ export default function CsvViewer({ onBack, initialCsv }: CsvViewerProps = {}) {
   const [selectedCsv, setSelectedCsv] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [mp3Path, setMp3Path] = useState<string>('')
-  const [lastAutosave, setLastAutosave] = useState<Date | null>(null)
   const [showSaveModal, setShowSaveModal] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; path: string; name: string }>({ show: false, path: '', name: '' })
   const [recordingDate, setRecordingDate] = useState<string | null>(null)
@@ -348,25 +348,17 @@ export default function CsvViewer({ onBack, initialCsv }: CsvViewerProps = {}) {
     return () => window.removeEventListener('keydown', handleKeyPress)
   }, [deleteConfirm])
 
-  // Autosave immediately after tracks change
-  useEffect(() => {
-    if (!selectedCsv || !hasUnsavedChanges) return
-
-    const performAutosave = async () => {
-      try {
-        await axios.post('/api/v1/csv/autosave', {
-          path: selectedCsv,
-          tracks: tracks
-        })
-        setLastAutosave(new Date())
-        console.log('Autosaved at', new Date().toLocaleTimeString())
-      } catch (error) {
-        console.error('Autosave failed:', error)
-      }
+  // Autosave when tracks change
+  const { lastSave: lastAutosave, isSaving } = useAutosave({
+    data: tracks,
+    enabled: hasUnsavedChanges && selectedCsv !== null,
+    saveFn: async (trackData) => {
+      await axios.post('/api/v1/csv/autosave', {
+        path: selectedCsv,
+        tracks: trackData
+      })
     }
-
-    performAutosave()
-  }, [tracks, selectedCsv])
+  })
 
   const exportSelected = () => {
     const selected = tracks.filter(t => t.selected)
