@@ -61,7 +61,7 @@ export default function CsvViewer({ onBack, initialCsv }: CsvViewerProps = {}) {
     seekToTime,
     clearSeekRequest,
     playFromSegment,
-    isPlaying,
+    isPlaying,  // Used indirectly via setIsPlaying callback (updated by StickyPlayer)
     setIsPlaying,
     togglePlaybackRef,
     togglePlayback
@@ -77,8 +77,6 @@ export default function CsvViewer({ onBack, initialCsv }: CsvViewerProps = {}) {
   const [showSaveModal, setShowSaveModal] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; path: string; name: string }>({ show: false, path: '', name: '' })
   const [recordingDate, setRecordingDate] = useState<string | null>(null)
-  const [showExportModal, setShowExportModal] = useState(false)
-  const [exportedCount, setExportedCount] = useState(0)
   const [errorToast, setErrorToast] = useState<{ show: boolean; message: string }>({ show: false, message: '' })
   const [successToast, setSuccessToast] = useState<{ show: boolean; message: string }>({ show: false, message: '' })
   const [exportConfirm, setExportConfirm] = useState<{ show: boolean; count: number }>({ show: false, count: 0 })
@@ -225,13 +223,19 @@ export default function CsvViewer({ onBack, initialCsv }: CsvViewerProps = {}) {
   }
 
   const loadCsv = async (csvPath: string) => {
+    // Abort any in-flight request and create new controller
+    abortRef.current?.abort()
+    abortRef.current = new AbortController()
+
     setLoading(true)
     setProgressStage('Loading...')
     setSelectedCsv(csvPath)
 
     try {
       // Check for autosave
-      const autosaveCheck = await axios.get(`/api/v1/csv/check-autosave?path=${encodeURIComponent(csvPath)}`)
+      const autosaveCheck = await axios.get(`/api/v1/csv/check-autosave?path=${encodeURIComponent(csvPath)}`, {
+        signal: abortRef.current.signal
+      })
 
       let pathToLoad = csvPath
 
@@ -245,7 +249,9 @@ export default function CsvViewer({ onBack, initialCsv }: CsvViewerProps = {}) {
       }
 
       // Load and parse CSV with threshold
-      const res = await axios.get(`/api/v1/csv/parse?path=${encodeURIComponent(pathToLoad)}&threshold=${debouncedThreshold}`)
+      const res = await axios.get(`/api/v1/csv/parse?path=${encodeURIComponent(pathToLoad)}&threshold=${debouncedThreshold}`, {
+        signal: abortRef.current.signal
+      })
       setTracks(res.data.tracks)
       undoRedo.resetHistory(res.data.tracks)  // Reset undo/redo history on file switch
       setHasUnsavedChanges(false)
@@ -255,12 +261,25 @@ export default function CsvViewer({ onBack, initialCsv }: CsvViewerProps = {}) {
 
       // Resolve MP3 path from CSV via backend API
       try {
-        const response = await axios.get(`/api/v1/files/mp3-for-csv?csv_path=${encodeURIComponent(csvPath)}`)
+        const response = await axios.get(`/api/v1/files/mp3-for-csv?csv_path=${encodeURIComponent(csvPath)}`, {
+          signal: abortRef.current.signal
+        })
         setMp3Path(response.data.mp3_path)
         setRecordingDate(response.data.recording_date)
       } catch (error) {
+        // Silently ignore cancellation errors
+        if (axios.isCancel(error)) {
+          return
+        }
         console.error('Error resolving MP3 path:', error)
       }
+    } catch (error) {
+      // Silently ignore cancellation errors
+      if (axios.isCancel(error)) {
+        return
+      }
+      // Let axios interceptor handle other errors
+      throw error
     } finally {
       setLoading(false)
       setProgressStage(null)
@@ -379,7 +398,7 @@ export default function CsvViewer({ onBack, initialCsv }: CsvViewerProps = {}) {
   }, [deleteConfirm])
 
   // Autosave when tracks change
-  const { lastSave: lastAutosave, isSaving } = useAutosave({
+  const { lastSave: lastAutosave } = useAutosave({
     data: tracks,
     enabled: hasUnsavedChanges && selectedCsv !== null,
     saveFn: async (trackData) => {
@@ -389,18 +408,6 @@ export default function CsvViewer({ onBack, initialCsv }: CsvViewerProps = {}) {
       })
     }
   })
-
-  const exportSelected = () => {
-    const selected = tracks.filter(t => t.selected)
-    const output = selected.map((t, i) =>
-      `${i + 1}. ${t.name || 'Untitled'} (${t.duration})`
-    ).join('\n')
-
-    navigator.clipboard.writeText(output)
-    setExportedCount(selected.length)
-    setShowExportModal(true)
-    setTimeout(() => setShowExportModal(false), 2000)
-  }
 
   const copyTracklistToClipboard = () => {
     // Filter MUSIC segments only
@@ -416,7 +423,7 @@ export default function CsvViewer({ onBack, initialCsv }: CsvViewerProps = {}) {
 
     // Add date at the top (extract from recordingDate state: YYYY-MM-DD)
     if (recordingDate) {
-      const [year, month, day] = recordingDate.split('-')
+      const [, month, day] = recordingDate.split('-')
       output += `${day}.${month}\n`
     }
 
@@ -462,7 +469,7 @@ export default function CsvViewer({ onBack, initialCsv }: CsvViewerProps = {}) {
 
     try {
       // Convert tracks to segments with indices
-      const segments = selected.map((track, idx) => {
+      const segments = selected.map((track) => {
         const trackIndex = tracks.findIndex(t => t.id === track.id)
         return {
           start: timeToSeconds(track.start),
@@ -477,6 +484,8 @@ export default function CsvViewer({ onBack, initialCsv }: CsvViewerProps = {}) {
         csv_path: selectedCsv,
         mp3_path: mp3Path,
         segments: segments
+      }, {
+        signal: abortRef.current?.signal
       })
 
       const summary = response.data.summary
@@ -488,10 +497,16 @@ export default function CsvViewer({ onBack, initialCsv }: CsvViewerProps = {}) {
       })
 
       // Refresh exported segments list
-      await loadExportedSegments(selectedCsv)
+      if (selectedCsv) {
+        await loadExportedSegments(selectedCsv)
+      }
       await loadCsvsWithExports()
 
     } catch (error: any) {
+      // Silently ignore cancellation errors
+      if (axios.isCancel(error)) {
+        return
+      }
       console.error('Export error:', error)
       setErrorToast({ show: true, message: error.response?.data?.detail || error.message || 'Export failed' })
     }
@@ -610,11 +625,6 @@ export default function CsvViewer({ onBack, initialCsv }: CsvViewerProps = {}) {
   }), [showPlayer, togglePlayer, togglePlayback, saveToFile, handleUndo, handleRedo, selectedTrackId, wrappedUpdateClass, showKeyboardHelp])
 
   useKeyboardShortcuts(keyboardHandlers)
-
-    const timeToSeconds = (timeStr: string): number => {
-    const parts = timeStr.split(':').map(Number)
-    return parts[0] * 3600 + parts[1] * 60 + parts[2]
-  }
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
