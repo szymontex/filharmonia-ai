@@ -2,12 +2,12 @@
 
 ## Current Position
 
-**Phase:** 2 of 6 — Core UX Polish (in progress)
+**Phase:** 2 of 6 — Core UX Polish (COMPLETE ✓)
 **Previous:** Phase 1, 3, 4, 5 Complete ✓
-**Status:** Phase 2 in progress (6/7 plans complete)
-**Progress:** [████████░░] 4/6 phases complete
+**Status:** Phase 2 complete (6/6 plans complete)
+**Progress:** [██████████] 5/6 phases complete
 
-**Last activity:** 2026-01-28 — Completed 02-04 Keyboard Shortcuts & Undo/Redo
+**Last activity:** 2026-01-29 — Completed 02-06 Keyboard Shortcut Help Panel
 
 ## Project Reference
 
@@ -26,6 +26,7 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 | 02-03 | Atomic CSV Writes | Complete | a7374a7, bdd071d |
 | 02-04 | Keyboard Shortcuts & Undo/Redo | Complete | b499ace |
 | 02-05 | Progress & Navigation | Complete | be9494f, 9771e03 |
+| 02-06 | Keyboard Shortcut Help Panel | Complete | 0ee1b5a |
 
 ## Phase 5 Progress
 
@@ -83,13 +84,13 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 
 | Metric | Target | Current |
 |--------|--------|---------|
-| Phase completion | 6 | 4 |
+| Phase completion | 6 | 5 |
 | Phase 1 plans | 7 | 7 |
 | Phase 3 plans | 4 | 4 |
 | Phase 4 plans | 6 | 6 |
-| Phase 2 plans | 7 | 6 |
+| Phase 2 plans | 6 | 6 |
 | Phase 5 plans | 7 | 7 |
-| Requirements done | 62 | 58 (22 from Phase 1 + 9 from Phase 3 + 10 from Phase 4 + 8 from Phase 5 + 9 from Phase 2) |
+| Requirements done | 62 | 59 (22 from Phase 1 + 9 from Phase 3 + 10 from Phase 4 + 8 from Phase 5 + 10 from Phase 2) |
 | Critical issues fixed | 15 | 15 |
 
 ## Accumulated Context
@@ -158,6 +159,8 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 - Wrapper functions for track mutations: pushState before each edit enables 20-step undo/redo history
 - useUndoRedo exposes present state for sync after undo/redo via useEffect in CsvViewer
 - Undo/Redo buttons in PlayerControls: disabled states (opacity-50) when no history, tooltips show shortcuts
+- KeyboardHelp modal: ? key (Shift+?) toggles help panel listing all 12 shortcuts with visual key combinations
+- Help discoverability: ? icon button in PlayerControls + modal with click-outside-to-close and Escape dismissal
 
 ### Research Completed (2026-01-20)
 - .planning/research/STACK.md — PyTorch/torchaudio recommendations
@@ -201,6 +204,7 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 - .planning/phases/02-core-ux-polish/02-03-SUMMARY.md — Atomic CSV writes
 - .planning/phases/02-core-ux-polish/02-04-SUMMARY.md — Keyboard shortcuts & undo/redo integration
 - .planning/phases/02-core-ux-polish/02-05-SUMMARY.md — Progress indicators & CalendarBrowser navigation
+- .planning/phases/02-core-ux-polish/02-06-SUMMARY.md — Keyboard shortcut help panel (? key toggle)
 
 ### Blockers
 (None)
@@ -230,14 +234,16 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 - [x] Execute Phase 2 Plan 03 - COMPLETE (2/2 tasks)
 - [x] Execute Phase 2 Plan 04 - COMPLETE (2/2 tasks, Task 2 already done in 02-02)
 - [x] Execute Phase 2 Plan 05 - COMPLETE (2/2 tasks)
+- [x] Execute Phase 2 Plan 06 - COMPLETE (1/1 tasks)
+- [x] Verify Phase 2 goal achievement - READY FOR VERIFICATION
 - [ ] Begin Phase 6: Future Readiness
 
-**Stopped at:** Completed 02-04 Keyboard Shortcuts & Undo/Redo (Phase 2: 6/7 plans)
+**Stopped at:** Completed 02-06 Keyboard Shortcut Help Panel (Phase 2: COMPLETE)
 
 ## Session Continuity
 
-**Last session:** 2026-01-28
-**Stopped at:** Completed 02-04 Keyboard Shortcuts & Undo/Redo (Phase 2: 6/7 plans)
+**Last session:** 2026-01-29
+**Stopped at:** Completed 02-06 Keyboard Shortcut Help Panel (Phase 2: COMPLETE ✓)
 **Resume file:** None
 
 **If context is lost, read these files in order:**
@@ -250,6 +256,7 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 7. .planning/phases/02-core-ux-polish/02-02-SUMMARY.md — Toast System & Error Pipeline
 8. .planning/phases/02-core-ux-polish/02-04-SUMMARY.md — Keyboard shortcuts & undo/redo
 9. .planning/phases/02-core-ux-polish/02-05-SUMMARY.md — Progress indicators & navigation
+10. .planning/phases/02-core-ux-polish/02-06-SUMMARY.md — Keyboard shortcut help panel
 
 ---
-*State updated: 2026-01-28 — Phase 2 in progress (6/7 plans): Keyboard shortcuts (Space, Ctrl+S, Ctrl+Z, 1-5) and 20-step undo/redo fully integrated into CsvViewer with visual buttons in PlayerControls*
+*State updated: 2026-01-29 — Phase 2 COMPLETE (6/6 plans): Keyboard shortcuts (Space, Ctrl+S, Ctrl+Z, 1-5), 20-step undo/redo, toast system, atomic writes, progress indicators, and keyboard help panel (? key) all integrated into CsvViewer*
