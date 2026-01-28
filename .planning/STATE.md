@@ -2,12 +2,12 @@
 
 ## Current Position
 
-**Phase:** 5 of 6 — Frontend Decomposition (in progress)
-**Previous:** Phase 1, 3, 4 Complete ✓
-**Status:** Phase 5 Complete (7/7 plans)
+**Phase:** 2 of 6 — Core UX Polish (in progress)
+**Previous:** Phase 1, 3, 4, 5 Complete ✓
+**Status:** Phase 2 started (1/7 plans complete)
 **Progress:** [████████░░] 4/6 phases complete
 
-**Last activity:** 2026-01-28 — Completed 05-07 TrackTable & Finalize
+**Last activity:** 2026-01-28 — Completed 02-01 Foundation Hooks
 
 ## Project Reference
 
@@ -15,7 +15,13 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 
 **Core value:** Zamiast reczenie sluchac ~6-8h nagran/tyg, AI robi to za ciebie.
 **Current focus:** v0.9 — Polish & Stability
-**Next phase goal (Phase 5):** CsvViewer is maintainable — each component has single responsibility.
+**Next phase goal (Phase 2):** Users can undo/redo edits, use keyboard shortcuts, see helpful toasts, and get better error messages.
+
+## Phase 2 Progress
+
+| Plan | Name | Status | Commit |
+|------|------|--------|--------|
+| 02-01 | Foundation Hooks | Complete | 7ec5a58, f0ad080 |
 
 ## Phase 5 Progress
 
@@ -77,8 +83,9 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 | Phase 1 plans | 7 | 7 |
 | Phase 3 plans | 4 | 4 |
 | Phase 4 plans | 6 | 6 |
+| Phase 2 plans | 7 | 1 |
 | Phase 5 plans | 7 | 7 |
-| Requirements done | 62 | 49 (22 from Phase 1 + 9 from Phase 3 + 10 from Phase 4 + 8 from Phase 5) |
+| Requirements done | 62 | 51 (22 from Phase 1 + 9 from Phase 3 + 10 from Phase 4 + 8 from Phase 5 + 2 from Phase 2) |
 | Critical issues fixed | 15 | 15 |
 
 ## Accumulated Context
@@ -130,6 +137,9 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 - Component composition pattern: CsvViewer orchestrates extracted components with single responsibility
 - Unicode checkmarks (✓/✗) instead of emoji for better cross-platform consistency
 - CsvViewer refactored: reduced from ~842 to 708 lines by extracting CsvSelector and PlayerControls (~134 line reduction)
+- useUndoRedo hook: snapshot-based undo/redo with max 20 history via .slice(-19), history persists across saves
+- useKeyboardShortcuts hook: stable ref pattern for global keyboard shortcuts with INPUT/TEXTAREA guards
+- Space key normalized to 'space' string for clarity in keyboard handler maps
 
 ### Research Completed (2026-01-20)
 - .planning/research/STACK.md — PyTorch/torchaudio recommendations
@@ -168,6 +178,7 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 - .planning/phases/05-frontend-decomposition/05-05-SUMMARY.md — Extract useAudioPlayer hook
 - .planning/phases/05-frontend-decomposition/05-06-SUMMARY.md — Extract CsvSelector & PlayerControls components
 - .planning/phases/05-frontend-decomposition/05-07-SUMMARY.md — Extract TrackTable & finalize refactor
+- .planning/phases/02-core-ux-polish/02-01-SUMMARY.md — Foundation hooks (useUndoRedo, useKeyboardShortcuts)
 
 ### Blockers
 (None)
@@ -192,24 +203,25 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 - [x] Execute Phase 5 Plan 06 - COMPLETE (3/3 tasks)
 - [x] Execute Phase 5 Plan 07 - COMPLETE (2/2 tasks)
 - [x] Verify Phase 5 goal achievement - READY FOR VERIFICATION
+- [x] Execute Phase 2 Plan 01 - COMPLETE (2/2 tasks)
+- [ ] Execute Phase 2 Plan 02 - Integrate undo/redo and keyboard shortcuts
 - [ ] Begin Phase 6: Future Readiness
 
-**Stopped at:** Completed 05-07 TrackTable & Finalize (Phase 5 Complete)
+**Stopped at:** Completed 02-01 Foundation Hooks (Phase 2: 1/7 plans)
 
 ## Session Continuity
 
 **Last session:** 2026-01-28
-**Stopped at:** Completed 05-07 TrackTable & Finalize (Phase 5 Complete: 7/7 plans)
+**Stopped at:** Completed 02-01 Foundation Hooks (Phase 2: 1/7 plans)
 **Resume file:** None
 
 **If context is lost, read these files in order:**
 1. .planning/PROJECT.md — Core value and constraints
 2. .planning/ROADMAP.md — Phase structure and requirements
 3. .planning/STATE.md — Current position (this file)
-4. .planning/phases/04-performance-migration/04-06-SUMMARY.md — Remove pandas dependency
-5. .planning/phases/05-frontend-decomposition/05-03-SUMMARY.md — Track editor hook
-6. .planning/phases/05-frontend-decomposition/05-06-SUMMARY.md — CsvSelector & PlayerControls components
-7. .planning/phases/05-frontend-decomposition/05-07-SUMMARY.md — TrackTable & finalize refactor
+4. .planning/phases/05-frontend-decomposition/05-03-SUMMARY.md — Track editor hook
+5. .planning/phases/05-frontend-decomposition/05-07-SUMMARY.md — TrackTable & finalize refactor
+6. .planning/phases/02-core-ux-polish/02-01-SUMMARY.md — Foundation hooks
 
 ---
-*State updated: 2026-01-28 — Phase 5 Complete (7/7 plans): TrackTable component extracts table rendering; CsvViewer refactored to orchestration pattern with component composition (CsvSelector + PlayerControls + TrackTable); 25% line reduction (946→708 lines)*
+*State updated: 2026-01-28 — Phase 2 started (1/7 plans): useUndoRedo and useKeyboardShortcuts hooks created as standalone modules; snapshot-based undo/redo with max 20 history; stable ref pattern for keyboard shortcuts*
