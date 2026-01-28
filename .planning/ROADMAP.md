@@ -135,12 +135,12 @@ Plans:
 **Plans:** 6 plans
 
 Plans:
-- [ ] 04-01-PLAN.md — Install polars + fix regex recompilation (TECH-01, PERF-03)
-- [ ] 04-02-PLAN.md — Waveform caching (PERF-04)
-- [ ] 04-03-PLAN.md — Migrate csv_parser.py to polars (TECH-02)
-- [ ] 04-04-PLAN.md — Migrate uncertainty.py to polars + fix N+1 (TECH-03, PERF-02)
-- [ ] 04-05-PLAN.md — Migrate batch.py to polars + fix double-read (TECH-04, PERF-01)
-- [ ] 04-06-PLAN.md — Remove pandas from requirements (TECH-05)
+- [x] 04-01-PLAN.md — Install polars + fix regex recompilation (TECH-01, PERF-03)
+- [x] 04-02-PLAN.md — Waveform caching (PERF-04)
+- [x] 04-03-PLAN.md — Migrate csv_parser.py to polars (TECH-02)
+- [x] 04-04-PLAN.md — Migrate uncertainty.py to polars + fix N+1 (TECH-03, PERF-02)
+- [x] 04-05-PLAN.md — Migrate batch.py to polars + fix double-read (TECH-04, PERF-01)
+- [x] 04-06-PLAN.md — Remove pandas from requirements (TECH-05)
 
 **Requirements:**
 - TECH-01: Install polars
@@ -221,7 +221,7 @@ Plans:
 | 1 | Foundation Stability | 22 | 7 | Complete |
 | 2 | Core UX Polish | 9 | 0 | Pending |
 | 3 | Backend Stability | 9 | 4 | Complete |
-| 4 | Performance & Migration | 10 | 6 | Planned |
+| 4 | Performance & Migration | 10 | 6 | Complete |
 | 5 | Frontend Decomposition | 9 | 0 | Pending |
 | 6 | GPU & CPU Optimization | 9 | 0 | Pending |
 | **Total** | | **68** | **17** | |
@@ -249,16 +249,16 @@ Note: Some requirements split across phases where logical (e.g., type hints with
 | CRIT-13 | 3 | Complete |
 | CRIT-14 | 3 | Complete |
 | CRIT-15 | 3 | Complete |
-| PERF-01 | 4 | Pending |
-| PERF-02 | 4 | Pending |
-| PERF-03 | 4 | Pending |
-| PERF-04 | 4 | Pending |
+| PERF-01 | 4 | Complete |
+| PERF-02 | 4 | Complete |
+| PERF-03 | 4 | Complete |
+| PERF-04 | 4 | Complete |
 | PERF-05 | 3 | Complete |
-| TECH-01 | 4 | Pending |
-| TECH-02 | 4 | Pending |
-| TECH-03 | 4 | Pending |
-| TECH-04 | 4 | Pending |
-| TECH-05 | 4 | Pending |
+| TECH-01 | 4 | Complete |
+| TECH-02 | 4 | Complete |
+| TECH-03 | 4 | Complete |
+| TECH-04 | 4 | Complete |
+| TECH-05 | 4 | Complete |
 | PATH-01 | 1 | Complete |
 | PATH-02 | 1 | Complete |
 | PATH-03 | 1 | Complete |
@@ -309,4 +309,4 @@ Note: Some requirements split across phases where logical (e.g., type hints with
 *Roadmap created: 2026-01-21*
 *Phase 1 complete: 2026-01-21*
 *Phase 3 complete: 2026-01-21*
-*Phase 4 planned: 2026-01-21*
+*Phase 4 complete: 2026-01-28*

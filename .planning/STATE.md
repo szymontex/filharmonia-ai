@@ -15,7 +15,7 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 
 **Core value:** Zamiast reczenie sluchac ~6-8h nagran/tyg, AI robi to za ciebie.
 **Current focus:** v0.9 — Polish & Stability
-**Next phase goal:** CSV operations complete 5-30x faster; waveforms load instantly on repeat views.
+**Next phase goal (Phase 5):** CsvViewer is maintainable — each component has single responsibility.
 
 ## Phase 4 Progress
 
@@ -65,7 +65,7 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 | Phase 1 plans | 7 | 7 |
 | Phase 3 plans | 4 | 4 |
 | Phase 4 plans | 6 | 6 |
-| Requirements done | 62 | 40 (22 from Phase 1 + 9 from Phase 3 + 9 from Phase 4) |
+| Requirements done | 62 | 41 (22 from Phase 1 + 9 from Phase 3 + 10 from Phase 4) |
 | Critical issues fixed | 15 | 15 |
 
 ## Accumulated Context
