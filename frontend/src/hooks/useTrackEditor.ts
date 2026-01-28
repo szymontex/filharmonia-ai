@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react'
+import { calculateDuration, parseTimeToSeconds, secondsToTimeFormat } from '../utils/timeCalculations'
 
 export interface Track {
   id: string
@@ -27,33 +28,6 @@ export interface UseTrackEditorReturn {
   cutSegmentAtTime: (timeStr: string) => void
   addSegmentAtTime: (timeStr: string, totalDuration?: number) => void
   addSegmentBelow: (id: string) => void
-}
-
-// Time utility functions (inline until 05-02 creates shared utils)
-function parseTimeToSeconds(timeStr: string): number {
-  const parts = timeStr.split(':').map(Number)
-  return parts[0] * 3600 + parts[1] * 60 + parts[2]
-}
-
-function secondsToTimeFormat(seconds: number): string {
-  const h = Math.floor(seconds / 3600)
-  const m = Math.floor((seconds % 3600) / 60)
-  const s = Math.floor(seconds % 60)
-  return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`
-}
-
-function calculateDuration(start: string, stop: string): string {
-  const [sh, sm, ss] = start.split(':').map(Number)
-  const [eh, em, es] = stop.split(':').map(Number)
-
-  const startSec = sh * 3600 + sm * 60 + ss
-  const endSec = eh * 3600 + em * 60 + es
-  const diffSec = endSec - startSec
-
-  const minutes = Math.floor(diffSec / 60)
-  const seconds = diffSec % 60
-
-  return `${minutes}'${seconds}"`
 }
 
 export function useTrackEditor(): UseTrackEditorReturn {
