@@ -15,6 +15,12 @@ from app.core.security import validate_path_or_raise_http
 
 logger = logging.getLogger(__name__)
 
+# Pre-compiled regex patterns for performance (PERF-03)
+# Simple date extraction: matches _YYYY-MM-DD in filenames
+DATE_PATTERN = re.compile(r'_(\d{4})-(\d{2})-(\d{2})')
+# Full predictions filename: predictions_{songName}_{YYYY-MM-DD}[_{HH-MM}].csv
+PREDICTIONS_PATTERN = re.compile(r'predictions_(.+?)_(\d{4})-(\d{2})-(\d{2})(?:_\d{2}-\d{2})?\.csv')
+
 router = APIRouter(prefix="/files", tags=["files"])
 
 class FileInfo(BaseModel):
@@ -87,7 +93,7 @@ async def list_analysis_results():
 
         # Extract recording date from filename: predictions_SONG042_2025-09-27.csv
         date_str = "Unknown"
-        match = re.search(r'_(\d{4})-(\d{2})-(\d{2})', csv_file.name)
+        match = DATE_PATTERN.search(csv_file.name)
         if match:
             date_str = f"{match.group(1)}-{match.group(2)}-{match.group(3)}"
 
@@ -141,7 +147,7 @@ async def get_mp3_for_csv(csv_path: str = Query(..., description="Path to CSV fi
     clean_path = csv_path.replace('_autosave', '')
 
     # Parse CSV filename: predictions_{songName}_{YYYY-MM-DD}[_{HH-MM}].csv
-    match = re.search(r'predictions_(.+?)_(\d{4})-(\d{2})-(\d{2})(?:_\d{2}-\d{2})?\.csv', clean_path)
+    match = PREDICTIONS_PATTERN.search(clean_path)
 
     if not match:
         raise HTTPException(
@@ -189,7 +195,7 @@ async def get_csv_metadata(csv_path: str = Query(..., description="Path to CSV f
     clean_name = csv_path_obj.name.replace('_autosave', '')
 
     # Parse filename
-    match = re.search(r'predictions_(.+?)_(\d{4})-(\d{2})-(\d{2})(?:_\d{2}-\d{2})?\.csv', clean_name)
+    match = PREDICTIONS_PATTERN.search(clean_name)
 
     if not match:
         raise HTTPException(
