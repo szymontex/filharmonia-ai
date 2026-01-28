@@ -2,6 +2,7 @@
 PyTorch AST Inference Service
 Replaces Keras CNN with Audio Spectrogram Transformer
 """
+import os
 import torch
 import torch.nn as nn
 import numpy as np
@@ -9,6 +10,12 @@ import torchaudio.transforms as T
 from pathlib import Path
 from transformers import ASTForAudioClassification
 from app.config import settings
+
+# IMPORTANT: Limit CPU threads to prevent 100% CPU usage blocking the system
+# This allows other processes (like the web server) to remain responsive
+torch.set_num_threads(2)  # Use only 2 threads for inference
+os.environ["OMP_NUM_THREADS"] = "2"
+os.environ["MKL_NUM_THREADS"] = "2"
 
 
 class ASTInferenceService:

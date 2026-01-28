@@ -52,7 +52,7 @@ function HomePage({ onNavigate }: { onNavigate: (page: 'home' | 'csv' | 'calenda
     axios.get('/health')
       .then(res => {
         setStatus(`✅ Backend: ${res.data.status}`)
-        return axios.get('/')
+        return axios.get('/api/v1/info')
       })
       .then(res => {
         setGpuAvailable(res.data.gpu_available)
