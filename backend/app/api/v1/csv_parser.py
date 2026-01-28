@@ -13,6 +13,7 @@ import os
 
 from app.config import settings
 from app.core.security import validate_path_or_raise_http
+from app.core.atomic_write import atomic_write
 
 logger = logging.getLogger(__name__)
 
@@ -320,7 +321,7 @@ async def autosave_csv(request: SaveRequest = Body(...)):
 
     # Write asynchronously to avoid blocking the event loop
     await asyncio.to_thread(
-        lambda: Path(autosave_path).write_text(csv_content, encoding='utf-8')
+        lambda: atomic_write(Path(autosave_path), csv_content)
     )
 
     return {"success": True, "autosave_path": autosave_path}
@@ -354,7 +355,7 @@ async def save_csv(request: SaveRequest = Body(...)):
 
     # Write asynchronously to avoid blocking the event loop
     await asyncio.to_thread(
-        lambda: validated_path.write_text(csv_content, encoding='utf-8')
+        lambda: atomic_write(validated_path, csv_content)
     )
 
     # Remove autosave file if it exists
