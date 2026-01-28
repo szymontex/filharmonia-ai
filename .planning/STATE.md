@@ -2,12 +2,12 @@
 
 ## Current Position
 
-**Phase:** 4 of 6 — Performance & Migration (complete)
-**Previous:** Phase 1, 3 Complete ✓
-**Status:** Phase 4 Complete ✓
+**Phase:** 5 of 6 — Frontend Decomposition (in progress)
+**Previous:** Phase 1, 3, 4 Complete ✓
+**Status:** Phase 5 In Progress (1/7 plans complete)
 **Progress:** [███████░░░] 3/6 phases complete
 
-**Last activity:** 2026-01-28 — Completed 04-06 Remove Pandas
+**Last activity:** 2026-01-28 — Completed 05-01 Code Cleanup
 
 ## Project Reference
 
@@ -16,6 +16,18 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 **Core value:** Zamiast reczenie sluchac ~6-8h nagran/tyg, AI robi to za ciebie.
 **Current focus:** v0.9 — Polish & Stability
 **Next phase goal (Phase 5):** CsvViewer is maintainable — each component has single responsibility.
+
+## Phase 5 Progress
+
+| Plan | Name | Status | Commit |
+|------|------|--------|--------|
+| 05-01 | Code Cleanup | Complete | 7a70847, c977d5e |
+| 05-02 | Extract Time Utilities | Pending | — |
+| 05-03 | Extract useTrackEditor Hook | Pending | — |
+| 05-04 | Extract useAutosave Hook | Pending | — |
+| 05-05 | Extract useAudioPlayer Hook | Pending | — |
+| 05-06 | Extract CsvSelector & PlayerControls | Pending | — |
+| 05-07 | Extract TrackTable & Finalize | Pending | — |
 
 ## Phase 4 Progress
 
@@ -65,7 +77,8 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 | Phase 1 plans | 7 | 7 |
 | Phase 3 plans | 4 | 4 |
 | Phase 4 plans | 6 | 6 |
-| Requirements done | 62 | 41 (22 from Phase 1 + 9 from Phase 3 + 10 from Phase 4) |
+| Phase 5 plans | 7 | 1 |
+| Requirements done | 62 | 44 (22 from Phase 1 + 9 from Phase 3 + 10 from Phase 4 + 3 from Phase 5) |
 | Critical issues fixed | 15 | 15 |
 
 ## Accumulated Context
@@ -100,6 +113,9 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 - csv_parser.py fully migrated to polars: df[row, col] indexing, df.height for row count, None checks for nulls
 - Polars auto-strips column whitespace and handles quotes (no manual preprocessing needed)
 - pandas completely removed from requirements.txt and codebase (polars migration complete)
+- OWASP filename sanitization in export.py: re.sub(r'[<>:"|?*]', '_', song_name) prevents filesystem issues
+- Legacy training.py (535 lines Keras CNN) deleted - ast_training service is used instead
+- howler audio library removed from frontend (unused, native HTMLAudioElement sufficient)
 
 ### Research Completed (2026-01-20)
 - .planning/research/STACK.md — PyTorch/torchaudio recommendations
@@ -131,6 +147,7 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 - .planning/phases/04-performance-migration/04-04-SUMMARY.md — Uncertainty polars migration
 - .planning/phases/04-performance-migration/04-05-SUMMARY.md — Batch polars migration
 - .planning/phases/04-performance-migration/04-06-SUMMARY.md — Remove pandas dependency
+- .planning/phases/05-frontend-decomposition/05-01-SUMMARY.md — Code cleanup (training.py, howler, filename sanitization)
 
 ### Blockers
 (None)
@@ -147,26 +164,24 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 - [x] Execute Phase 4 Plan 05 - COMPLETE (2/2 tasks)
 - [x] Execute Phase 4 Plan 06 - COMPLETE (3/3 tasks)
 - [x] Verify Phase 4 goal achievement - READY FOR VERIFICATION
-- [ ] Continue to Phase 5: Frontend Polish
+- [x] Execute Phase 5 Plan 01 - COMPLETE (2/2 tasks)
+- [ ] Execute Phase 5 Plan 02 - Pending
+- [ ] Continue Phase 5: Frontend Decomposition
 
-**Stopped at:** Completed 04-06 Remove Pandas (Phase 4 Complete)
+**Stopped at:** Completed 05-01 Code Cleanup (Phase 5 Started)
 
 ## Session Continuity
 
 **Last session:** 2026-01-28
-**Stopped at:** Completed 04-06 Remove Pandas (Phase 4 Complete)
+**Stopped at:** Completed 05-01 Code Cleanup (Phase 5 Started)
 **Resume file:** None
 
 **If context is lost, read these files in order:**
 1. .planning/PROJECT.md — Core value and constraints
 2. .planning/ROADMAP.md — Phase structure and requirements
 3. .planning/STATE.md — Current position (this file)
-4. .planning/phases/04-performance-migration/04-01-SUMMARY.md — Performance prep
-5. .planning/phases/04-performance-migration/04-02-SUMMARY.md — Waveform caching
-6. .planning/phases/04-performance-migration/04-03-SUMMARY.md — CSV parser polars migration
-7. .planning/phases/04-performance-migration/04-04-SUMMARY.md — Uncertainty polars migration
-8. .planning/phases/04-performance-migration/04-05-SUMMARY.md — Batch polars migration
-9. .planning/phases/04-performance-migration/04-06-SUMMARY.md — Remove pandas dependency
+4. .planning/phases/04-performance-migration/04-06-SUMMARY.md — Remove pandas dependency
+5. .planning/phases/05-frontend-decomposition/05-01-SUMMARY.md — Code cleanup
 
 ---
-*State updated: 2026-01-28 — Phase 4 Complete (6/6 plans): pandas-to-polars migration complete; pandas removed from dependencies; waveform caching implemented; all CSV operations 5-30x faster*
+*State updated: 2026-01-28 — Phase 5 Started (1/7 plans): Removed unused training.py (535 lines) and howler library; added OWASP filename sanitization to export.py*
