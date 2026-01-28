@@ -438,7 +438,7 @@ async def skip_entire_file(request: SkipFileRequest):
 
     # Read CSV to find all uncertain segments
     try:
-        df = pd.read_csv(csv_file, encoding='utf-8', quoting=1)
+        df = pl.read_csv(csv_file, encoding='utf-8')
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to read CSV: {str(e)}")
 
@@ -458,16 +458,20 @@ async def skip_entire_file(request: SkipFileRequest):
 
     # Find all uncertain segments (confidence < 0.7) that aren't already reviewed
     threshold = 0.7
-    low_conf = df[df[conf_col] < threshold]
+
+    # Add row index before filtering to preserve original DataFrame indices
+    df_with_idx = df.with_row_index("_row_idx")
+    low_conf = df_with_idx.filter(pl.col(conf_col) < threshold)
 
     skipped_count = 0
-    for idx, row in low_conf.iterrows():
+    for row in low_conf.iter_rows(named=True):
+        original_idx = row["_row_idx"]
         # Skip if already reviewed
-        if is_segment_reviewed(str(csv_file), int(idx)):
+        if is_segment_reviewed(str(csv_file), int(original_idx)):
             continue
 
         # Mark as skipped
-        mark_segment_skipped(str(csv_file), int(idx))
+        mark_segment_skipped(str(csv_file), int(original_idx))
         skipped_count += 1
 
     return {
