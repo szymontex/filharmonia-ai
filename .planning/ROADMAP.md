@@ -171,13 +171,13 @@ Plans:
 **Plans:** 7 plans
 
 Plans:
-- [ ] 05-01-PLAN.md — Code cleanup (training.py, howler, filename sanitization)
-- [ ] 05-02-PLAN.md — Extract time calculation utilities
-- [ ] 05-03-PLAN.md — Extract useTrackEditor hook
-- [ ] 05-04-PLAN.md — Extract useAutosave hook
-- [ ] 05-05-PLAN.md — Extract useAudioPlayer hook
-- [ ] 05-06-PLAN.md — Extract CsvSelector and PlayerControls components
-- [ ] 05-07-PLAN.md — Extract TrackTable and finalize CsvViewer refactor
+- [x] 05-01-PLAN.md — Code cleanup (training.py, howler, filename sanitization)
+- [x] 05-02-PLAN.md — Extract time calculation utilities
+- [x] 05-03-PLAN.md — Extract useTrackEditor hook
+- [x] 05-04-PLAN.md — Extract useAutosave hook
+- [x] 05-05-PLAN.md — Extract useAudioPlayer hook
+- [x] 05-06-PLAN.md — Extract CsvSelector and PlayerControls components
+- [x] 05-07-PLAN.md — Extract TrackTable and finalize CsvViewer refactor
 
 **Requirements:**
 - COMP-01: Split CsvViewer into TrackTable, CsvSelector, PlayerControls
@@ -233,7 +233,7 @@ Plans:
 | 2 | Core UX Polish | 9 | 0 | Pending |
 | 3 | Backend Stability | 9 | 4 | Complete |
 | 4 | Performance & Migration | 10 | 6 | Complete |
-| 5 | Frontend Decomposition | 9 | 7 | Pending |
+| 5 | Frontend Decomposition | 9 | 7 | Complete |
 | 6 | GPU & CPU Optimization | 9 | 0 | Pending |
 | **Total** | | **68** | **17** | |
 
@@ -276,21 +276,21 @@ Note: Some requirements split across phases where logical (e.g., type hints with
 | PATH-04 | 1 | Complete |
 | PATH-05 | 1 | Complete |
 | PATH-06 | 1 | Complete |
-| COMP-01 | 5 | Pending |
-| COMP-02 | 5 | Pending |
-| COMP-03 | 5 | Pending |
-| COMP-04 | 5 | Pending |
-| COMP-05 | 5 | Pending |
+| COMP-01 | 5 | Complete |
+| COMP-02 | 5 | Complete |
+| COMP-03 | 5 | Complete |
+| COMP-04 | 5 | Complete |
+| COMP-05 | 5 | Complete |
 | TYPE-01 | 1 | Complete |
 | TYPE-02 | 1 | Complete |
 | TYPE-03 | 1 | Complete |
 | TYPE-04 | 1 | Complete |
-| CLEAN-01 | 5 | Pending |
-| CLEAN-02 | 5 | Pending |
-| CLEAN-03 | 5 | Pending |
+| CLEAN-01 | 5 | Complete |
+| CLEAN-02 | 5 | Complete |
+| CLEAN-03 | 5 | Complete |
 | CLEAN-04 | 2 | Pending |
 | CLEAN-05 | 2 | Pending |
-| CLEAN-06 | 5 | Pending |
+| CLEAN-06 | 5 | Complete |
 | UX-01 | 2 | Pending |
 | UX-02 | 2 | Pending |
 | UX-03 | 2 | Pending |
@@ -321,3 +321,5 @@ Note: Some requirements split across phases where logical (e.g., type hints with
 *Phase 1 complete: 2026-01-21*
 *Phase 3 complete: 2026-01-21*
 *Phase 4 complete: 2026-01-28*
+
+*Phase 5 complete: 2026-01-28*
