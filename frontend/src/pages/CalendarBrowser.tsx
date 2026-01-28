@@ -105,8 +105,11 @@ export default function CalendarBrowser({ onBack, onOpenCsv }: CalendarBrowserPr
   const [reanalyzeExisting, setReanalyzeExisting] = useState<boolean>(false)
 
   const handlePlayRecording = (recording: Recording) => {
-    // TODO: Open player/editor
-    console.log('Play recording:', recording)
+    // Navigate to CsvViewer with the CSV path for this recording
+    if (onOpenCsv) {
+      const csvPath = getCsvPath(recording)
+      onOpenCsv(csvPath)
+    }
   }
 
   const handleAnalyze = async (recording: Recording) => {
