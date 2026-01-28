@@ -83,7 +83,7 @@ def extract_tracks(df: pl.DataFrame, threshold: int = 5) -> List[Track]:
     """
     tracks = []
 
-    if len(df) == 0:
+    if df.height == 0:
         return tracks
 
     # Normalize column names - handle both 'time' and 'segment_time'
@@ -101,30 +101,30 @@ def extract_tracks(df: pl.DataFrame, threshold: int = 5) -> List[Track]:
             name_col = col
 
     if time_col is None or class_col is None:
-        raise ValueError(f"CSV must have time and predicted_class columns. Found: {df.columns.tolist()}")
+        raise ValueError(f"CSV must have time and predicted_class columns. Found: {df.columns}")
 
     has_name_column = name_col is not None
 
-    current_class = df.iloc[0][class_col]
-    start = df.iloc[0][time_col]
+    current_class = df[0, class_col]
+    start = df[0, time_col]
     last_valid_class = current_class
     track_counter = 0
 
-    # Handle NaN values in name column
+    # Handle None values in name column (polars uses None, not NaN)
     if has_name_column and name_col is not None:
-        name_value = df.iloc[0][name_col]
-        current_name = "" if pd.isna(name_value) else str(name_value)
+        name_value = df[0, name_col]
+        current_name = "" if name_value is None else str(name_value)
     else:
         current_name = ""
     last_valid_name = current_name
 
     index = 1
-    while index < len(df):
-        if df.iloc[index][class_col] != current_class:
+    while index < df.height:
+        if df[index, class_col] != current_class:
             segment_start = index
 
             # Count consecutive segments of new class
-            while index < len(df) and df.iloc[index][class_col] == df.iloc[segment_start][class_col]:
+            while index < df.height and df[index, class_col] == df[segment_start, class_col]:
                 index += 1
 
             segment_length = index - segment_start
@@ -134,7 +134,7 @@ def extract_tracks(df: pl.DataFrame, threshold: int = 5) -> List[Track]:
                 current_class = last_valid_class
             else:
                 # Create track for previous segment
-                stop = df.iloc[segment_start - 1][time_col]
+                stop = df[segment_start - 1, time_col]
                 duration = get_duration(start, stop)
 
                 tracks.append(Track(
@@ -148,13 +148,13 @@ def extract_tracks(df: pl.DataFrame, threshold: int = 5) -> List[Track]:
                 ))
 
                 track_counter += 1
-                start = df.iloc[segment_start][time_col]
-                current_class = df.iloc[segment_start][class_col]
+                start = df[segment_start, time_col]
+                current_class = df[segment_start, class_col]
 
-                # Handle NaN values in name column
+                # Handle None values in name column
                 if has_name_column and name_col is not None:
-                    name_value = df.iloc[segment_start][name_col]
-                    current_name = "" if pd.isna(name_value) else str(name_value)
+                    name_value = df[segment_start, name_col]
+                    current_name = "" if name_value is None else str(name_value)
                 else:
                     current_name = ""
 
@@ -164,7 +164,7 @@ def extract_tracks(df: pl.DataFrame, threshold: int = 5) -> List[Track]:
             index += 1
 
     # Add final track
-    stop = df.iloc[-1][time_col]
+    stop = df[-1, time_col]
     duration = get_duration(start, stop)
     tracks.append(Track(
         id=f"track_{track_counter}",
