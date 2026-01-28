@@ -284,20 +284,18 @@ async def get_uncertainty_stats():
                     edited_count += 1
                     continue
 
-                # Read CSV header
-                df = pd.read_csv(csv_file, encoding='utf-8', quoting=1, nrows=1)
+                # Single read (PERF-02 fix)
+                df = pl.read_csv(csv_file, encoding='utf-8')
 
                 # Skip if no confidence column
                 if 'confidence' not in df.columns:
                     continue
 
-                # Get model version - read full CSV once
-                full_df = pd.read_csv(csv_file, encoding='utf-8', quoting=1)
-
-                if 'model_version' not in full_df.columns:
+                # Get model version from same DataFrame (no second read!)
+                if 'model_version' not in df.columns:
                     model_version = "unknown"
                 else:
-                    model_version = full_df['model_version'].iloc[0]
+                    model_version = df[0, 'model_version']
 
                 # Initialize stats for this model
                 if model_version not in stats_by_model:
@@ -310,13 +308,13 @@ async def get_uncertainty_stats():
 
                 # Count uncertain segments (confidence < 0.7)
                 conf_col = None
-                for col in full_df.columns:
+                for col in df.columns:
                     if col.lower() == 'confidence':
                         conf_col = col
                         break
 
                 if conf_col:
-                    uncertain_count = len(full_df[full_df[conf_col] < 0.7])
+                    uncertain_count = df.filter(pl.col(conf_col) < 0.7).height
                     stats_by_model[model_version]["uncertain_segments"] += uncertain_count
 
             except Exception as e:
