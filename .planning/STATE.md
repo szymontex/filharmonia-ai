@@ -7,7 +7,7 @@
 **Status:** Executing Phase 4
 **Progress:** [███░░░░░░░] 2/6 phases complete
 
-**Last activity:** 2026-01-28 — Completed 04-01 Performance Prep, 04-02 Waveform Caching, 04-03 CSV Parser Migration, 04-04 Uncertainty Migration
+**Last activity:** 2026-01-28 — Completed 04-05 Batch Polars Migration
 
 ## Project Reference
 
@@ -25,6 +25,7 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 | 04-02 | Waveform Caching | Complete | 7e99228, 277a71f |
 | 04-03 | CSV Parser Polars Migration | Complete | e286b49, 9fae1a9, 0cc9f63 |
 | 04-04 | Uncertainty Polars Migration | Complete | 4986d6e, b787373, c9e9bdc |
+| 04-05 | Batch Polars Migration | Complete | af2084d, 74f9ac4 |
 
 ## Phase 3 Progress
 
@@ -62,7 +63,7 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 | Phase completion | 6 | 2 |
 | Phase 1 plans | 7 | 7 |
 | Phase 3 plans | 4 | 4 |
-| Phase 4 plans | 6 | 4 |
+| Requirements done | 62 | 40 (22 from Phase 1 + 9 from Phase 3 + 9 from Phase 4) |
 | Requirements done | 62 | 39 (22 from Phase 1 + 9 from Phase 3 + 8 from Phase 4) |
 | Critical issues fixed | 15 | 15 |
 
@@ -94,6 +95,7 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 - Cache location: SORTED_FOLDER/.waveform_cache (hidden folder for metadata)
 - N+1 double CSV read eliminated in uncertainty.py (single pl.read_csv() per file)
 - polars patterns: pl.filter() with pl.col(), iter_rows(named=True), with_row_index() for index tracking
+- Double-read eliminated in batch.py: single pl.read_csv() instead of nrows=1 + full_df pattern
 - csv_parser.py fully migrated to polars: df[row, col] indexing, df.height for row count, None checks for nulls
 - Polars auto-strips column whitespace and handles quotes (no manual preprocessing needed)
 
@@ -122,6 +124,7 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 - .planning/phases/03-backend-stability/03-03-SUMMARY.md — Resource cleanup
 - .planning/phases/03-backend-stability/03-04-SUMMARY.md — Frontend exponential backoff
 - .planning/phases/04-performance-migration/04-01-SUMMARY.md — Performance prep (polars + regex)
+- .planning/phases/04-performance-migration/04-05-SUMMARY.md — Batch polars migration
 - .planning/phases/04-performance-migration/04-02-SUMMARY.md — Waveform caching
 - .planning/phases/04-performance-migration/04-03-SUMMARY.md — CSV parser polars migration
 - .planning/phases/04-performance-migration/04-04-SUMMARY.md — Uncertainty polars migration
@@ -134,13 +137,14 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 - [x] Verify Phase 1 goal achievement - PASSED
 - [x] Execute Phase 3 plans - COMPLETE (4/4)
 - [x] Verify Phase 3 goal achievement - PASSED
+- [x] Execute Phase 4 Plan 05 - COMPLETE (2/2 tasks)
 - [x] Execute Phase 4 Plan 01 - COMPLETE (2/2 tasks)
 - [x] Execute Phase 4 Plan 02 - COMPLETE (2/2 tasks)
 - [x] Execute Phase 4 Plan 03 - COMPLETE (3/3 tasks)
 - [x] Execute Phase 4 Plan 04 - COMPLETE (3/3 tasks)
 - [ ] Continue Phase 4: Plans 05-06
 
-### Open Questions
+**Stopped at:** Completed 04-05 Batch Polars Migration
 (None)
 
 ## Session Continuity
@@ -150,6 +154,8 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 **Resume file:** None
 
 **If context is lost, read these files in order:**
+7. .planning/phases/04-performance-migration/04-04-SUMMARY.md — Uncertainty polars migration
+8. .planning/phases/04-performance-migration/04-05-SUMMARY.md — Batch polars migration
 1. .planning/PROJECT.md — Core value and constraints
 2. .planning/ROADMAP.md — Phase structure and requirements
 3. .planning/STATE.md — Current position (this file)
@@ -159,4 +165,4 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 7. .planning/phases/04-performance-migration/04-04-SUMMARY.md — Uncertainty polars migration
 
 ---
-*State updated: 2026-01-28 — Phase 4 Plans 01-04 complete: polars installed, regex optimized, waveform caching implemented, csv_parser.py and uncertainty.py migrated to polars*
+*State updated: 2026-01-28 — Phase 4 Plans 01-05 complete (5/6): polars migration complete for csv_parser, uncertainty, and batch; waveform caching implemented; all double-read patterns eliminated*
