@@ -3,7 +3,7 @@ CSV Parser API - parse predictions CSV into tracks
 """
 import asyncio
 import logging
-import pandas as pd
+import polars as pl
 from fastapi import APIRouter, Query, Body
 from pathlib import Path
 from typing import List, Optional
@@ -75,7 +75,7 @@ def get_duration(start: str, stop: str) -> str:
         logger.debug(f"Could not calculate duration from {start} to {stop}: {e}")
         return "0'0\""
 
-def extract_tracks(df: pd.DataFrame, threshold: int = 5) -> List[Track]:
+def extract_tracks(df: pl.DataFrame, threshold: int = 5) -> List[Track]:
     """
     Extract tracks from CSV with threshold filtering
     Port from main2.py logic
