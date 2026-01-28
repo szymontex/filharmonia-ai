@@ -194,8 +194,7 @@ async def parse_csv(
 
     # Read CSV asynchronously to avoid blocking the event loop
     def _read_csv():
-        df = pd.read_csv(csv_path, encoding='utf-8', quoting=1)  # QUOTE_ALL=1, QUOTE_MINIMAL=0
-        df.columns = [col.strip() for col in df.columns]  # Strip whitespace
+        df = pl.read_csv(csv_path, encoding='utf-8')
         return df
 
     df = await asyncio.to_thread(_read_csv)
@@ -205,7 +204,7 @@ async def parse_csv(
 
     return ParseResponse(
         tracks=tracks,
-        total_segments=len(df)
+        total_segments=df.height
     )
 
 def get_autosave_path(original_path: str) -> str:
