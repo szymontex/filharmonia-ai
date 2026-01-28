@@ -8,6 +8,7 @@ export interface UndoRedoReturn {
   canRedo: boolean
   pushState: (tracks: Track[]) => void   // called before each mutation
   resetHistory: (tracks: Track[]) => void // called on file switch
+  present: Track[]  // current state after undo/redo
 }
 
 interface HistoryState {
@@ -90,6 +91,7 @@ export function useUndoRedo(): UndoRedoReturn {
     canUndo: history.past.length > 0,
     canRedo: history.future.length > 0,
     pushState,
-    resetHistory
+    resetHistory,
+    present: history.present
   }
 }

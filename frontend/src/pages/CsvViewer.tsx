@@ -241,6 +241,7 @@ export default function CsvViewer({ onBack, initialCsv }: CsvViewerProps = {}) {
       // Load and parse CSV with threshold
       const res = await axios.get(`/api/v1/csv/parse?path=${encodeURIComponent(pathToLoad)}&threshold=${debouncedThreshold}`)
       setTracks(res.data.tracks)
+      undoRedo.resetHistory(res.data.tracks)  // Reset undo/redo history on file switch
       setHasUnsavedChanges(false)
 
       // Load exported segments for this CSV
@@ -535,20 +536,22 @@ export default function CsvViewer({ onBack, initialCsv }: CsvViewerProps = {}) {
   const handleUndo = useCallback(() => {
     if (undoRedo.canUndo) {
       undoRedo.undo()
-      // Sync tracks after undo
-      setTracks(undoRedo.present)
-      setHasUnsavedChanges(true)
     }
-  }, [undoRedo, setTracks, setHasUnsavedChanges])
+  }, [undoRedo])
 
   const handleRedo = useCallback(() => {
     if (undoRedo.canRedo) {
       undoRedo.redo()
-      // Sync tracks after redo
+    }
+  }, [undoRedo])
+
+  // Sync tracks when undo/redo present state changes
+  useEffect(() => {
+    if (undoRedo.present.length > 0 && undoRedo.present !== tracks) {
       setTracks(undoRedo.present)
       setHasUnsavedChanges(true)
     }
-  }, [undoRedo, setTracks, setHasUnsavedChanges])
+  }, [undoRedo.present])
 
   // Keyboard shortcut handlers
   const keyboardHandlers = useMemo(() => ({
@@ -681,6 +684,10 @@ export default function CsvViewer({ onBack, initialCsv }: CsvViewerProps = {}) {
                 onExportToTraining={exportToTrainingData}
                 onCopyTracklist={copyTracklistToClipboard}
                 progressStage={progressStage}
+                onUndo={handleUndo}
+                onRedo={handleRedo}
+                canUndo={undoRedo.canUndo}
+                canRedo={undoRedo.canRedo}
               />
             </div>
 
