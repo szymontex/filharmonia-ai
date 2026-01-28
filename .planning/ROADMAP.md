@@ -67,10 +67,15 @@ Plans:
 
 **Dependencies:** Phase 1 (error handling enables meaningful feedback)
 
-**Plans:** 0 plans
+**Plans:** 6 plans
 
 Plans:
-- [ ] TBD — to be planned
+- [ ] 02-01-PLAN.md — Create useUndoRedo and useKeyboardShortcuts hooks
+- [ ] 02-02-PLAN.md — Toast store, error interceptor, and backend error codes
+- [ ] 02-03-PLAN.md — Atomic file writes for CSV save
+- [ ] 02-04-PLAN.md — Wire shortcuts, undo/redo, and toasts into CsvViewer
+- [ ] 02-05-PLAN.md — Progress indicators, debounce abort, handlePlayRecording
+- [ ] 02-06-PLAN.md — Keyboard help panel
 
 **Requirements:**
 - UX-01: Keyboard shortcuts — spacebar play/pause
