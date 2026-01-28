@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef } from 'react'
 
 export interface UseAudioPlayerReturn {
   /** Whether the player panel is visible */
@@ -27,6 +27,15 @@ export interface UseAudioPlayerReturn {
 
   /** Play from a specific segment - shows player and seeks to start time */
   playFromSegment: (startTime: string, trackId: string) => void
+
+  /** Whether audio is currently playing */
+  isPlaying: boolean
+  /** Set playing state */
+  setIsPlaying: (playing: boolean) => void
+  /** Ref to toggle playback function (populated by StickyPlayer) */
+  togglePlaybackRef: React.MutableRefObject<(() => void) | null>
+  /** Toggle playback via ref */
+  togglePlayback: () => void
 }
 
 /**
@@ -46,6 +55,8 @@ export function useAudioPlayer(): UseAudioPlayerReturn {
   const [playingTrackId, setPlayingTrackId] = useState<string | null>(null)
   const [selectedTrackId, setSelectedTrackId] = useState<string | null>(null)
   const [seekToTime, setSeekToTime] = useState<string | null>(null)
+  const [isPlaying, setIsPlaying] = useState(false)
+  const togglePlaybackRef = useRef<(() => void) | null>(null)
 
   const togglePlayer = useCallback(() => {
     setShowPlayer(prev => !prev)
@@ -72,6 +83,10 @@ export function useAudioPlayer(): UseAudioPlayerReturn {
     setPlayingTrackId(trackId)
   }, [])
 
+  const togglePlayback = useCallback(() => {
+    togglePlaybackRef.current?.()
+  }, [])
+
   return {
     showPlayer,
     togglePlayer,
@@ -83,6 +98,10 @@ export function useAudioPlayer(): UseAudioPlayerReturn {
     setSelectedTrackId,
     seekToTime,
     clearSeekRequest,
-    playFromSegment
+    playFromSegment,
+    isPlaying,
+    setIsPlaying,
+    togglePlaybackRef,
+    togglePlayback
   }
 }

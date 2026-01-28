@@ -23,6 +23,8 @@ interface StickyPlayerProps {
   onAddSegment?: (timeStr: string, totalDuration?: number) => void
   onCutSegment?: (timeStr: string) => void
   onPlayingTrackChange?: (trackId: string | null) => void
+  onTogglePlaybackRef?: React.MutableRefObject<(() => void) | null>
+  onPlayingStateChange?: (isPlaying: boolean) => void
 }
 
 function timeToSeconds(time: string): number {
@@ -37,7 +39,7 @@ function secondsToTime(seconds: number): string {
   return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`
 }
 
-export default function StickyPlayer({ mp3Path, tracks, onClose, onTrackUpdate, onBoundaryUpdate, selectedTrackId, onTrackSelect, seekToTime, onSeekComplete, recordingDate, onAddSegment, onCutSegment, onPlayingTrackChange }: StickyPlayerProps) {
+export default function StickyPlayer({ mp3Path, tracks, onClose, onTrackUpdate, onBoundaryUpdate, selectedTrackId, onTrackSelect, seekToTime, onSeekComplete, recordingDate, onAddSegment, onCutSegment, onPlayingTrackChange, onTogglePlaybackRef, onPlayingStateChange }: StickyPlayerProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const audioRef = useRef<HTMLAudioElement>(null)
   const scrollContainerRef = useRef<HTMLDivElement>(null)
@@ -53,6 +55,25 @@ export default function StickyPlayer({ mp3Path, tracks, onClose, onTrackUpdate, 
   const [draggingMarker, setDraggingMarker] = useState<{ prevTrackId: string; nextTrackId: string } | null>(null)
   const [hoverMarker, setHoverMarker] = useState<{ prevTrackId: string; nextTrackId: string } | null>(null)
   const [addMode, setAddMode] = useState(false)
+
+  // Populate toggle playback ref on mount, cleanup on unmount
+  useEffect(() => {
+    if (onTogglePlaybackRef) {
+      onTogglePlaybackRef.current = handlePlayPause
+    }
+    return () => {
+      if (onTogglePlaybackRef) {
+        onTogglePlaybackRef.current = null
+      }
+    }
+  }, [onTogglePlaybackRef])
+
+  // Notify parent when playing state changes
+  useEffect(() => {
+    if (onPlayingStateChange) {
+      onPlayingStateChange(isPlaying)
+    }
+  }, [isPlaying, onPlayingStateChange])
 
   // Load waveform data
   useEffect(() => {

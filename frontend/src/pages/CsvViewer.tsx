@@ -60,7 +60,11 @@ export default function CsvViewer({ onBack, initialCsv }: CsvViewerProps = {}) {
     setSelectedTrackId,
     seekToTime,
     clearSeekRequest,
-    playFromSegment
+    playFromSegment,
+    isPlaying,
+    setIsPlaying,
+    togglePlaybackRef,
+    togglePlayback
   } = useAudioPlayer()
 
   // Undo/redo state
@@ -559,8 +563,7 @@ export default function CsvViewer({ onBack, initialCsv }: CsvViewerProps = {}) {
   const keyboardHandlers = useMemo(() => ({
     'space': () => {
       if (showPlayer) {
-        // Toggle play/pause - this would need integration with StickyPlayer
-        // For now, just toggle player visibility
+        togglePlayback()
       } else {
         togglePlayer()
       }
@@ -604,7 +607,7 @@ export default function CsvViewer({ onBack, initialCsv }: CsvViewerProps = {}) {
         setShowKeyboardHelp(false)
       }
     }
-  }), [showPlayer, togglePlayer, saveToFile, handleUndo, handleRedo, selectedTrackId, wrappedUpdateClass, showKeyboardHelp])
+  }), [showPlayer, togglePlayer, togglePlayback, saveToFile, handleUndo, handleRedo, selectedTrackId, wrappedUpdateClass, showKeyboardHelp])
 
   useKeyboardShortcuts(keyboardHandlers)
 
@@ -747,6 +750,8 @@ export default function CsvViewer({ onBack, initialCsv }: CsvViewerProps = {}) {
           onAddSegment={addSegmentAtTime}
           onCutSegment={cutSegmentAtTime}
           onPlayingTrackChange={setPlayingTrackId}
+          onTogglePlaybackRef={togglePlaybackRef}
+          onPlayingStateChange={setIsPlaying}
         />
       )}
 
