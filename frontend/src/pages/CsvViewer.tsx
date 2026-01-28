@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import axios from 'axios'
 import { CLASS_COLORS } from '../constants/colors'
 import StickyPlayer from '../components/StickyPlayer'
@@ -10,7 +10,12 @@ import { useExponentialPolling } from '../hooks/useExponentialPolling'
 import { useAudioPlayer } from '../hooks/useAudioPlayer'
 import { useTrackEditor } from '../hooks/useTrackEditor'
 import { useAutosave } from '../hooks/useAutosave'
+import { useUndoRedo } from '../hooks/useUndoRedo'
+import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts'
 import { calculateDuration, timeToSeconds } from '../utils/timeCalculations'
+
+// Classification order for number key shortcuts (1-5)
+const CLASS_ORDER = ['MUSIC', 'APPLAUSE', 'SPEECH', 'PUBLIC', 'TUNING'] as const
 
 
 interface CsvFile {
@@ -57,6 +62,9 @@ export default function CsvViewer({ onBack, initialCsv }: CsvViewerProps = {}) {
     playFromSegment
   } = useAudioPlayer()
 
+  // Undo/redo state
+  const undoRedo = useUndoRedo()
+
   const [csvFiles, setCsvFiles] = useState<CsvFile[]>([])
   const [selectedCsv, setSelectedCsv] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
@@ -76,6 +84,8 @@ export default function CsvViewer({ onBack, initialCsv }: CsvViewerProps = {}) {
   const [csvsWithExports, setCsvsWithExports] = useState<Set<string>>(new Set())  // Set of CSV paths that have exported segments
   const [threshold, setThreshold] = useState(5)  // Threshold for noise filtering
   const [debouncedThreshold, setDebouncedThreshold] = useState(5)  // Debounced threshold for API calls
+  const [progressStage, setProgressStage] = useState<string | null>(null)  // Progress indicator for operations
+  const abortRef = useRef<AbortController | null>(null)  // AbortController for analysis cancellation
 
   // Fetch function for exponential backoff polling
   const fetchAnalysisStatus = useCallback(async () => {
@@ -117,7 +127,10 @@ export default function CsvViewer({ onBack, initialCsv }: CsvViewerProps = {}) {
     loadEditedList()
     loadCsvsWithExports()
     startPolling()
-    return () => stopPolling()
+    return () => {
+      stopPolling()
+      abortRef.current?.abort()  // Cancel any in-flight analysis on unmount
+    }
   }, [startPolling, stopPolling])
 
   const loadEditedList = async () => {
@@ -207,39 +220,43 @@ export default function CsvViewer({ onBack, initialCsv }: CsvViewerProps = {}) {
 
   const loadCsv = async (csvPath: string) => {
     setLoading(true)
+    setProgressStage('Loading...')
     setSelectedCsv(csvPath)
 
-    // Check for autosave
-    const autosaveCheck = await axios.get(`/api/v1/csv/check-autosave?path=${encodeURIComponent(csvPath)}`)
-
-    let pathToLoad = csvPath
-
-    if (autosaveCheck.data.has_autosave && autosaveCheck.data.autosave_newer) {
-      const useAutosave = window.confirm(
-        `Found newer autosave from ${new Date(autosaveCheck.data.autosave_time).toLocaleString()}.\n\nLoad autosave instead of original?`
-      )
-      if (useAutosave) {
-        pathToLoad = autosaveCheck.data.autosave_path
-      }
-    }
-
-    // Load and parse CSV with threshold
-    const res = await axios.get(`/api/v1/csv/parse?path=${encodeURIComponent(pathToLoad)}&threshold=${debouncedThreshold}`)
-    setTracks(res.data.tracks)
-    setHasUnsavedChanges(false)
-
-    // Load exported segments for this CSV
-    await loadExportedSegments(csvPath)
-
-    setLoading(false)
-
-    // Resolve MP3 path from CSV via backend API
     try {
-      const response = await axios.get(`/api/v1/files/mp3-for-csv?csv_path=${encodeURIComponent(csvPath)}`)
-      setMp3Path(response.data.mp3_path)
-      setRecordingDate(response.data.recording_date)
-    } catch (error) {
-      console.error('Error resolving MP3 path:', error)
+      // Check for autosave
+      const autosaveCheck = await axios.get(`/api/v1/csv/check-autosave?path=${encodeURIComponent(csvPath)}`)
+
+      let pathToLoad = csvPath
+
+      if (autosaveCheck.data.has_autosave && autosaveCheck.data.autosave_newer) {
+        const useAutosave = window.confirm(
+          `Found newer autosave from ${new Date(autosaveCheck.data.autosave_time).toLocaleString()}.\n\nLoad autosave instead of original?`
+        )
+        if (useAutosave) {
+          pathToLoad = autosaveCheck.data.autosave_path
+        }
+      }
+
+      // Load and parse CSV with threshold
+      const res = await axios.get(`/api/v1/csv/parse?path=${encodeURIComponent(pathToLoad)}&threshold=${debouncedThreshold}`)
+      setTracks(res.data.tracks)
+      setHasUnsavedChanges(false)
+
+      // Load exported segments for this CSV
+      await loadExportedSegments(csvPath)
+
+      // Resolve MP3 path from CSV via backend API
+      try {
+        const response = await axios.get(`/api/v1/files/mp3-for-csv?csv_path=${encodeURIComponent(csvPath)}`)
+        setMp3Path(response.data.mp3_path)
+        setRecordingDate(response.data.recording_date)
+      } catch (error) {
+        console.error('Error resolving MP3 path:', error)
+      }
+    } finally {
+      setLoading(false)
+      setProgressStage(null)
     }
   }
 
@@ -286,6 +303,7 @@ export default function CsvViewer({ onBack, initialCsv }: CsvViewerProps = {}) {
     if (!selectedCsv) return
 
     try {
+      setProgressStage('Saving...')
       await axios.post('/api/v1/csv/save', {
         path: selectedCsv,
         tracks: tracks
@@ -300,6 +318,8 @@ export default function CsvViewer({ onBack, initialCsv }: CsvViewerProps = {}) {
     } catch (error: any) {
       console.error('Save failed:', error)
       setErrorToast({ show: true, message: error.response?.data?.detail || 'Failed to save CSV' })
+    } finally {
+      setProgressStage(null)
     }
   }
 
@@ -470,7 +490,112 @@ export default function CsvViewer({ onBack, initialCsv }: CsvViewerProps = {}) {
     }
   }
 
-  const timeToSeconds = (timeStr: string): number => {
+  // Wrapper functions for track mutations with undo/redo
+  const wrappedToggleSelect = useCallback((id: string) => {
+    undoRedo.pushState(tracks)
+    toggleSelect(id)
+  }, [tracks, undoRedo, toggleSelect])
+
+  const wrappedUpdateName = useCallback((id: string, name: string) => {
+    undoRedo.pushState(tracks)
+    updateName(id, name)
+  }, [tracks, undoRedo, updateName])
+
+  const wrappedUpdateClass = useCallback((id: string, predicted_class: string) => {
+    undoRedo.pushState(tracks)
+    updateClass(id, predicted_class)
+  }, [tracks, undoRedo, updateClass])
+
+  const wrappedUpdateStart = useCallback((id: string, start: string) => {
+    undoRedo.pushState(tracks)
+    updateStart(id, start)
+  }, [tracks, undoRedo, updateStart])
+
+  const wrappedUpdateStop = useCallback((id: string, stop: string) => {
+    undoRedo.pushState(tracks)
+    updateStop(id, stop)
+  }, [tracks, undoRedo, updateStop])
+
+  const wrappedDeleteTrack = useCallback((id: string) => {
+    undoRedo.pushState(tracks)
+    deleteTrack(id)
+  }, [tracks, undoRedo, deleteTrack])
+
+  const wrappedMergeWithNext = useCallback((id: string) => {
+    undoRedo.pushState(tracks)
+    mergeWithNext(id)
+  }, [tracks, undoRedo, mergeWithNext])
+
+  const wrappedAddSegmentBelow = useCallback((id: string) => {
+    undoRedo.pushState(tracks)
+    addSegmentBelow(id)
+  }, [tracks, undoRedo, addSegmentBelow])
+
+  // Undo/redo handlers
+  const handleUndo = useCallback(() => {
+    if (undoRedo.canUndo) {
+      undoRedo.undo()
+      // Sync tracks after undo
+      setTracks(undoRedo.present)
+      setHasUnsavedChanges(true)
+    }
+  }, [undoRedo, setTracks, setHasUnsavedChanges])
+
+  const handleRedo = useCallback(() => {
+    if (undoRedo.canRedo) {
+      undoRedo.redo()
+      // Sync tracks after redo
+      setTracks(undoRedo.present)
+      setHasUnsavedChanges(true)
+    }
+  }, [undoRedo, setTracks, setHasUnsavedChanges])
+
+  // Keyboard shortcut handlers
+  const keyboardHandlers = useMemo(() => ({
+    'space': () => {
+      if (showPlayer) {
+        // Toggle play/pause - this would need integration with StickyPlayer
+        // For now, just toggle player visibility
+      } else {
+        togglePlayer()
+      }
+    },
+    'ctrl+s': () => {
+      saveToFile()
+    },
+    'ctrl+z': handleUndo,
+    'ctrl+shift+z': handleRedo,
+    'ctrl+y': handleRedo,
+    '1': () => {
+      if (selectedTrackId) {
+        wrappedUpdateClass(selectedTrackId, CLASS_ORDER[0])
+      }
+    },
+    '2': () => {
+      if (selectedTrackId) {
+        wrappedUpdateClass(selectedTrackId, CLASS_ORDER[1])
+      }
+    },
+    '3': () => {
+      if (selectedTrackId) {
+        wrappedUpdateClass(selectedTrackId, CLASS_ORDER[2])
+      }
+    },
+    '4': () => {
+      if (selectedTrackId) {
+        wrappedUpdateClass(selectedTrackId, CLASS_ORDER[3])
+      }
+    },
+    '5': () => {
+      if (selectedTrackId) {
+        wrappedUpdateClass(selectedTrackId, CLASS_ORDER[4])
+      }
+    }
+  }), [showPlayer, togglePlayer, saveToFile, handleUndo, handleRedo, selectedTrackId, wrappedUpdateClass])
+
+  useKeyboardShortcuts(keyboardHandlers)
+
+    const timeToSeconds = (timeStr: string): number => {
     const parts = timeStr.split(':').map(Number)
     return parts[0] * 3600 + parts[1] * 60 + parts[2]
   }
@@ -555,6 +680,7 @@ export default function CsvViewer({ onBack, initialCsv }: CsvViewerProps = {}) {
                 selectedCount={tracks.filter(t => t.selected).length}
                 onExportToTraining={exportToTrainingData}
                 onCopyTracklist={copyTracklistToClipboard}
+                progressStage={progressStage}
               />
             </div>
 
@@ -563,14 +689,14 @@ export default function CsvViewer({ onBack, initialCsv }: CsvViewerProps = {}) {
               exportedSegments={exportedSegments}
               playingTrackId={playingTrackId}
               selectedTrackId={selectedTrackId}
-              onToggleSelect={toggleSelect}
-              onUpdateName={updateName}
-              onUpdateClass={updateClass}
-              onUpdateStart={updateStart}
-              onUpdateStop={updateStop}
-              onDelete={deleteTrack}
-              onMergeWithNext={mergeWithNext}
-              onAddSegmentBelow={addSegmentBelow}
+              onToggleSelect={wrappedToggleSelect}
+              onUpdateName={wrappedUpdateName}
+              onUpdateClass={wrappedUpdateClass}
+              onUpdateStart={wrappedUpdateStart}
+              onUpdateStop={wrappedUpdateStop}
+              onDelete={wrappedDeleteTrack}
+              onMergeWithNext={wrappedMergeWithNext}
+              onAddSegmentBelow={wrappedAddSegmentBelow}
               onSelectTrack={setSelectedTrackId}
               onPlayFrom={playFromSegment}
               onUndoExport={handleUndoExport}

@@ -18,6 +18,9 @@ interface PlayerControlsProps {
   selectedCount: number
   onExportToTraining: () => void
   onCopyTracklist: () => void
+
+  // Progress indicator
+  progressStage?: string | null
 }
 
 /**
@@ -36,10 +39,17 @@ export function PlayerControls({
   thresholdDisabled,
   selectedCount,
   onExportToTraining,
-  onCopyTracklist
+  onCopyTracklist,
+  progressStage
 }: PlayerControlsProps) {
   return (
     <div className="flex items-center gap-4">
+      {/* Progress Indicator */}
+      {progressStage && (
+        <div className="flex items-center gap-2 px-3 py-1 bg-blue-100 text-blue-800 rounded-md animate-pulse">
+          <span className="text-sm font-medium">{progressStage}</span>
+        </div>
+      )}
       {/* Threshold Slider */}
       <div className="flex items-center gap-3 mr-4 bg-gray-50 px-4 py-2 rounded-lg border border-gray-200">
         <label className="text-sm font-medium text-gray-700 whitespace-nowrap">
