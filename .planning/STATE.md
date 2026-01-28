@@ -7,7 +7,7 @@
 **Status:** Executing Phase 4
 **Progress:** [███░░░░░░░] 2/6 phases complete
 
-**Last activity:** 2026-01-28 — Completed 04-02 Waveform Caching
+**Last activity:** 2026-01-28 — Completed 04-01 Performance Prep, 04-02 Waveform Caching
 
 ## Project Reference
 
@@ -21,6 +21,7 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 
 | Plan | Name | Status | Commit |
 |------|------|--------|--------|
+| 04-01 | Performance Prep | Complete | bb8e82b, 07af0d0 |
 | 04-02 | Waveform Caching | Complete | 7e99228, 277a71f |
 
 ## Phase 3 Progress
@@ -59,7 +60,8 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 | Phase completion | 6 | 2 |
 | Phase 1 plans | 7 | 7 |
 | Phase 3 plans | 4 | 4 |
-| Requirements done | 62 | 31 (22 from Phase 1 + 9 from Phase 3) |
+| Phase 4 plans | 6 | 2 |
+| Requirements done | 62 | 33 (22 from Phase 1 + 9 from Phase 3 + 2 from Phase 4) |
 | Critical issues fixed | 15 | 15 |
 
 ## Accumulated Context
@@ -84,6 +86,8 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 - 5s timeout then force kill for process termination on shutdown
 - TimeoutMiddleware: 60s for all endpoints except /analyze (long-running by design)
 - Job lookup order: temp file -> TTLCache -> SQLite (most current to restart recovery)
+- Use polars 1.23.0 for pandas-to-polars migration (stable, backwards compatible)
+- Module-level regex compilation: DATE_PATTERN and PREDICTIONS_PATTERN for filename parsing
 - Waveform cache uses mtime in cache key for automatic invalidation (no manual cleanup)
 - Cache location: SORTED_FOLDER/.waveform_cache (hidden folder for metadata)
 
@@ -111,6 +115,7 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 - .planning/phases/03-backend-stability/03-02-SUMMARY.md — Memory leak & race condition fixes
 - .planning/phases/03-backend-stability/03-03-SUMMARY.md — Resource cleanup
 - .planning/phases/03-backend-stability/03-04-SUMMARY.md — Frontend exponential backoff
+- .planning/phases/04-performance-migration/04-01-SUMMARY.md — Performance prep (polars + regex)
 - .planning/phases/04-performance-migration/04-02-SUMMARY.md — Waveform caching
 
 ### Blockers
@@ -121,7 +126,9 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 - [x] Verify Phase 1 goal achievement - PASSED
 - [x] Execute Phase 3 plans - COMPLETE (4/4)
 - [x] Verify Phase 3 goal achievement - PASSED
-- [ ] Plan Phase 2: Core UX Polish OR Phase 4: Performance
+- [x] Execute Phase 4 Plan 01 - COMPLETE (2/2 tasks)
+- [x] Execute Phase 4 Plan 02 - COMPLETE (2/2 tasks)
+- [ ] Continue Phase 4: Plans 03-06
 
 ### Open Questions
 (None)
@@ -129,14 +136,15 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 ## Session Continuity
 
 **Last session:** 2026-01-28
-**Stopped at:** Completed 04-02 Waveform Caching
+**Stopped at:** Completed 04-01 Performance Prep, 04-02 Waveform Caching
 **Resume file:** None
 
 **If context is lost, read these files in order:**
 1. .planning/PROJECT.md — Core value and constraints
 2. .planning/ROADMAP.md — Phase structure and requirements
 3. .planning/STATE.md — Current position (this file)
-4. .planning/phases/04-performance-migration/04-02-SUMMARY.md — Latest completed plan
+4. .planning/phases/04-performance-migration/04-01-SUMMARY.md — Performance prep
+5. .planning/phases/04-performance-migration/04-02-SUMMARY.md — Waveform caching
 
 ---
-*State updated: 2026-01-28 — Completed 04-02 Waveform Caching*
+*State updated: 2026-01-28 — Phase 4 Plans 01-02 complete: polars installed, regex optimized, waveform caching implemented*
