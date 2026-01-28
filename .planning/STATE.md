@@ -4,10 +4,10 @@
 
 **Phase:** 5 of 6 — Frontend Decomposition (in progress)
 **Previous:** Phase 1, 3, 4 Complete ✓
-**Status:** Phase 5 In Progress (4/7 plans complete)
+**Status:** Phase 5 In Progress (5/7 plans complete)
 **Progress:** [███████░░░] 3/6 phases complete
 
-**Last activity:** 2026-01-28 — Completed 05-05 Audio Player Hook
+**Last activity:** 2026-01-28 — Completed 05-04 Autosave Hook
 
 ## Project Reference
 
@@ -24,7 +24,7 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 | 05-01 | Code Cleanup | Complete | 7a70847, c977d5e |
 | 05-02 | Extract Time Utilities | Complete | 143bd5d, 18c97c2 |
 | 05-03 | Extract useTrackEditor Hook | Complete | afb8573, 536f24e |
-| 05-04 | Extract useAutosave Hook | Pending | — |
+| 05-04 | Extract useAutosave Hook | Complete | 8627fb7, c464eb0 |
 | 05-05 | Extract useAudioPlayer Hook | Complete | eaed0c3, ed36a80 |
 | 05-06 | Extract CsvSelector & PlayerControls | Pending | — |
 | 05-07 | Extract TrackTable & Finalize | Pending | — |
@@ -77,8 +77,8 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 | Phase 1 plans | 7 | 7 |
 | Phase 3 plans | 4 | 4 |
 | Phase 4 plans | 6 | 6 |
-| Phase 5 plans | 7 | 4 |
-| Requirements done | 62 | 45 (22 from Phase 1 + 9 from Phase 3 + 10 from Phase 4 + 4 from Phase 5) |
+| Phase 5 plans | 7 | 5 |
+| Requirements done | 62 | 46 (22 from Phase 1 + 9 from Phase 3 + 10 from Phase 4 + 5 from Phase 5) |
 | Critical issues fixed | 15 | 15 |
 
 ## Accumulated Context
@@ -114,8 +114,9 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 - Polars auto-strips column whitespace and handles quotes (no manual preprocessing needed)
 - pandas completely removed from requirements.txt and codebase (polars migration complete)
 - useTrackEditor hook: encapsulates 10 track operations + tracks/hasUnsavedChanges state (CsvViewer reduced 1279→958 lines)
-- Hook composition pattern: useTrackEditor + useAudioPlayer for clean component structure
+- Hook composition pattern: useTrackEditor + useAudioPlayer + useAutosave for clean component structure
 - Inline utilities temporarily when dependencies unavailable (refactor after parallel plans merge)
+- useAutosave hook: generic hook with TypeScript generics, supports immediate/debounced autosave, mounted ref pattern
 - OWASP filename sanitization in export.py: re.sub(r'[<>:"|?*]', '_', song_name) prevents filesystem issues
 - Legacy training.py (535 lines Keras CNN) deleted - ast_training service is used instead
 - howler audio library removed from frontend (unused, native HTMLAudioElement sufficient)
@@ -154,6 +155,9 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 - .planning/phases/04-performance-migration/04-06-SUMMARY.md — Remove pandas dependency
 - .planning/phases/05-frontend-decomposition/05-01-SUMMARY.md — Code cleanup (training.py, howler, filename sanitization)
 - .planning/phases/05-frontend-decomposition/05-02-SUMMARY.md — Extract time calculation utilities
+- .planning/phases/05-frontend-decomposition/05-03-SUMMARY.md — Extract useTrackEditor hook
+- .planning/phases/05-frontend-decomposition/05-04-SUMMARY.md — Extract useAutosave hook
+- .planning/phases/05-frontend-decomposition/05-05-SUMMARY.md — Extract useAudioPlayer hook
 
 ### Blockers
 (None)
@@ -173,14 +177,16 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 - [x] Execute Phase 5 Plan 01 - COMPLETE (2/2 tasks)
 - [x] Execute Phase 5 Plan 02 - COMPLETE (2/2 tasks)
 - [x] Execute Phase 5 Plan 03 - COMPLETE (2/2 tasks)
-- [ ] Continue Phase 5: Frontend Decomposition (4 plans remaining)
+- [x] Execute Phase 5 Plan 04 - COMPLETE (2/2 tasks)
+- [x] Execute Phase 5 Plan 05 - COMPLETE (2/2 tasks)
+- [ ] Continue Phase 5: Frontend Decomposition (2 plans remaining)
 
-**Stopped at:** Completed 05-05 Audio Player Hook (Phase 5 In Progress)
+**Stopped at:** Completed 05-04 Autosave Hook (Phase 5 In Progress)
 
 ## Session Continuity
 
 **Last session:** 2026-01-28
-**Stopped at:** Completed 05-05 Audio Player Hook (Phase 5 In Progress: 3/7 plans)
+**Stopped at:** Completed 05-04 Autosave Hook (Phase 5 In Progress: 5/7 plans)
 **Resume file:** None
 
 **If context is lost, read these files in order:**
@@ -188,9 +194,9 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 2. .planning/ROADMAP.md — Phase structure and requirements
 3. .planning/STATE.md — Current position (this file)
 4. .planning/phases/04-performance-migration/04-06-SUMMARY.md — Remove pandas dependency
-5. .planning/phases/05-frontend-decomposition/05-01-SUMMARY.md — Code cleanup
-6. .planning/phases/05-frontend-decomposition/05-02-SUMMARY.md — Extract time utilities
-7. .planning/phases/05-frontend-decomposition/05-03-SUMMARY.md — Track editor hook
+5. .planning/phases/05-frontend-decomposition/05-03-SUMMARY.md — Track editor hook
+6. .planning/phases/05-frontend-decomposition/05-04-SUMMARY.md — Autosave hook
+7. .planning/phases/05-frontend-decomposition/05-05-SUMMARY.md — Audio player hook
 
 ---
-*State updated: 2026-01-28 — Phase 5 In Progress (3/7 plans): useTrackEditor hook extracts 10 track operations; CsvViewer reduced from 1279 to 958 lines; hook composition pattern established*
+*State updated: 2026-01-28 — Phase 5 In Progress (5/7 plans): useAutosave hook extracts autosave logic with generic TypeScript support; hook composition pattern (useTrackEditor + useAudioPlayer + useAutosave) established*
