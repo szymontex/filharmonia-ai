@@ -27,6 +27,9 @@ interface PlayerControlsProps {
   onRedo: () => void
   canUndo: boolean
   canRedo: boolean
+
+  // Keyboard help
+  onShowKeyboardHelp?: () => void
 }
 
 /**
@@ -50,7 +53,8 @@ export function PlayerControls({
   onUndo,
   onRedo,
   canUndo,
-  canRedo
+  canRedo,
+  onShowKeyboardHelp
 }: PlayerControlsProps) {
   return (
     <div className="flex items-center gap-4">
@@ -138,6 +142,17 @@ export function PlayerControls({
       >
         Copy Tracklist
       </button>
+
+      {/* Keyboard Help Button */}
+      {onShowKeyboardHelp && (
+        <button
+          onClick={onShowKeyboardHelp}
+          className="px-3 py-2 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 border border-gray-300"
+          title="Show keyboard shortcuts (Press ?)"
+        >
+          ?
+        </button>
+      )}
     </div>
   )
 }

@@ -6,6 +6,7 @@ import Toast from '../components/Toast'
 import { TrackTable } from '../components/TrackTable'
 import { CsvSelector } from '../components/CsvSelector'
 import { PlayerControls } from '../components/PlayerControls'
+import KeyboardHelp from '../components/KeyboardHelp'
 import { useExponentialPolling } from '../hooks/useExponentialPolling'
 import { useAudioPlayer } from '../hooks/useAudioPlayer'
 import { useTrackEditor } from '../hooks/useTrackEditor'
@@ -86,6 +87,7 @@ export default function CsvViewer({ onBack, initialCsv }: CsvViewerProps = {}) {
   const [debouncedThreshold, setDebouncedThreshold] = useState(5)  // Debounced threshold for API calls
   const [progressStage, setProgressStage] = useState<string | null>(null)  // Progress indicator for operations
   const abortRef = useRef<AbortController | null>(null)  // AbortController for analysis cancellation
+  const [showKeyboardHelp, setShowKeyboardHelp] = useState(false)  // Keyboard help panel visibility
 
   // Fetch function for exponential backoff polling
   const fetchAnalysisStatus = useCallback(async () => {
@@ -593,8 +595,16 @@ export default function CsvViewer({ onBack, initialCsv }: CsvViewerProps = {}) {
       if (selectedTrackId) {
         wrappedUpdateClass(selectedTrackId, CLASS_ORDER[4])
       }
+    },
+    'shift+?': () => {
+      setShowKeyboardHelp(prev => !prev)
+    },
+    'escape': () => {
+      if (showKeyboardHelp) {
+        setShowKeyboardHelp(false)
+      }
     }
-  }), [showPlayer, togglePlayer, saveToFile, handleUndo, handleRedo, selectedTrackId, wrappedUpdateClass])
+  }), [showPlayer, togglePlayer, saveToFile, handleUndo, handleRedo, selectedTrackId, wrappedUpdateClass, showKeyboardHelp])
 
   useKeyboardShortcuts(keyboardHandlers)
 
@@ -688,6 +698,7 @@ export default function CsvViewer({ onBack, initialCsv }: CsvViewerProps = {}) {
                 onRedo={handleRedo}
                 canUndo={undoRedo.canUndo}
                 canRedo={undoRedo.canRedo}
+                onShowKeyboardHelp={() => setShowKeyboardHelp(true)}
               />
             </div>
 
@@ -835,6 +846,12 @@ export default function CsvViewer({ onBack, initialCsv }: CsvViewerProps = {}) {
         color="purple"
         index={(showSaveModal ? 1 : 0) + (successToast.show ? 1 : 0) + (errorToast.show ? 1 : 0) + (exportConfirm.show ? 1 : 0)}
         autoClose={6000}
+      />
+
+      {/* Keyboard Help Panel */}
+      <KeyboardHelp
+        show={showKeyboardHelp}
+        onClose={() => setShowKeyboardHelp(false)}
       />
     </div>
   )
