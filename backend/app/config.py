@@ -34,6 +34,13 @@ class Settings:
     RECOGNITION_MODELS_FOLDER: Path = FILHARMONIA_BASE / os.getenv("MODELS_FOLDER_NAME", "RECOGNITION_MODELS")
     ML_EXPERIMENTS_FOLDER: Path = FILHARMONIA_BASE / os.getenv("ML_EXPERIMENTS_FOLDER_NAME", "ML_EXPERIMENTS")
 
+    # Waveform cache directory - stores generated waveform JSON for instant repeat access
+    _waveform_cache_env = os.getenv("WAVEFORM_CACHE_DIR")
+    if _waveform_cache_env:
+        WAVEFORM_CACHE_DIR: Path = Path(_waveform_cache_env)
+    else:
+        WAVEFORM_CACHE_DIR: Path = SORTED_FOLDER / ".waveform_cache"
+
     # Models
     # Legacy Keras CNN (deprecated, kept for backwards compatibility)
     MODEL_PATH: Path = RECOGNITION_MODELS_FOLDER / "cnn_model.h5"
