@@ -4,10 +4,10 @@
 
 **Phase:** 5 of 6 — Frontend Decomposition (in progress)
 **Previous:** Phase 1, 3, 4 Complete ✓
-**Status:** Phase 5 In Progress (5/7 plans complete)
+**Status:** Phase 5 In Progress (6/7 plans complete)
 **Progress:** [███████░░░] 3/6 phases complete
 
-**Last activity:** 2026-01-28 — Completed 05-04 Autosave Hook
+**Last activity:** 2026-01-28 — Completed 05-06 CsvSelector & PlayerControls
 
 ## Project Reference
 
@@ -26,8 +26,8 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 | 05-03 | Extract useTrackEditor Hook | Complete | afb8573, 536f24e |
 | 05-04 | Extract useAutosave Hook | Complete | 8627fb7, c464eb0 |
 | 05-05 | Extract useAudioPlayer Hook | Complete | eaed0c3, ed36a80 |
-| 05-06 | Extract CsvSelector & PlayerControls | Pending | — |
-| 05-07 | Extract TrackTable & Finalize | Pending | — |
+| 05-06 | Extract CsvSelector & PlayerControls | Complete | 586d6c3, ea87beb, cbb4fbc |
+| 05-07 | Extract TrackTable & Finalize | In Progress | a19f062 |
 
 ## Phase 4 Progress
 
@@ -78,7 +78,7 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 | Phase 3 plans | 4 | 4 |
 | Phase 4 plans | 6 | 6 |
 | Phase 5 plans | 7 | 5 |
-| Requirements done | 62 | 46 (22 from Phase 1 + 9 from Phase 3 + 10 from Phase 4 + 5 from Phase 5) |
+| Requirements done | 62 | 48 (22 from Phase 1 + 9 from Phase 3 + 10 from Phase 4 + 6 from Phase 5) + 1 from 05-07 |
 | Critical issues fixed | 15 | 15 |
 
 ## Accumulated Context
@@ -122,6 +122,10 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 - howler audio library removed from frontend (unused, native HTMLAudioElement sufficient)
 - Time calculations extracted to frontend/src/utils/timeCalculations.ts (calculateDuration, timeToSeconds, secondsToTimeFormat, parseTimeToSeconds)
 - Single source of truth for time logic - imported by CsvViewer and useTrackEditor hook
+- useAudioPlayer hook: encapsulates player state (showPlayer, playingTrackId, selectedTrackId, seekToTime) and operations
+- CsvSelector component: presentational component for file selection UI with status badges (edited/exported/analyzing)
+- PlayerControls component: presentational component for player toggle, threshold slider, save/discard, and export buttons
+- CsvViewer refactored: reduced from ~842 to 708 lines by extracting CsvSelector and PlayerControls (~134 line reduction)
 
 ### Research Completed (2026-01-20)
 - .planning/research/STACK.md — PyTorch/torchaudio recommendations
@@ -158,6 +162,7 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 - .planning/phases/05-frontend-decomposition/05-03-SUMMARY.md — Extract useTrackEditor hook
 - .planning/phases/05-frontend-decomposition/05-04-SUMMARY.md — Extract useAutosave hook
 - .planning/phases/05-frontend-decomposition/05-05-SUMMARY.md — Extract useAudioPlayer hook
+- .planning/phases/05-frontend-decomposition/05-06-SUMMARY.md — Extract CsvSelector & PlayerControls components
 
 ### Blockers
 (None)
@@ -179,14 +184,15 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 - [x] Execute Phase 5 Plan 03 - COMPLETE (2/2 tasks)
 - [x] Execute Phase 5 Plan 04 - COMPLETE (2/2 tasks)
 - [x] Execute Phase 5 Plan 05 - COMPLETE (2/2 tasks)
-- [ ] Continue Phase 5: Frontend Decomposition (2 plans remaining)
+- [x] Execute Phase 5 Plan 06 - COMPLETE (3/3 tasks)
+- [ ] Continue Phase 5: Frontend Decomposition (1 plan remaining)
 
-**Stopped at:** Completed 05-04 Autosave Hook (Phase 5 In Progress)
+**Stopped at:** Completed 05-06 CsvSelector & PlayerControls (Phase 5 In Progress)
 
 ## Session Continuity
 
 **Last session:** 2026-01-28
-**Stopped at:** Completed 05-04 Autosave Hook (Phase 5 In Progress: 5/7 plans)
+**Stopped at:** Completed 05-06 CsvSelector & PlayerControls (Phase 5 In Progress: 6/7 plans)
 **Resume file:** None
 
 **If context is lost, read these files in order:**
@@ -199,4 +205,4 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 7. .planning/phases/05-frontend-decomposition/05-05-SUMMARY.md — Audio player hook
 
 ---
-*State updated: 2026-01-28 — Phase 5 In Progress (5/7 plans): useAutosave hook extracts autosave logic with generic TypeScript support; hook composition pattern (useTrackEditor + useAudioPlayer + useAutosave) established*
+*State updated: 2026-01-28 — Phase 5 In Progress (6/7 plans): CsvSelector & PlayerControls components extracted; CsvViewer reduced from ~842 to 708 lines (~134 line reduction); presentational component pattern established*
