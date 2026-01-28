@@ -4,6 +4,7 @@ import { CLASS_COLORS } from '../constants/colors'
 import StickyPlayer from '../components/StickyPlayer'
 import Toast from '../components/Toast'
 import { useExponentialPolling } from '../hooks/useExponentialPolling'
+import { useAudioPlayer } from '../hooks/useAudioPlayer'
 import { useTrackEditor, Track } from '../hooks/useTrackEditor'
 import { calculateDuration, timeToSeconds } from '../utils/timeCalculations'
 
@@ -38,14 +39,24 @@ export default function CsvViewer({ onBack, initialCsv }: CsvViewerProps = {}) {
     addSegmentBelow
   } = useTrackEditor()
 
+  // Audio player state
+  const {
+    showPlayer,
+    togglePlayer,
+    closePlayer,
+    playingTrackId,
+    setPlayingTrackId,
+    selectedTrackId,
+    setSelectedTrackId,
+    seekToTime,
+    clearSeekRequest,
+    playFromSegment
+  } = useAudioPlayer()
+
   const [csvFiles, setCsvFiles] = useState<CsvFile[]>([])
   const [selectedCsv, setSelectedCsv] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [mp3Path, setMp3Path] = useState<string>('')
-  const [showPlayer, setShowPlayer] = useState(false)
-  const [selectedTrackId, setSelectedTrackId] = useState<string | null>(null)
-  const [seekToTime, setSeekToTime] = useState<string | null>(null)
-  const [playingTrackId, setPlayingTrackId] = useState<string | null>(null)
   const [lastAutosave, setLastAutosave] = useState<Date | null>(null)
   const [showSaveModal, setShowSaveModal] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; path: string; name: string }>({ show: false, path: '', name: '' })
@@ -229,10 +240,6 @@ export default function CsvViewer({ onBack, initialCsv }: CsvViewerProps = {}) {
     }
   }
 
-  const togglePlayer = () => {
-    setShowPlayer(!showPlayer)
-  }
-
 
   const handleTrackUpdate = (trackId: string, updates: { start?: string; stop?: string }) => {
     setTracks(prevTracks => prevTracks.map(t => {
@@ -270,17 +277,6 @@ export default function CsvViewer({ onBack, initialCsv }: CsvViewerProps = {}) {
       return t
     }))
     setHasUnsavedChanges(true)
-  }
-
-  const playFromSegment = (startTime: string, trackId: string) => {
-    // Show player if not already visible
-    if (!showPlayer) {
-      setShowPlayer(true)
-    }
-    // Trigger seek to this time
-    setSeekToTime(startTime)
-    // Mark this track as playing
-    setPlayingTrackId(trackId)
   }
 
   const saveToFile = async () => {
@@ -842,13 +838,13 @@ export default function CsvViewer({ onBack, initialCsv }: CsvViewerProps = {}) {
         <StickyPlayer
           mp3Path={mp3Path}
           tracks={tracks}
-          onClose={() => setShowPlayer(false)}
+          onClose={closePlayer}
           onTrackUpdate={handleTrackUpdate}
           onBoundaryUpdate={handleBoundaryUpdate}
           selectedTrackId={selectedTrackId}
           onTrackSelect={setSelectedTrackId}
           seekToTime={seekToTime}
-          onSeekComplete={() => setSeekToTime(null)}
+          onSeekComplete={clearSeekRequest}
           recordingDate={recordingDate}
           onAddSegment={addSegmentAtTime}
           onCutSegment={cutSegmentAtTime}
