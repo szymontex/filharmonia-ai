@@ -4,10 +4,10 @@
 
 **Phase:** 2 of 6 — Core UX Polish (in progress)
 **Previous:** Phase 1, 3, 4, 5 Complete ✓
-**Status:** Phase 2 started (1/7 plans complete)
+**Status:** Phase 2 in progress (3/7 plans complete)
 **Progress:** [████████░░] 4/6 phases complete
 
-**Last activity:** 2026-01-28 — Completed 02-01 Foundation Hooks
+**Last activity:** 2026-01-28 — Completed 02-03 Atomic CSV Writes
 
 ## Project Reference
 
@@ -22,6 +22,8 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 | Plan | Name | Status | Commit |
 |------|------|--------|--------|
 | 02-01 | Foundation Hooks | Complete | 7ec5a58, f0ad080 |
+| 02-02 | Undo/Redo Implementation | Complete | bf5d83d, 5d6aa43 |
+| 02-03 | Atomic CSV Writes | Complete | a7374a7, bdd071d |
 
 ## Phase 5 Progress
 
@@ -140,6 +142,8 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 - useUndoRedo hook: snapshot-based undo/redo with max 20 history via .slice(-19), history persists across saves
 - useKeyboardShortcuts hook: stable ref pattern for global keyboard shortcuts with INPUT/TEXTAREA guards
 - Space key normalized to 'space' string for clarity in keyboard handler maps
+- Atomic write pattern: tempfile.mkstemp in same directory + os.replace (atomic on POSIX, near-atomic on Windows)
+- CSV save operations now crash-safe via atomic_write utility (no partial write corruption)
 
 ### Research Completed (2026-01-20)
 - .planning/research/STACK.md — PyTorch/torchaudio recommendations
@@ -179,6 +183,8 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 - .planning/phases/05-frontend-decomposition/05-06-SUMMARY.md — Extract CsvSelector & PlayerControls components
 - .planning/phases/05-frontend-decomposition/05-07-SUMMARY.md — Extract TrackTable & finalize refactor
 - .planning/phases/02-core-ux-polish/02-01-SUMMARY.md — Foundation hooks (useUndoRedo, useKeyboardShortcuts)
+- .planning/phases/02-core-ux-polish/02-02-SUMMARY.md — Undo/Redo implementation
+- .planning/phases/02-core-ux-polish/02-03-SUMMARY.md — Atomic CSV writes
 
 ### Blockers
 (None)
@@ -212,7 +218,7 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 ## Session Continuity
 
 **Last session:** 2026-01-28
-**Stopped at:** Completed 02-01 Foundation Hooks (Phase 2: 1/7 plans)
+**Stopped at:** Completed 02-03 Atomic CSV Writes (Phase 2: 3/7 plans)
 **Resume file:** None
 
 **If context is lost, read these files in order:**
@@ -222,6 +228,7 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 4. .planning/phases/05-frontend-decomposition/05-03-SUMMARY.md — Track editor hook
 5. .planning/phases/05-frontend-decomposition/05-07-SUMMARY.md — TrackTable & finalize refactor
 6. .planning/phases/02-core-ux-polish/02-01-SUMMARY.md — Foundation hooks
+7. .planning/phases/02-core-ux-polish/02-03-SUMMARY.md — Atomic CSV writes
 
 ---
-*State updated: 2026-01-28 — Phase 2 started (1/7 plans): useUndoRedo and useKeyboardShortcuts hooks created as standalone modules; snapshot-based undo/redo with max 20 history; stable ref pattern for keyboard shortcuts*
+*State updated: 2026-01-28 — Phase 2 in progress (3/7 plans): Atomic write utility prevents CSV corruption on crash; temp file + os.replace pattern; crash-safe save/autosave operations*
