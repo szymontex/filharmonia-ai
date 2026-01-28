@@ -82,11 +82,23 @@ export default function Toast({
       style={{ top: `${topOffset}px` }}
     >
       <div
-        className={`${colors.bg} text-white rounded-lg shadow-lg px-4 py-3 flex items-center gap-3 transition-colors ${!actions ? 'cursor-pointer ' + colors.hover : ''}`}
+        className={`${colors.bg} text-white rounded-lg shadow-lg px-4 py-3 flex items-center gap-3 transition-colors ${!actions ? 'cursor-pointer ' + colors.hover : ''} relative`}
         onClick={!actions ? onClose : undefined}
       >
+        {/* X close button (always shown) */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation()
+            onClose()
+          }}
+          className="absolute top-2 right-2 w-6 h-6 flex items-center justify-center rounded hover:bg-white hover:bg-opacity-20 transition-colors"
+          aria-label="Close"
+        >
+          <span className="text-white text-sm font-bold">×</span>
+        </button>
+
         <div className="text-2xl">{icon}</div>
-        <div className="flex-1">
+        <div className="flex-1 pr-4">
           <h3 className="font-semibold">{title}</h3>
           {message && (
             <p className={`text-sm ${colors.text}`}>{message}</p>

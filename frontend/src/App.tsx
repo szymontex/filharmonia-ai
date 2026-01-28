@@ -6,42 +6,32 @@ import SortManager from './pages/SortManager'
 import AnalysisMonitor from './pages/AnalysisMonitor'
 import TrainingManager from './pages/TrainingManager'
 import UncertaintyReview from './pages/UncertaintyReview'
+import ToastContainer from './components/ToastContainer'
 
 function App() {
   const [page, setPage] = useState<'home' | 'csv' | 'calendar' | 'sort' | 'monitor' | 'training' | 'uncertainty'>('home')
   const [csvToOpen, setCsvToOpen] = useState<string | null>(null)
 
-  if (page === 'csv') {
-    return <CsvViewer onBack={() => setPage('home')} initialCsv={csvToOpen} />
-  }
-
-  if (page === 'calendar') {
-    return <CalendarBrowser
-      onBack={() => setPage('home')}
-      onOpenCsv={(csvPath) => {
-        setCsvToOpen(csvPath)
-        setPage('csv')
-      }}
-    />
-  }
-
-  if (page === 'sort') {
-    return <SortManager onBack={() => setPage('home')} />
-  }
-
-  if (page === 'monitor') {
-    return <AnalysisMonitor onBack={() => setPage('home')} />
-  }
-
-  if (page === 'training') {
-    return <TrainingManager onBack={() => setPage('home')} />
-  }
-
-  if (page === 'uncertainty') {
-    return <UncertaintyReview onBack={() => setPage('home')} />
-  }
-
-  return <HomePage onNavigate={setPage} />
+  return (
+    <>
+      <ToastContainer />
+      {page === 'csv' && <CsvViewer onBack={() => setPage('home')} initialCsv={csvToOpen} />}
+      {page === 'calendar' && (
+        <CalendarBrowser
+          onBack={() => setPage('home')}
+          onOpenCsv={(csvPath) => {
+            setCsvToOpen(csvPath)
+            setPage('csv')
+          }}
+        />
+      )}
+      {page === 'sort' && <SortManager onBack={() => setPage('home')} />}
+      {page === 'monitor' && <AnalysisMonitor onBack={() => setPage('home')} />}
+      {page === 'training' && <TrainingManager onBack={() => setPage('home')} />}
+      {page === 'uncertainty' && <UncertaintyReview onBack={() => setPage('home')} />}
+      {page === 'home' && <HomePage onNavigate={setPage} />}
+    </>
+  )
 }
 
 function HomePage({ onNavigate }: { onNavigate: (page: 'home' | 'csv' | 'calendar' | 'sort' | 'monitor' | 'training' | 'uncertainty') => void }) {
