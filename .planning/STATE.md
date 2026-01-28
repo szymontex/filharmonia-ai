@@ -2,12 +2,12 @@
 
 ## Current Position
 
-**Phase:** 4 of 6 — Performance & Migration (next)
+**Phase:** 4 of 6 — Performance & Migration (in progress)
 **Previous:** Phase 1, 3 Complete ✓
-**Status:** Ready for planning
+**Status:** Executing Phase 4
 **Progress:** [███░░░░░░░] 2/6 phases complete
 
-**Last activity:** 2026-01-21 — Phase 3 Backend Stability verified and complete
+**Last activity:** 2026-01-28 — Completed 04-02 Waveform Caching
 
 ## Project Reference
 
@@ -16,6 +16,12 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 **Core value:** Zamiast reczenie sluchac ~6-8h nagran/tyg, AI robi to za ciebie.
 **Current focus:** v0.9 — Polish & Stability
 **Next phase goal:** CSV operations complete 5-30x faster; waveforms load instantly on repeat views.
+
+## Phase 4 Progress
+
+| Plan | Name | Status | Commit |
+|------|------|--------|--------|
+| 04-02 | Waveform Caching | Complete | 7e99228, 277a71f |
 
 ## Phase 3 Progress
 
@@ -78,6 +84,8 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 - 5s timeout then force kill for process termination on shutdown
 - TimeoutMiddleware: 60s for all endpoints except /analyze (long-running by design)
 - Job lookup order: temp file -> TTLCache -> SQLite (most current to restart recovery)
+- Waveform cache uses mtime in cache key for automatic invalidation (no manual cleanup)
+- Cache location: SORTED_FOLDER/.waveform_cache (hidden folder for metadata)
 
 ### Research Completed (2026-01-20)
 - .planning/research/STACK.md — PyTorch/torchaudio recommendations
@@ -91,7 +99,7 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 - .planning/DETAILED_AUDIT.md — Full findings
 - .planning/TECHNOLOGY_AUDIT.md — Migration recommendations
 
-### Plans Completed (2026-01-21)
+### Plans Completed (2026-01-21 to 2026-01-28)
 - .planning/phases/01-foundation-stability/01-01-SUMMARY.md — Bare except replacement
 - .planning/phases/01-foundation-stability/01-02-SUMMARY.md — Path traversal prevention
 - .planning/phases/01-foundation-stability/01-03-SUMMARY.md — Exception handlers & type hints
@@ -103,6 +111,7 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 - .planning/phases/03-backend-stability/03-02-SUMMARY.md — Memory leak & race condition fixes
 - .planning/phases/03-backend-stability/03-03-SUMMARY.md — Resource cleanup
 - .planning/phases/03-backend-stability/03-04-SUMMARY.md — Frontend exponential backoff
+- .planning/phases/04-performance-migration/04-02-SUMMARY.md — Waveform caching
 
 ### Blockers
 (None)
@@ -119,15 +128,15 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 
 ## Session Continuity
 
-**Last session:** 2026-01-21
-**Stopped at:** Phase 3 verified and complete
+**Last session:** 2026-01-28
+**Stopped at:** Completed 04-02 Waveform Caching
 **Resume file:** None
 
 **If context is lost, read these files in order:**
 1. .planning/PROJECT.md — Core value and constraints
 2. .planning/ROADMAP.md — Phase structure and requirements
 3. .planning/STATE.md — Current position (this file)
-4. .planning/phases/03-backend-stability/03-VERIFICATION.md — Phase 3 verification report
+4. .planning/phases/04-performance-migration/04-02-SUMMARY.md — Latest completed plan
 
 ---
-*State updated: 2026-01-21 — Phase 3 Backend Stability verified and complete*
+*State updated: 2026-01-28 — Completed 04-02 Waveform Caching*
