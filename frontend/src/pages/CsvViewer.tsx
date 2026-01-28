@@ -3,9 +3,12 @@ import axios from 'axios'
 import { CLASS_COLORS } from '../constants/colors'
 import StickyPlayer from '../components/StickyPlayer'
 import Toast from '../components/Toast'
+import { TrackTable } from '../components/TrackTable'
+import { CsvSelector } from '../components/CsvSelector'
+import { PlayerControls } from '../components/PlayerControls'
 import { useExponentialPolling } from '../hooks/useExponentialPolling'
 import { useAudioPlayer } from '../hooks/useAudioPlayer'
-import { useTrackEditor, Track } from '../hooks/useTrackEditor'
+import { useTrackEditor } from '../hooks/useTrackEditor'
 import { useAutosave } from '../hooks/useAutosave'
 import { calculateDuration, timeToSeconds } from '../utils/timeCalculations'
 
@@ -472,12 +475,6 @@ export default function CsvViewer({ onBack, initialCsv }: CsvViewerProps = {}) {
     return parts[0] * 3600 + parts[1] * 60 + parts[2]
   }
 
-  const getClassColor = (cls: string) => {
-    const config = CLASS_COLORS[cls as keyof typeof CLASS_COLORS]
-    if (!config) return 'bg-gray-100 text-gray-800'
-    return `${config.bg} ${config.text}`
-  }
-
   return (
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-7xl mx-auto">
@@ -504,73 +501,15 @@ export default function CsvViewer({ onBack, initialCsv }: CsvViewerProps = {}) {
         </div>
 
         {/* CSV File Selector */}
-        <div className="bg-white rounded-lg shadow p-6 mb-6">
-          <h2 className="text-xl font-semibold mb-4">Select Analysis Result</h2>
-          <div className="grid grid-cols-1 gap-3 max-h-60 overflow-y-auto">
-            {csvFiles.map(file => {
-              // Extract song name from predictions_SONG042_2025-09-27.csv or predictions_SONG042_2025-09-27_14-30.csv
-              const songMatch = file.name.match(/predictions_(.+?)_\d{4}-\d{2}-\d{2}/)
-              const songName = songMatch ? songMatch[1] : file.name
-
-              // Extract time from filename (if present): predictions_SONG042_2025-09-27_14-30.csv
-              const timeMatch = file.name.match(/_(\d{2})-(\d{2})\.csv$/)
-              const timeStr = timeMatch ? `${timeMatch[1]}:${timeMatch[2]}` : null
-
-              // Format date as DD.MM.YYYY
-              const dateParts = file.date.split('-')
-              const formattedDate = dateParts.length === 3
-                ? `${dateParts[2]}.${dateParts[1]}.${dateParts[0]}`
-                : file.date
-
-              // Check if this file is currently being analyzed
-              const isAnalyzing = analyzingFiles.has(songName + '.MP3') || analyzingFiles.has(songName + '.mp3')
-              const analyzingProgress = (analyzingFiles.get(songName + '.MP3') || analyzingFiles.get(songName + '.mp3')) ?? 0
-
-              return (
-                <div
-                  key={file.path}
-                  className={`relative p-4 rounded border hover:bg-blue-50 cursor-pointer ${
-                    selectedCsv === file.path ? 'bg-blue-100 border-blue-500' : 'border-gray-200'
-                  }`}
-                  onClick={() => loadCsv(file.path)}
-                >
-                  <div className="flex items-center gap-2 mb-1">
-                    <div className="text-xl font-bold text-blue-600">{formattedDate}</div>
-                    {timeStr && (
-                      <span className="px-2 py-0.5 bg-blue-100 text-blue-800 text-sm font-semibold rounded">
-                        {timeStr}
-                      </span>
-                    )}
-                    {editedCsvs.has(file.path) && (
-                      <span className="px-2 py-0.5 bg-green-100 text-green-800 text-xs font-semibold rounded">
-                        ✏️ EDITED
-                      </span>
-                    )}
-                    {csvsWithExports.has(file.path) && (
-                      <span className="px-2 py-0.5 bg-purple-100 text-purple-800 text-xs font-semibold rounded">
-                        📦 EXPORTED
-                      </span>
-                    )}
-                    {isAnalyzing && (
-                      <span className="px-2 py-0.5 bg-yellow-100 text-yellow-800 text-xs font-semibold rounded animate-pulse">
-                        ⏳ Analyzing {analyzingProgress.toFixed(0)}%
-                      </span>
-                    )}
-                  </div>
-                  <div className="text-sm font-medium text-gray-800">{songName}</div>
-                  <div className="text-xs text-gray-500 mt-1">{file.name}</div>
-                  <button
-                    onClick={(e) => deleteCsv(file.path, e)}
-                    className="absolute top-3 right-3 text-red-500 hover:text-red-700 hover:bg-red-100 rounded px-2 py-1 text-lg"
-                    title="Delete CSV"
-                  >
-                    ×
-                  </button>
-                </div>
-              )
-            })}
-          </div>
-        </div>
+        <CsvSelector
+          files={csvFiles}
+          selectedCsv={selectedCsv}
+          onSelect={loadCsv}
+          onDelete={deleteCsv}
+          analyzingFiles={analyzingFiles}
+          editedCsvs={editedCsvs}
+          csvsWithExports={csvsWithExports}
+        />
 
         {/* Tracks Table */}
         {loading ? (
@@ -603,220 +542,43 @@ export default function CsvViewer({ onBack, initialCsv }: CsvViewerProps = {}) {
                   </div>
                 )}
               </div>
-              <div className="flex items-center gap-4">
-                {/* Threshold Slider */}
-                <div className="flex items-center gap-3 mr-4 bg-gray-50 px-4 py-2 rounded-lg border border-gray-200">
-                  <label className="text-sm font-medium text-gray-700 whitespace-nowrap">
-                    Noise Filter:
-                  </label>
-                  <input
-                    type="range"
-                    min="1"
-                    max="15"
-                    value={threshold}
-                    onChange={(e) => setThreshold(parseInt(e.target.value))}
-                    className="w-32"
-                    disabled={hasUnsavedChanges}
-                  />
-                  <span className="text-sm font-semibold text-blue-600 min-w-[4rem]">
-                    {threshold} segs
-                  </span>
-                </div>
-                <button
-                  onClick={togglePlayer}
-                  disabled={!mp3Path}
-                  className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 disabled:bg-gray-300"
-                >
-                  {showPlayer ? '🔇 Hide Player' : '🎵 Show Player'}
-                </button>
-                <button
-                  onClick={saveToFile}
-                  disabled={!hasUnsavedChanges}
-                  className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:bg-gray-300"
-                >
-                  💾 Save
-                </button>
-                <button
-                  onClick={discardChanges}
-                  disabled={!hasUnsavedChanges}
-                  className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:bg-gray-300"
-                >
-                  🗑️ Discard
-                </button>
-                <button
-                  onClick={exportToTrainingData}
-                  disabled={tracks.filter(t => t.selected).length === 0}
-                  className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 disabled:bg-gray-300"
-                  title="Export selected segments to TRAINING DATA folder"
-                >
-                  📦 Export to Training
-                </button>
-
-                <button
-                  onClick={copyTracklistToClipboard}
-                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                  title="Copy tracklist to clipboard (MUSIC segments only)"
-                >
-                  📋 Copy Tracklist
-                </button>
-              </div>
+              <PlayerControls
+                showPlayer={showPlayer}
+                mp3Path={mp3Path}
+                onTogglePlayer={togglePlayer}
+                hasUnsavedChanges={hasUnsavedChanges}
+                onSave={saveToFile}
+                onDiscard={discardChanges}
+                threshold={threshold}
+                onThresholdChange={setThreshold}
+                thresholdDisabled={hasUnsavedChanges}
+                selectedCount={tracks.filter(t => t.selected).length}
+                onExportToTraining={exportToTrainingData}
+                onCopyTracklist={copyTracklistToClipboard}
+              />
             </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50 border-b">
-                  <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="checkbox"
-                          checked={tracks.length > 0 && tracks.every(t => t.selected)}
-                          onChange={(e) => {
-                            const newSelected = e.target.checked
-                            setTracks(tracks.map(t => ({ ...t, selected: newSelected })))
-                            setHasUnsavedChanges(true)
-                          }}
-                          className="w-4 h-4 cursor-pointer"
-                        />
-                        <span>Select</span>
-                      </div>
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Class</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Start</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Stop</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Play</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Duration</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {tracks.map((track, idx) => {
-                    const isExported = exportedSegments.has(idx)
-                    const isPlaying = playingTrackId === track.id
-                    const isHovered = selectedTrackId === track.id
-
-                    let bgColor = ''
-                    let hoverClass = 'hover:bg-blue-100'
-
-                    if (isPlaying) {
-                      bgColor = 'bg-green-100 border-l-4 border-green-500'
-                      hoverClass = 'hover:bg-green-200'  // Lighter green on hover when playing
-                    } else if (isHovered) {
-                      bgColor = 'bg-blue-100'
-                    } else if (isExported) {
-                      bgColor = 'bg-purple-50'
-                    }
-
-                    return (
-                    <tr
-                      key={track.id}
-                      onMouseEnter={() => setSelectedTrackId(track.id)}
-                      onMouseLeave={() => setSelectedTrackId(null)}
-                      className={`cursor-pointer transition-colors ${bgColor} ${hoverClass}`}
-                    >
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => toggleSelect(track.id)}
-                            className="text-xl"
-                          >
-                            {track.selected ? '✓' : '✗'}
-                          </button>
-                          {isExported && (
-                            <div className="flex items-center gap-1">
-                              <span className="px-1.5 py-0.5 bg-purple-100 text-purple-800 text-xs font-semibold rounded" title="Already exported to training data">
-                                📦
-                              </span>
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  handleUndoExport(idx)
-                                }}
-                                className="px-1.5 py-0.5 bg-red-100 text-red-700 text-xs font-semibold rounded hover:bg-red-200"
-                                title="Undo export - delete from training data"
-                              >
-                                ↩
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-4 py-3">
-                        <input
-                          type="text"
-                          value={track.name}
-                          onChange={(e) => updateName(track.id, e.target.value)}
-                          className="w-full px-2 py-1 border rounded"
-                          placeholder="Track name..."
-                        />
-                      </td>
-                      <td className="px-4 py-3">
-                        <select
-                          value={track.predicted_class}
-                          onChange={(e) => updateClass(track.id, e.target.value)}
-                          className={`px-2 py-1 rounded text-sm font-medium border ${getClassColor(track.predicted_class)}`}
-                        >
-                          {Object.keys(CLASS_COLORS).map(cls => (
-                            <option key={cls} value={cls}>{cls}</option>
-                          ))}
-                        </select>
-                      </td>
-                      <td className="px-4 py-3">
-                        <input
-                          type="text"
-                          value={track.start}
-                          onChange={(e) => updateStart(track.id, e.target.value)}
-                          className="w-20 px-2 py-1 border rounded text-sm"
-                          placeholder="HH:MM:SS"
-                        />
-                      </td>
-                      <td className="px-4 py-3">
-                        <input
-                          type="text"
-                          value={track.stop}
-                          onChange={(e) => updateStop(track.id, e.target.value)}
-                          className="w-20 px-2 py-1 border rounded text-sm"
-                          placeholder="HH:MM:SS"
-                        />
-                      </td>
-                      <td className="px-4 py-3">
-                        <button
-                          onClick={() => playFromSegment(track.start, track.id)}
-                          className="px-2 py-1 text-sm bg-green-100 text-green-700 rounded hover:bg-green-200"
-                        >
-                          ▶
-                        </button>
-                      </td>
-                      <td className="px-4 py-3 text-sm font-medium">{track.duration}</td>
-                      <td className="px-4 py-3">
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => addSegmentBelow(track.id)}
-                            className="px-2 py-1 text-sm bg-green-100 text-green-700 rounded hover:bg-green-200"
-                            title="Add new segment below this one"
-                          >
-                            + Below
-                          </button>
-                          <button
-                            onClick={() => mergeWithNext(track.id)}
-                            className="px-2 py-1 text-sm bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
-                          >
-                            Merge ↓
-                          </button>
-                          <button
-                            onClick={() => deleteTrack(track.id)}
-                            className="px-2 py-1 text-sm bg-red-100 text-red-700 rounded hover:bg-red-200"
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  )})}
-                </tbody>
-              </table>
-            </div>
+            <TrackTable
+              tracks={tracks}
+              exportedSegments={exportedSegments}
+              playingTrackId={playingTrackId}
+              selectedTrackId={selectedTrackId}
+              onToggleSelect={toggleSelect}
+              onUpdateName={updateName}
+              onUpdateClass={updateClass}
+              onUpdateStart={updateStart}
+              onUpdateStop={updateStop}
+              onDelete={deleteTrack}
+              onMergeWithNext={mergeWithNext}
+              onAddSegmentBelow={addSegmentBelow}
+              onSelectTrack={setSelectedTrackId}
+              onPlayFrom={playFromSegment}
+              onUndoExport={handleUndoExport}
+              onSelectAll={(selected) => {
+                setTracks(tracks.map(t => ({ ...t, selected })))
+                setHasUnsavedChanges(true)
+              }}
+            />
           </div>
         ) : (
           <div className="text-center py-12 text-gray-500">
