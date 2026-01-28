@@ -13,6 +13,7 @@ import uuid
 import json
 import multiprocessing
 from cachetools import TTLCache
+import polars as pl
 from app.config import settings
 from app.services.job_registry import get_job_registry
 
@@ -376,7 +377,6 @@ async def get_outdated_csvs():
     """Get list of CSVs analyzed with old models"""
     from app.services.model_registry import get_active_model_id, is_csv_edited
     from app.api.v1.uncertainty import derive_mp3_path_from_csv
-    import polars as pl
 
     active_model_id = get_active_model_id()
     results_folder = settings.SORTED_FOLDER / "ANALYSIS_RESULTS"
