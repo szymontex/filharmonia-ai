@@ -4,10 +4,10 @@
 
 **Phase:** 2 of 6 — Core UX Polish (COMPLETE ✓)
 **Previous:** Phase 1, 3, 4, 5 Complete ✓
-**Status:** Phase 2 complete (6/6 plans complete)
+**Status:** Phase 2 complete (7/7 plans complete, including gap closure)
 **Progress:** [██████████] 5/6 phases complete
 
-**Last activity:** 2026-01-29 — Completed 02-06 Keyboard Shortcut Help Panel
+**Last activity:** 2026-01-28 — Completed 02-07 Gap Closure (spacebar play/pause + AbortController)
 
 ## Project Reference
 
@@ -27,6 +27,7 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 | 02-04 | Keyboard Shortcuts & Undo/Redo | Complete | b499ace |
 | 02-05 | Progress & Navigation | Complete | be9494f, 9771e03 |
 | 02-06 | Keyboard Shortcut Help Panel | Complete | 0ee1b5a |
+| 02-07 | Gap Closure (AbortController + Spacebar) | Complete | e35d756, 7e94c15 |
 
 ## Phase 5 Progress
 
@@ -141,6 +142,9 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 - CsvViewer reduced from 946 to 708 lines (25% reduction) via component extraction (CsvSelector, PlayerControls, TrackTable)
 - Component composition pattern: CsvViewer orchestrates extracted components with single responsibility
 - Unicode checkmarks (✓/✗) instead of emoji for better cross-platform consistency
+- Ref-based callback pattern for playback control: StickyPlayer owns audio state, exposes handlePlayPause via ref
+- Silent cancellation pattern: axios.isCancel() checks prevent error toasts on intentional request aborts
+- Remove legacy unused functions during cleanup (exportSelected was never called)
 - CsvViewer refactored: reduced from ~842 to 708 lines by extracting CsvSelector and PlayerControls (~134 line reduction)
 - useUndoRedo hook: snapshot-based undo/redo with max 20 history via .slice(-19), history persists across saves
 - useKeyboardShortcuts hook: stable ref pattern for global keyboard shortcuts with INPUT/TEXTAREA guards
@@ -161,6 +165,11 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 - Undo/Redo buttons in PlayerControls: disabled states (opacity-50) when no history, tooltips show shortcuts
 - KeyboardHelp modal: ? key (Shift+?) toggles help panel listing all 12 shortcuts with visual key combinations
 - Help discoverability: ? icon button in PlayerControls + modal with click-outside-to-close and Escape dismissal
+- Ref-based callback pattern: StickyPlayer exposes handlePlayPause via ref for keyboard control without lifting audio state
+- Spacebar play/pause: togglePlaybackRef pattern enables CsvViewer to control playback while StickyPlayer owns audio element
+- AbortController wired to axios: signal passed to CSV parse, autosave check, MP3 resolution, and export requests
+- Silent cancellation: axios.isCancel() checks prevent error toasts on intentional request cancellations
+- Code cleanup: removed duplicate timeToSeconds, unused exportSelected function, and other unused variables
 
 ### Research Completed (2026-01-20)
 - .planning/research/STACK.md — PyTorch/torchaudio recommendations
@@ -235,15 +244,16 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 - [x] Execute Phase 2 Plan 04 - COMPLETE (2/2 tasks, Task 2 already done in 02-02)
 - [x] Execute Phase 2 Plan 05 - COMPLETE (2/2 tasks)
 - [x] Execute Phase 2 Plan 06 - COMPLETE (1/1 tasks)
+- [x] Execute Phase 2 Plan 07 - COMPLETE (2/2 tasks, gap closure)
 - [x] Verify Phase 2 goal achievement - READY FOR VERIFICATION
 - [ ] Begin Phase 6: Future Readiness
 
-**Stopped at:** Completed 02-06 Keyboard Shortcut Help Panel (Phase 2: COMPLETE)
+**Stopped at:** Completed 02-07 Gap Closure (Phase 2: COMPLETE ✓)
 
 ## Session Continuity
 
-**Last session:** 2026-01-29
-**Stopped at:** Completed 02-06 Keyboard Shortcut Help Panel (Phase 2: COMPLETE ✓)
+**Last session:** 2026-01-28
+**Stopped at:** Completed 02-07 Gap Closure (Phase 2: COMPLETE ✓)
 **Resume file:** None
 
 **If context is lost, read these files in order:**
@@ -257,6 +267,7 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 8. .planning/phases/02-core-ux-polish/02-04-SUMMARY.md — Keyboard shortcuts & undo/redo
 9. .planning/phases/02-core-ux-polish/02-05-SUMMARY.md — Progress indicators & navigation
 10. .planning/phases/02-core-ux-polish/02-06-SUMMARY.md — Keyboard shortcut help panel
+11. .planning/phases/02-core-ux-polish/02-07-SUMMARY.md — Gap closure (spacebar + AbortController)
 
 ---
-*State updated: 2026-01-29 — Phase 2 COMPLETE (6/6 plans): Keyboard shortcuts (Space, Ctrl+S, Ctrl+Z, 1-5), 20-step undo/redo, toast system, atomic writes, progress indicators, and keyboard help panel (? key) all integrated into CsvViewer*
+*State updated: 2026-01-28 — Phase 2 COMPLETE (7/7 plans including gap closure): Keyboard shortcuts (Space play/pause, Ctrl+S, Ctrl+Z, 1-5), 20-step undo/redo, toast system, atomic writes, progress indicators, keyboard help panel (? key), AbortController request cancellation, and clean code (no unused variables)*
