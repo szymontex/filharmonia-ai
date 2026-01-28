@@ -4,10 +4,10 @@
 
 **Phase:** 2 of 6 — Core UX Polish (in progress)
 **Previous:** Phase 1, 3, 4, 5 Complete ✓
-**Status:** Phase 2 in progress (5/7 plans complete)
+**Status:** Phase 2 in progress (6/7 plans complete)
 **Progress:** [████████░░] 4/6 phases complete
 
-**Last activity:** 2026-01-28 — Completed 02-05 Progress & Navigation
+**Last activity:** 2026-01-28 — Completed 02-04 Keyboard Shortcuts & Undo/Redo
 
 ## Project Reference
 
@@ -24,6 +24,7 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 | 02-01 | Foundation Hooks | Complete | 7ec5a58, f0ad080 |
 | 02-02 | Toast System & Error Pipeline | Complete | 4911b34, 650c25f |
 | 02-03 | Atomic CSV Writes | Complete | a7374a7, bdd071d |
+| 02-04 | Keyboard Shortcuts & Undo/Redo | Complete | b499ace |
 | 02-05 | Progress & Navigation | Complete | be9494f, 9771e03 |
 
 ## Phase 5 Progress
@@ -86,9 +87,9 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 | Phase 1 plans | 7 | 7 |
 | Phase 3 plans | 4 | 4 |
 | Phase 4 plans | 6 | 6 |
-| Phase 2 plans | 7 | 5 |
+| Phase 2 plans | 7 | 6 |
 | Phase 5 plans | 7 | 7 |
-| Requirements done | 62 | 57 (22 from Phase 1 + 9 from Phase 3 + 10 from Phase 4 + 8 from Phase 5 + 8 from Phase 2) |
+| Requirements done | 62 | 58 (22 from Phase 1 + 9 from Phase 3 + 10 from Phase 4 + 8 from Phase 5 + 9 from Phase 2) |
 | Critical issues fixed | 15 | 15 |
 
 ## Accumulated Context
@@ -153,6 +154,10 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 - Progress indicators: inline in PlayerControls with pulsing animation, shows "Loading..."/"Saving..." during operations
 - CalendarBrowser play button: navigates to CsvViewer with recording's CSV path via onOpenCsv callback
 - AbortController pattern: infrastructure in place for request cancellation (cleanup on unmount)
+- Keyboard shortcuts in CsvViewer: Space (toggle player), Ctrl+S (save), Ctrl+Z (undo), Ctrl+Y/Shift+Z (redo), 1-5 (classify)
+- Wrapper functions for track mutations: pushState before each edit enables 20-step undo/redo history
+- useUndoRedo exposes present state for sync after undo/redo via useEffect in CsvViewer
+- Undo/Redo buttons in PlayerControls: disabled states (opacity-50) when no history, tooltips show shortcuts
 
 ### Research Completed (2026-01-20)
 - .planning/research/STACK.md — PyTorch/torchaudio recommendations
@@ -194,6 +199,7 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 - .planning/phases/02-core-ux-polish/02-01-SUMMARY.md — Foundation hooks (useUndoRedo, useKeyboardShortcuts)
 - .planning/phases/02-core-ux-polish/02-02-SUMMARY.md — Toast System & Error Pipeline
 - .planning/phases/02-core-ux-polish/02-03-SUMMARY.md — Atomic CSV writes
+- .planning/phases/02-core-ux-polish/02-04-SUMMARY.md — Keyboard shortcuts & undo/redo integration
 - .planning/phases/02-core-ux-polish/02-05-SUMMARY.md — Progress indicators & CalendarBrowser navigation
 
 ### Blockers
@@ -222,16 +228,16 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 - [x] Execute Phase 2 Plan 01 - COMPLETE (2/2 tasks)
 - [x] Execute Phase 2 Plan 02 - COMPLETE (2/2 tasks)
 - [x] Execute Phase 2 Plan 03 - COMPLETE (2/2 tasks)
+- [x] Execute Phase 2 Plan 04 - COMPLETE (2/2 tasks, Task 2 already done in 02-02)
 - [x] Execute Phase 2 Plan 05 - COMPLETE (2/2 tasks)
-- [ ] Execute Phase 2 Plan 04 - Keyboard shortcuts integration
 - [ ] Begin Phase 6: Future Readiness
 
-**Stopped at:** Completed 02-05 Progress & Navigation (Phase 2: 5/7 plans)
+**Stopped at:** Completed 02-04 Keyboard Shortcuts & Undo/Redo (Phase 2: 6/7 plans)
 
 ## Session Continuity
 
 **Last session:** 2026-01-28
-**Stopped at:** Completed 02-05 Progress & Navigation (Phase 2: 5/7 plans)
+**Stopped at:** Completed 02-04 Keyboard Shortcuts & Undo/Redo (Phase 2: 6/7 plans)
 **Resume file:** None
 
 **If context is lost, read these files in order:**
@@ -242,7 +248,8 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 5. .planning/phases/05-frontend-decomposition/05-07-SUMMARY.md — TrackTable & finalize refactor
 6. .planning/phases/02-core-ux-polish/02-01-SUMMARY.md — Foundation hooks
 7. .planning/phases/02-core-ux-polish/02-02-SUMMARY.md — Toast System & Error Pipeline
-8. .planning/phases/02-core-ux-polish/02-05-SUMMARY.md — Progress indicators & navigation
+8. .planning/phases/02-core-ux-polish/02-04-SUMMARY.md — Keyboard shortcuts & undo/redo
+9. .planning/phases/02-core-ux-polish/02-05-SUMMARY.md — Progress indicators & navigation
 
 ---
-*State updated: 2026-01-28 — Phase 2 in progress (5/7 plans): CsvViewer shows inline progress indicators ("Loading..."/"Saving...") with pulsing animation, CalendarBrowser play button navigates to CSV editor*
+*State updated: 2026-01-28 — Phase 2 in progress (6/7 plans): Keyboard shortcuts (Space, Ctrl+S, Ctrl+Z, 1-5) and 20-step undo/redo fully integrated into CsvViewer with visual buttons in PlayerControls*
