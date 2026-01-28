@@ -4,10 +4,10 @@
 
 **Phase:** 2 of 6 — Core UX Polish (in progress)
 **Previous:** Phase 1, 3, 4, 5 Complete ✓
-**Status:** Phase 2 in progress (4/7 plans complete)
+**Status:** Phase 2 in progress (5/7 plans complete)
 **Progress:** [████████░░] 4/6 phases complete
 
-**Last activity:** 2026-01-28 — Completed 02-02 Toast System & Error Pipeline
+**Last activity:** 2026-01-28 — Completed 02-05 Progress & Navigation
 
 ## Project Reference
 
@@ -24,6 +24,7 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 | 02-01 | Foundation Hooks | Complete | 7ec5a58, f0ad080 |
 | 02-02 | Toast System & Error Pipeline | Complete | 4911b34, 650c25f |
 | 02-03 | Atomic CSV Writes | Complete | a7374a7, bdd071d |
+| 02-05 | Progress & Navigation | Complete | be9494f, 9771e03 |
 
 ## Phase 5 Progress
 
@@ -85,9 +86,9 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 | Phase 1 plans | 7 | 7 |
 | Phase 3 plans | 4 | 4 |
 | Phase 4 plans | 6 | 6 |
-| Phase 2 plans | 7 | 4 |
+| Phase 2 plans | 7 | 5 |
 | Phase 5 plans | 7 | 7 |
-| Requirements done | 62 | 54 (22 from Phase 1 + 9 from Phase 3 + 10 from Phase 4 + 8 from Phase 5 + 5 from Phase 2) |
+| Requirements done | 62 | 57 (22 from Phase 1 + 9 from Phase 3 + 10 from Phase 4 + 8 from Phase 5 + 8 from Phase 2) |
 | Critical issues fixed | 15 | 15 |
 
 ## Accumulated Context
@@ -149,6 +150,9 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 - Backend error codes: HTTP_{status_code}, VALIDATION_ERROR, INTERNAL_ERROR in all exception handlers
 - Toast behavior: error toasts manual dismiss only, success toasts auto-dismiss 5s, retry button for GET errors
 - Toast X close button: explicit dismissal UI in top-right corner with stopPropagation
+- Progress indicators: inline in PlayerControls with pulsing animation, shows "Loading..."/"Saving..." during operations
+- CalendarBrowser play button: navigates to CsvViewer with recording's CSV path via onOpenCsv callback
+- AbortController pattern: infrastructure in place for request cancellation (cleanup on unmount)
 
 ### Research Completed (2026-01-20)
 - .planning/research/STACK.md — PyTorch/torchaudio recommendations
@@ -190,6 +194,7 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 - .planning/phases/02-core-ux-polish/02-01-SUMMARY.md — Foundation hooks (useUndoRedo, useKeyboardShortcuts)
 - .planning/phases/02-core-ux-polish/02-02-SUMMARY.md — Toast System & Error Pipeline
 - .planning/phases/02-core-ux-polish/02-03-SUMMARY.md — Atomic CSV writes
+- .planning/phases/02-core-ux-polish/02-05-SUMMARY.md — Progress indicators & CalendarBrowser navigation
 
 ### Blockers
 (None)
@@ -217,15 +222,16 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 - [x] Execute Phase 2 Plan 01 - COMPLETE (2/2 tasks)
 - [x] Execute Phase 2 Plan 02 - COMPLETE (2/2 tasks)
 - [x] Execute Phase 2 Plan 03 - COMPLETE (2/2 tasks)
+- [x] Execute Phase 2 Plan 05 - COMPLETE (2/2 tasks)
 - [ ] Execute Phase 2 Plan 04 - Keyboard shortcuts integration
 - [ ] Begin Phase 6: Future Readiness
 
-**Stopped at:** Completed 02-02 Toast System & Error Pipeline (Phase 2: 4/7 plans)
+**Stopped at:** Completed 02-05 Progress & Navigation (Phase 2: 5/7 plans)
 
 ## Session Continuity
 
 **Last session:** 2026-01-28
-**Stopped at:** Completed 02-02 Toast System & Error Pipeline (Phase 2: 4/7 plans)
+**Stopped at:** Completed 02-05 Progress & Navigation (Phase 2: 5/7 plans)
 **Resume file:** None
 
 **If context is lost, read these files in order:**
@@ -236,6 +242,7 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 5. .planning/phases/05-frontend-decomposition/05-07-SUMMARY.md — TrackTable & finalize refactor
 6. .planning/phases/02-core-ux-polish/02-01-SUMMARY.md — Foundation hooks
 7. .planning/phases/02-core-ux-polish/02-02-SUMMARY.md — Toast System & Error Pipeline
+8. .planning/phases/02-core-ux-polish/02-05-SUMMARY.md — Progress indicators & navigation
 
 ---
-*State updated: 2026-01-28 — Phase 2 in progress (4/7 plans): Global error notification system with zustand toast store, axios interceptor auto-dispatching error toasts, and machine-readable backend error codes (HTTP_{status}, VALIDATION_ERROR, INTERNAL_ERROR)*
+*State updated: 2026-01-28 — Phase 2 in progress (5/7 plans): CsvViewer shows inline progress indicators ("Loading..."/"Saving...") with pulsing animation, CalendarBrowser play button navigates to CSV editor*
