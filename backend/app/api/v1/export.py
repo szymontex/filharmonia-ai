@@ -4,6 +4,7 @@ Export API - export audio segments to training data
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import List, Optional
+import re
 import librosa
 import soundfile as sf
 from pathlib import Path
@@ -73,9 +74,11 @@ def log_export(csv_path: str, segment_index: int, segment_time: str, class_name:
 
 def generate_export_filename(song_name: str, timestamp: str, class_name: str, index: int) -> str:
     """Generate filename for exported WAV"""
+    # Sanitize song_name - remove invalid filename characters per OWASP
+    safe_song_name = re.sub(r'[<>:"|?*]', '_', song_name)
     # Convert timestamp HH:MM:SS to HH-MM-SS for filename safety
     safe_timestamp = timestamp.replace(':', '-')
-    return f"{song_name}_{safe_timestamp}_{class_name}_{index:03d}.wav"
+    return f"{safe_song_name}_{safe_timestamp}_{class_name}_{index:03d}.wav"
 
 def delete_export(csv_path: str, segment_index: int) -> bool:
     """Delete exported segment - remove from tracking CSV and delete WAV file"""
