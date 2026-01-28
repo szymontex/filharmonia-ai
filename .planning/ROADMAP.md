@@ -168,6 +168,17 @@ Plans:
 
 **Dependencies:** Phase 2 (UX features implemented first, then refactored)
 
+**Plans:** 7 plans
+
+Plans:
+- [ ] 05-01-PLAN.md — Code cleanup (training.py, howler, filename sanitization)
+- [ ] 05-02-PLAN.md — Extract time calculation utilities
+- [ ] 05-03-PLAN.md — Extract useTrackEditor hook
+- [ ] 05-04-PLAN.md — Extract useAutosave hook
+- [ ] 05-05-PLAN.md — Extract useAudioPlayer hook
+- [ ] 05-06-PLAN.md — Extract CsvSelector and PlayerControls components
+- [ ] 05-07-PLAN.md — Extract TrackTable and finalize CsvViewer refactor
+
 **Requirements:**
 - COMP-01: Split CsvViewer into TrackTable, CsvSelector, PlayerControls
 - COMP-02: Extract `useTrackEditor` hook
@@ -222,7 +233,7 @@ Plans:
 | 2 | Core UX Polish | 9 | 0 | Pending |
 | 3 | Backend Stability | 9 | 4 | Complete |
 | 4 | Performance & Migration | 10 | 6 | Complete |
-| 5 | Frontend Decomposition | 9 | 0 | Pending |
+| 5 | Frontend Decomposition | 9 | 7 | Pending |
 | 6 | GPU & CPU Optimization | 9 | 0 | Pending |
 | **Total** | | **68** | **17** | |
 
