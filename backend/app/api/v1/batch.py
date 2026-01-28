@@ -376,7 +376,7 @@ async def get_outdated_csvs():
     """Get list of CSVs analyzed with old models"""
     from app.services.model_registry import get_active_model_id, is_csv_edited
     from app.api.v1.uncertainty import derive_mp3_path_from_csv
-    import pandas as pd
+    import polars as pl
 
     active_model_id = get_active_model_id()
     results_folder = settings.SORTED_FOLDER / "ANALYSIS_RESULTS"
@@ -391,13 +391,13 @@ async def get_outdated_csvs():
             if is_csv_edited(str(csv_file)):
                 continue
 
-            df = pd.read_csv(csv_file, encoding='utf-8', quoting=1, nrows=1)
+            # Single read (PERF-01 fix)
+            df = pl.read_csv(csv_file, encoding='utf-8')
 
             if 'model_version' not in df.columns:
                 csv_model_version = "unknown"
             else:
-                full_df = pd.read_csv(csv_file, encoding='utf-8', quoting=1)
-                csv_model_version = full_df['model_version'].iloc[0]
+                csv_model_version = df[0, 'model_version']
 
             if csv_model_version == active_model_id:
                 continue
