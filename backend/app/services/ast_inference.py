@@ -4,6 +4,7 @@ Replaces Keras CNN with Audio Spectrogram Transformer
 """
 import logging
 import os
+import time
 import torch
 import torch.nn as nn
 import numpy as np
@@ -64,6 +65,57 @@ class ASTInferenceService:
         logger.info("AST model loaded: %s (device: %s)", model_path.name, self.device_manager.device_type)
         if 'val_acc' in checkpoint:
             logger.info("  Validation accuracy: %.2f%%", checkpoint['val_acc'])
+
+        # Apply torch.compile for GPU acceleration
+        self._apply_torch_compile()
+
+    def _apply_torch_compile(self):
+        """Apply torch.compile on GPU for acceleration, skip on CPU."""
+        if not self.device_manager.supports_compile:
+            logger.info("Skipping torch.compile on CPU")
+            return
+
+        try:
+            logger.info("Applying torch.compile for GPU acceleration")
+
+            # Enable graph break logging for debugging
+            import torch._logging
+            torch._logging.set_logs(graph_breaks=True)
+
+            dummy_input = torch.randn(1, 1024, 128).to(self.device)
+
+            # Benchmark eager mode (3 warmup calls, average)
+            eager_times = []
+            with torch.no_grad():
+                for _ in range(3):
+                    torch.cuda.synchronize()
+                    t0 = time.perf_counter()
+                    self.model(dummy_input)
+                    torch.cuda.synchronize()
+                    eager_times.append(time.perf_counter() - t0)
+            eager_ms = (sum(eager_times) / len(eager_times)) * 1000
+
+            # Apply torch.compile
+            self.model = torch.compile(self.model, mode="default")
+
+            # Warmup compiled model (3 calls, average)
+            compiled_times = []
+            with torch.no_grad():
+                for _ in range(3):
+                    torch.cuda.synchronize()
+                    t0 = time.perf_counter()
+                    self.model(dummy_input)
+                    torch.cuda.synchronize()
+                    compiled_times.append(time.perf_counter() - t0)
+            compiled_ms = (sum(compiled_times) / len(compiled_times)) * 1000
+
+            speedup = eager_ms / compiled_ms if compiled_ms > 0 else 0
+            logger.info(
+                "torch.compile speedup: %.1fms -> %.1fms (%.1fx)",
+                eager_ms, compiled_ms, speedup,
+            )
+        except Exception as exc:
+            logger.warning("torch.compile failed, continuing with eager mode: %s", exc)
 
     def preprocess_audio_segment(self, audio_segment: np.ndarray) -> torch.Tensor:
         """
