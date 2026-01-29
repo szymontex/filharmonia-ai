@@ -234,11 +234,12 @@ class ASTInferenceService:
 # Singleton instance
 _service = None
 
-def get_ast_inference_service() -> ASTInferenceService:
-    """Get singleton AST inference service"""
+def get_ast_inference_service():
+    """Get singleton inference service (routes to optimal backend via factory)"""
     global _service
     if _service is None:
-        _service = ASTInferenceService()
+        from app.services.inference_factory import create_inference_service
+        _service = create_inference_service()
         # Try to load model on startup (fail silently if not available yet)
         try:
             _service.load_model()
