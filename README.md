@@ -14,7 +14,7 @@ docker-compose up
 
 Open http://localhost:5173
 
-**That's it!** Docker handles everything automatically.
+Docker handles everything automatically.
 
 ---
 
@@ -63,6 +63,25 @@ Open http://localhost:5173
    ./start.sh
    ```
    Opens http://localhost:5173 automatically.
+
+---
+
+## 📸 Screenshots
+
+### Main Dashboard
+![Main Dashboard](docs/images/1.png)
+
+### File Browser & Sorting
+![File Browser](docs/images/browse.png)
+![Sort Recordings](docs/images/sort.png)
+
+### Waveform Editor
+![CSV Waveform Editor](docs/images/csv1.png)
+![CSV Editor - Detailed View](docs/images/csv2.png)
+
+### Model Management & Uncertainty Review
+![Model Management](docs/images/model.png)
+![Uncertainty Review](docs/images/uncertain.png)
 
 ---
 
@@ -261,8 +280,6 @@ Open http://localhost
 
 ## 📚 Documentation
 
-- **SETUP.md** - Detailed setup instructions
-- **QUICKSTART.md** - One-page quick start
 - **docs/ROCM_SETUP.md** - AMD GPU setup guide
 - **.planning/** - Development milestones and planning docs
 
