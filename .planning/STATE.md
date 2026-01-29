@@ -4,10 +4,10 @@
 
 **Phase:** 6 of 6 — GPU & CPU Optimization
 **Previous:** Phase 1, 2, 3, 4, 5 Complete ✓
-**Status:** In progress (1/6 plans complete)
-**Progress:** [██████████░░] 5.2/6 phases
+**Status:** In progress (2/6 plans complete)
+**Progress:** [██████████░░] 5.3/6 phases
 
-**Last activity:** 2026-01-29 — Completed 06-01 Unified Device Detection (DeviceManager singleton)
+**Last activity:** 2026-01-29 — Completed 06-06 Confidence Threshold Auto-tuning
 
 ## Project Reference
 
@@ -27,7 +27,7 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 | 06-03 | ONNX Export & INT8 Quantization | Pending | |
 | 06-04 | ROCm 6.4 Support | Pending | |
 | 06-05 | React 18 to React 19 Upgrade | Pending | |
-| 06-06 | Confidence Threshold Auto-tuning | Pending | |
+| 06-06 | Confidence Threshold Auto-tuning | Complete | add2430 |
 
 ## Phase 2 Progress
 
@@ -184,6 +184,8 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 - Code cleanup: removed duplicate timeToSeconds, unused exportSelected function, and other unused variables
 - DeviceManager singleton: device_type strings "cuda_nvidia"/"cuda_amd"/"cpu" for downstream optimization branching
 - Device detection runs once at startup via get_device_manager(), not per-inference call
+- Keep waveform-data library (no wavesurfer.js migration) — current impl works well with server-side caching
+- Confidence threshold auto-tuning: per-recording, localStorage persistence, default 0.7, range [0.3, 0.95], learning rate 0.05
 
 ### Research Completed (2026-01-20)
 - .planning/research/STACK.md — PyTorch/torchaudio recommendations
@@ -266,14 +268,14 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 - [ ] Execute Phase 6 Plan 03
 - [ ] Execute Phase 6 Plan 04
 - [ ] Execute Phase 6 Plan 05
-- [ ] Execute Phase 6 Plan 06
+- [x] Execute Phase 6 Plan 06 - COMPLETE (2/2 tasks)
 
-**Stopped at:** Completed 06-01 Unified Device Detection
+**Stopped at:** Completed 06-06 Confidence Threshold Auto-tuning
 
 ## Session Continuity
 
 **Last session:** 2026-01-29
-**Stopped at:** Completed 06-01-PLAN.md (Phase 6, Plan 1)
+**Stopped at:** Completed 06-06-PLAN.md (Phase 6, Plan 6)
 **Resume file:** None
 
 **If context is lost, read these files in order:**
@@ -290,4 +292,4 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 11. .planning/phases/02-core-ux-polish/02-07-SUMMARY.md — Gap closure (spacebar + AbortController)
 
 ---
-*State updated: 2026-01-29 — Phase 6 started: 06-01 complete (DeviceManager singleton for NVIDIA CUDA / AMD ROCm / CPU detection with automatic fallback)*
+*State updated: 2026-01-29 — 06-06 complete (confidence threshold auto-tuning with localStorage persistence, wavesurfer.js evaluation: keep current waveform-data)*
