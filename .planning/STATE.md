@@ -89,9 +89,9 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 | Phase 1 plans | 7 | 7 |
 | Phase 3 plans | 4 | 4 |
 | Phase 4 plans | 6 | 6 |
-| Phase 2 plans | 6 | 6 |
+| Phase 2 plans | 7 | 7 |
 | Phase 5 plans | 7 | 7 |
-| Requirements done | 62 | 59 (22 from Phase 1 + 9 from Phase 3 + 10 from Phase 4 + 8 from Phase 5 + 10 from Phase 2) |
+| Requirements done | 62 | 59 (22 from Phase 1 + 9 from Phase 2 + 9 from Phase 3 + 10 from Phase 4 + 9 from Phase 5) |
 | Critical issues fixed | 15 | 15 |
 
 ## Accumulated Context

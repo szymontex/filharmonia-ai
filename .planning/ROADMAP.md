@@ -70,13 +70,13 @@ Plans:
 **Plans:** 7 plans
 
 Plans:
-- [ ] 02-01-PLAN.md — Create useUndoRedo and useKeyboardShortcuts hooks
-- [ ] 02-02-PLAN.md — Toast store, error interceptor, and backend error codes
-- [ ] 02-03-PLAN.md — Atomic file writes for CSV save
-- [ ] 02-04-PLAN.md — Wire shortcuts, undo/redo, and toasts into CsvViewer
-- [ ] 02-05-PLAN.md — Progress indicators, debounce abort, handlePlayRecording
-- [ ] 02-06-PLAN.md — Keyboard help panel
-- [ ] 02-07-PLAN.md — Gap closure: AbortController wiring, spacebar play/pause, cleanup
+- [x] 02-01-PLAN.md — Create useUndoRedo and useKeyboardShortcuts hooks
+- [x] 02-02-PLAN.md — Toast store, error interceptor, and backend error codes
+- [x] 02-03-PLAN.md — Atomic file writes for CSV save
+- [x] 02-04-PLAN.md — Wire shortcuts, undo/redo, and toasts into CsvViewer
+- [x] 02-05-PLAN.md — Progress indicators, debounce abort, handlePlayRecording
+- [x] 02-06-PLAN.md — Keyboard help panel
+- [x] 02-07-PLAN.md — Gap closure: AbortController wiring, spacebar play/pause, cleanup
 
 **Requirements:**
 - UX-01: Keyboard shortcuts — spacebar play/pause
@@ -236,12 +236,12 @@ Plans:
 | Phase | Name | Requirements | Plans | Status |
 |-------|------|--------------|-------|--------|
 | 1 | Foundation Stability | 22 | 7 | Complete |
-| 2 | Core UX Polish | 9 | 0 | Pending |
+| 2 | Core UX Polish | 9 | 7 | Complete |
 | 3 | Backend Stability | 9 | 4 | Complete |
 | 4 | Performance & Migration | 10 | 6 | Complete |
 | 5 | Frontend Decomposition | 9 | 7 | Complete |
 | 6 | GPU & CPU Optimization | 9 | 0 | Pending |
-| **Total** | | **68** | **17** | |
+| **Total** | | **68** | **24** | |
 
 Note: Some requirements split across phases where logical (e.g., type hints with foundation). Total in phases exceeds 62 due to research-recommended additions being implicit.
 
@@ -325,7 +325,7 @@ Note: Some requirements split across phases where logical (e.g., type hints with
 
 *Roadmap created: 2026-01-21*
 *Phase 1 complete: 2026-01-21*
+*Phase 2 complete: 2026-01-29*
 *Phase 3 complete: 2026-01-21*
 *Phase 4 complete: 2026-01-28*
-
 *Phase 5 complete: 2026-01-28*
