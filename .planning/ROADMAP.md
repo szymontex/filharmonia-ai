@@ -211,6 +211,16 @@ Plans:
 
 **Dependencies:** Phase 4 (performance baseline established)
 
+**Plans:** 6 plans
+
+Plans:
+- [ ] 06-01-PLAN.md — Unified device detection (DeviceManager singleton)
+- [ ] 06-02-PLAN.md — torch.compile GPU acceleration with warmup
+- [ ] 06-03-PLAN.md — ONNX export, INT8 quantization, inference factory
+- [ ] 06-04-PLAN.md — ROCm 6.4 support and setup documentation
+- [ ] 06-05-PLAN.md — React 18 to React 19 upgrade
+- [ ] 06-06-PLAN.md — Confidence threshold auto-tuning and wavesurfer.js evaluation
+
 **Requirements:**
 - GPU-01: Unified device detection (distinguish NVIDIA from AMD)
 - GPU-02: torch.compile for GPU acceleration
@@ -240,7 +250,7 @@ Plans:
 | 3 | Backend Stability | 9 | 4 | Complete |
 | 4 | Performance & Migration | 10 | 6 | Complete |
 | 5 | Frontend Decomposition | 9 | 7 | Complete |
-| 6 | GPU & CPU Optimization | 9 | 0 | Pending |
+| 6 | GPU & CPU Optimization | 9 | 6 | Planned |
 | **Total** | | **68** | **24** | |
 
 Note: Some requirements split across phases where logical (e.g., type hints with foundation). Total in phases exceeds 62 due to research-recommended additions being implicit.
