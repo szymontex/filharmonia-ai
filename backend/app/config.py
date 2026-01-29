@@ -48,6 +48,9 @@ class Settings:
     # PyTorch AST (active model)
     AST_MODEL_PATH: Path = RECOGNITION_MODELS_FOLDER / "ast_active.pth"
 
+    # ONNX INT8 quantized model (CPU inference)
+    AST_ONNX_MODEL_PATH: Path = RECOGNITION_MODELS_FOLDER / "ast_active_int8.onnx"
+
     # Classification labels (alphabetical order - DO NOT CHANGE ORDER!)
     LABELS: List[str] = ["APPLAUSE", "MUSIC", "PUBLIC", "SPEECH", "TUNING"]
 
