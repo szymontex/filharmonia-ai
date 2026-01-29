@@ -15,7 +15,30 @@ AI-powered concert audio analysis system using **PyTorch Audio Spectrogram Trans
 - **🤖 Self-Improving ML Loop**: Export corrected segments → retrain model → improved accuracy
 - **📊 Model Management**: Train, compare, and switch between models with measured accuracy
 - **📈 Uncertainty Review**: Filter low-confidence predictions for manual review
-- **⚡ GPU Accelerated**: CUDA support for fast training and inference
+- **⚡ GPU Accelerated**: CUDA/ROCm/CPU support with automatic detection
+
+## 🚀 Quick Start
+
+### Windows
+1. Install [Python 3.10+](https://python.org) and [Node.js 18+](https://nodejs.org)
+2. Double-click `setup-windows.bat` (one-time setup)
+3. Double-click `run-windows.bat` to start
+4. Open http://localhost:5173
+
+### macOS / Linux
+```bash
+# Install prerequisites (macOS)
+brew install python@3.10 node
+
+# Setup (one-time)
+chmod +x setup-macos-linux.sh
+./setup-macos-linux.sh
+
+# Run
+./run-macos-linux.sh
+```
+
+**Full instructions:** See [QUICKSTART.md](QUICKSTART.md) and [SETUP.md](SETUP.md)
 
 ## 📸 Screenshots
 
