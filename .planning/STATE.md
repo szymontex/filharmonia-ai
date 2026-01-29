@@ -2,12 +2,12 @@
 
 ## Current Position
 
-**Phase:** 2 of 6 — Core UX Polish (COMPLETE ✓)
-**Previous:** Phase 1, 3, 4, 5 Complete ✓
-**Status:** Phase 2 complete (7/7 plans complete, including gap closure)
-**Progress:** [██████████] 5/6 phases complete
+**Phase:** 6 of 6 — GPU & CPU Optimization
+**Previous:** Phase 1, 2, 3, 4, 5 Complete ✓
+**Status:** In progress (1/6 plans complete)
+**Progress:** [██████████░░] 5.2/6 phases
 
-**Last activity:** 2026-01-28 — Completed 02-07 Gap Closure (spacebar play/pause + AbortController)
+**Last activity:** 2026-01-29 — Completed 06-01 Unified Device Detection (DeviceManager singleton)
 
 ## Project Reference
 
@@ -15,7 +15,19 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 
 **Core value:** Zamiast reczenie sluchac ~6-8h nagran/tyg, AI robi to za ciebie.
 **Current focus:** v0.9 — Polish & Stability
-**Next phase goal (Phase 2):** Users can undo/redo edits, use keyboard shortcuts, see helpful toasts, and get better error messages.
+**Current focus:** Phase 6 — GPU & CPU Optimization
+**Next phase goal:** Inference runs optimally on CUDA, ROCm, or CPU without manual configuration.
+
+## Phase 6 Progress
+
+| Plan | Name | Status | Commit |
+|------|------|--------|--------|
+| 06-01 | Unified Device Detection | Complete | e19c2b1, 15288ea |
+| 06-02 | torch.compile GPU Acceleration | Pending | |
+| 06-03 | ONNX Export & INT8 Quantization | Pending | |
+| 06-04 | ROCm 6.4 Support | Pending | |
+| 06-05 | React 18 to React 19 Upgrade | Pending | |
+| 06-06 | Confidence Threshold Auto-tuning | Pending | |
 
 ## Phase 2 Progress
 
@@ -170,6 +182,8 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 - AbortController wired to axios: signal passed to CSV parse, autosave check, MP3 resolution, and export requests
 - Silent cancellation: axios.isCancel() checks prevent error toasts on intentional request cancellations
 - Code cleanup: removed duplicate timeToSeconds, unused exportSelected function, and other unused variables
+- DeviceManager singleton: device_type strings "cuda_nvidia"/"cuda_amd"/"cpu" for downstream optimization branching
+- Device detection runs once at startup via get_device_manager(), not per-inference call
 
 ### Research Completed (2026-01-20)
 - .planning/research/STACK.md — PyTorch/torchaudio recommendations
@@ -246,14 +260,20 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 - [x] Execute Phase 2 Plan 06 - COMPLETE (1/1 tasks)
 - [x] Execute Phase 2 Plan 07 - COMPLETE (2/2 tasks, gap closure)
 - [x] Verify Phase 2 goal achievement - READY FOR VERIFICATION
-- [ ] Begin Phase 6: Future Readiness
+- [x] Begin Phase 6: GPU & CPU Optimization
+- [x] Execute Phase 6 Plan 01 - COMPLETE (2/2 tasks)
+- [ ] Execute Phase 6 Plan 02
+- [ ] Execute Phase 6 Plan 03
+- [ ] Execute Phase 6 Plan 04
+- [ ] Execute Phase 6 Plan 05
+- [ ] Execute Phase 6 Plan 06
 
-**Stopped at:** Completed 02-07 Gap Closure (Phase 2: COMPLETE ✓)
+**Stopped at:** Completed 06-01 Unified Device Detection
 
 ## Session Continuity
 
-**Last session:** 2026-01-28
-**Stopped at:** Completed 02-07 Gap Closure (Phase 2: COMPLETE ✓)
+**Last session:** 2026-01-29
+**Stopped at:** Completed 06-01-PLAN.md (Phase 6, Plan 1)
 **Resume file:** None
 
 **If context is lost, read these files in order:**
@@ -270,4 +290,4 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 11. .planning/phases/02-core-ux-polish/02-07-SUMMARY.md — Gap closure (spacebar + AbortController)
 
 ---
-*State updated: 2026-01-28 — Phase 2 COMPLETE (7/7 plans including gap closure): Keyboard shortcuts (Space play/pause, Ctrl+S, Ctrl+Z, 1-5), 20-step undo/redo, toast system, atomic writes, progress indicators, keyboard help panel (? key), AbortController request cancellation, and clean code (no unused variables)*
+*State updated: 2026-01-29 — Phase 6 started: 06-01 complete (DeviceManager singleton for NVIDIA CUDA / AMD ROCm / CPU detection with automatic fallback)*
