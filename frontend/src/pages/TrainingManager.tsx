@@ -177,7 +177,7 @@ export default function TrainingManager({ onBack }: TrainingManagerProps) {
   const handleActivateModel = async (filename: string) => {
     try {
       setSuccessToast({ show: true, message: 'Activating and loading model...' })
-      const response = await axios.post('/api/v1/training/activate-model', { filename })
+      await axios.post('/api/v1/training/activate-model', { filename })
 
       setSuccessToast({
         show: true,

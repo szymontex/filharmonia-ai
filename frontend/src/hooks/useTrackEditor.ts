@@ -225,7 +225,7 @@ export function useTrackEditor(): UseTrackEditorReturn {
     setHasUnsavedChanges(true)
   }, [])
 
-  const addSegmentAtTime = useCallback((timeStr: string, totalDuration?: number) => {
+  const addSegmentAtTime = useCallback((timeStr: string, _totalDuration?: number) => {
     const timeSeconds = parseTimeToSeconds(timeStr)
 
     setTracks(prevTracks => {

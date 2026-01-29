@@ -636,7 +636,7 @@ export default function StickyPlayer({ mp3Path, tracks, onClose, onTrackUpdate, 
                   onChange={(e) => setAmplitudeScale(parseFloat(e.target.value))}
                   className="h-24 cursor-pointer"
                   style={{
-                    writingMode: 'bt-lr',
+                    writingMode: 'bt-lr' as React.CSSProperties['writingMode'],
                     WebkitAppearance: 'slider-vertical',
                     width: '8px'
                   }}

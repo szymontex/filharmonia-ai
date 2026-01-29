@@ -836,7 +836,7 @@ export default function UncertaintyReview({ onBack }: { onBack: () => void }) {
                 value={amplitudeScale}
                 onChange={(e) => setAmplitudeScale(parseFloat(e.target.value))}
                 className="h-24 cursor-pointer"
-                style={{ writingMode: 'bt-lr', WebkitAppearance: 'slider-vertical' }}
+                style={{ writingMode: 'bt-lr' as React.CSSProperties['writingMode'], WebkitAppearance: 'slider-vertical' }}
               />
               <span className="text-xs text-gray-500">Zoom</span>
             </div>
@@ -952,18 +952,22 @@ export default function UncertaintyReview({ onBack }: { onBack: () => void }) {
       {/* Toasts */}
       {successToast.show && (
         <Toast
-          message={successToast.message}
-          type="success"
+          show={successToast.show}
+          title={successToast.message}
+          icon="✓"
+          color="green"
           onClose={() => setSuccessToast({ show: false, message: '' })}
-          duration={2000}
+          autoClose={2000}
         />
       )}
       {errorToast.show && (
         <Toast
-          message={errorToast.message}
-          type="error"
+          show={errorToast.show}
+          title={errorToast.message}
+          icon="✕"
+          color="red"
           onClose={() => setErrorToast({ show: false, message: '' })}
-          duration={3000}
+          autoClose={3000}
         />
       )}
     </div>

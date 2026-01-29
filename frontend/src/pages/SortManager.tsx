@@ -44,7 +44,7 @@ export default function SortManager({ onBack }: SortManagerProps) {
         errors: response.data.errors
       })
       // Auto-select ready_to_move files
-      const readyFiles = new Set(
+      const readyFiles = new Set<string>(
         response.data.files
           .filter((f: FileToSort) => f.status === 'ready_to_move')
           .map((f: FileToSort) => f.path)
@@ -58,7 +58,7 @@ export default function SortManager({ onBack }: SortManagerProps) {
     }
   }
 
-  const [sortedFiles, setSortedFiles] = useState<string[]>([])  // Paths of sorted files
+  const [_sortedFiles, setSortedFiles] = useState<string[]>([])  // Paths of sorted files
 
   const handleSort = () => {
     if (selectedFiles.size === 0) {
@@ -361,7 +361,7 @@ export default function SortManager({ onBack }: SortManagerProps) {
                                   <span className="font-medium">Size: {formatFileSize(file.existing_size || 0)}</span>
                                 </div>
                                 <div className="text-orange-700 font-medium">
-                                  ⚠️ Sizes differ by {Math.abs(file.size - (file.existing_size || 0)) / (1024 * 1024).toFixed(1)} MB
+                                  ⚠️ Sizes differ by {(Math.abs(file.size - (file.existing_size || 0)) / (1024 * 1024)).toFixed(1)} MB
                                 </div>
                               </div>
                             </div>
