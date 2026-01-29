@@ -1,0 +1,55 @@
+# ========================================
+#  Filharmonia AI - Development Dockerfile
+#  For docker-compose development setup
+# ========================================
+
+# Backend Development Stage
+FROM python:3.10-slim as backend-dev
+
+WORKDIR /app/backend
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    ffmpeg \
+    libsndfile1 \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create venv directory
+RUN python -m venv venv
+
+# Copy requirements
+COPY backend/requirements.txt .
+
+# Install PyTorch CPU
+RUN venv/bin/pip install --no-cache-dir \
+    torch==2.5.1 torchaudio==2.5.1 torchvision==0.20.1 \
+    --index-url https://download.pytorch.org/whl/cpu
+
+# Install dependencies
+RUN venv/bin/pip install --no-cache-dir -r requirements.txt
+
+# Activate venv by default
+ENV PATH="/app/backend/venv/bin:$PATH"
+
+# Export ONNX model
+COPY backend/scripts/export_onnx.py scripts/export_onnx.py
+COPY backend/app/config.py app/config.py
+RUN python -m scripts.export_onnx || echo "ONNX export skipped"
+
+# Frontend Development Stage
+FROM node:20-slim as frontend-dev
+
+WORKDIR /app/frontend
+
+# Install pnpm
+RUN npm install -g pnpm
+
+# Copy package files
+COPY frontend/package.json frontend/pnpm-lock.yaml ./
+
+# Install dependencies
+RUN pnpm install --frozen-lockfile
+
+# Default command will be overridden by docker-compose
+CMD ["pnpm", "dev", "--host", "0.0.0.0"]

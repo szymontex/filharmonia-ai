@@ -1,79 +1,107 @@
-#!/bin/bash
-# Filharmonia AI - Startup Script (Linux/Mac)
-# Starts both backend and frontend servers and opens browser
+#!/usr/bin/env bash
+# ========================================
+#  Filharmonia AI - Start Application
+#  macOS / Linux
+# ========================================
 
-echo "================================"
-echo "  Filharmonia AI - Starting..."
-echo "================================"
-echo
+echo ""
+echo "========================================"
+echo "  Filharmonia AI - Starting"
+echo "========================================"
+echo ""
 
-# Kill existing servers if running
-echo "[0/4] Stopping existing servers..."
+# Check if setup was completed
+if [ ! -f ".setup_complete" ]; then
+    echo "[ERROR] Setup not completed!"
+    echo ""
+    echo "Please run ./setup.sh first to install dependencies."
+    echo ""
+    exit 1
+fi
 
-# Kill backend (port 8000)
-lsof -ti:8000 | xargs kill -9 2>/dev/null
-
-# Kill frontend (port 5173)
-lsof -ti:5173 | xargs kill -9 2>/dev/null
-
-# Also kill by process name as backup
-pkill -f "uvicorn app.main:app" 2>/dev/null
-pkill -f "vite" 2>/dev/null
-
-sleep 2
-
-# Check if backend venv exists
+# Verify backend setup
 if [ ! -f "backend/venv/bin/activate" ]; then
     echo "[ERROR] Backend virtual environment not found!"
-    echo "Please run: cd backend && python -m venv venv && source venv/bin/activate && pip install -r requirements.txt"
+    echo ""
+    echo "Please run ./setup.sh to install dependencies."
+    echo ""
     exit 1
 fi
 
-# Check if frontend node_modules exists
+# Verify frontend setup
 if [ ! -d "frontend/node_modules" ]; then
     echo "[ERROR] Frontend dependencies not installed!"
-    echo "Please run: cd frontend && pnpm install"
+    echo ""
+    echo "Please run ./setup.sh to install dependencies."
+    echo ""
     exit 1
 fi
 
-echo "[1/4] Starting backend server..."
+# Cleanup function
+cleanup() {
+    echo ""
+    echo "Stopping servers..."
+    kill $BACKEND_PID 2>/dev/null
+    kill $FRONTEND_PID 2>/dev/null
+    exit 0
+}
+
+trap cleanup INT TERM
+
+# Kill existing servers
+echo "[1/4] Stopping existing servers..."
+lsof -ti:8000 | xargs kill -9 2>/dev/null || true
+lsof -ti:5173 | xargs kill -9 2>/dev/null || true
+sleep 2
+
+# Start backend
+echo "[2/4] Starting backend server..."
 cd backend
 source venv/bin/activate
-nohup python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000 > ../backend.log 2>&1 &
+python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000 > ../backend.log 2>&1 &
 BACKEND_PID=$!
 cd ..
+
 sleep 3
 
-echo "[2/4] Starting frontend server..."
+# Start frontend
+echo "[3/4] Starting frontend server..."
 cd frontend
-nohup pnpm dev > ../frontend.log 2>&1 &
+pnpm dev > ../frontend.log 2>&1 &
 FRONTEND_PID=$!
 cd ..
+
 sleep 5
 
-echo "[3/4] Waiting for servers to start..."
-sleep 3
-
+# Open browser
 echo "[4/4] Opening browser..."
-if command -v xdg-open > /dev/null; then
-    xdg-open http://localhost:5173
-elif command -v open > /dev/null; then
+if command -v open &> /dev/null; then
+    # macOS
     open http://localhost:5173
-else
-    echo "Could not detect browser command. Please open http://localhost:5173 manually"
+elif command -v xdg-open &> /dev/null; then
+    # Linux
+    xdg-open http://localhost:5173
 fi
 
-echo
-echo "================================"
-echo "  Servers are running!"
-echo "================================"
-echo
+echo ""
+echo "========================================"
+echo "  Application Running"
+echo "========================================"
+echo ""
 echo "Backend:  http://localhost:8000 (PID: $BACKEND_PID)"
 echo "Frontend: http://localhost:5173 (PID: $FRONTEND_PID)"
 echo "API Docs: http://localhost:8000/docs"
-echo
-echo "Logs: backend.log, frontend.log"
-echo
+echo ""
+echo "Logs:"
+echo "  Backend:  backend.log"
+echo "  Frontend: frontend.log"
+echo ""
 echo "To stop servers:"
 echo "  kill $BACKEND_PID $FRONTEND_PID"
-echo
+echo "Or run: ./stop.sh"
+echo ""
+echo "Press Ctrl+C to stop all servers"
+echo ""
+
+# Wait for user interrupt
+wait

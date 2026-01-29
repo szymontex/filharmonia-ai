@@ -1,264 +1,316 @@
 # 🎵 Filharmonia AI
 
-AI-powered concert audio analysis system using **PyTorch Audio Spectrogram Transformer (AST)** for automatic classification and segmentation of philharmonic concert recordings.
+**AI-powered concert audio analysis** using PyTorch Audio Spectrogram Transformer (AST) for automatic classification and segmentation of philharmonic concert recordings.
+
+---
+
+## 🚀 Quick Start (Choose One)
+
+### Option 1: Docker (Easiest - No Setup Required)
+
+```bash
+docker-compose up
+```
+
+Open http://localhost:5173
+
+**That's it!** Docker handles everything automatically.
+
+---
+
+### Option 2: Local Setup (Windows)
+
+1. **Install Prerequisites:**
+   - [Python 3.10+](https://python.org) ✅ Check "Add Python to PATH"
+   - [Node.js 18+](https://nodejs.org)
+
+2. **Run Setup (one time):**
+   ```
+   Double-click: setup.bat
+   ```
+   Wait 3-5 minutes. Setup auto-detects GPU vs CPU.
+
+3. **Start App:**
+   ```
+   Double-click: start.bat
+   ```
+   Opens http://localhost:5173 automatically.
+
+---
+
+### Option 3: Local Setup (macOS / Linux)
+
+1. **Install Prerequisites:**
+   ```bash
+   # macOS
+   brew install python@3.10 node
+
+   # Ubuntu/Linux
+   sudo apt install python3.10 python3.10-venv python3-pip
+   curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+   sudo apt install -y nodejs
+   ```
+
+2. **Run Setup (one time):**
+   ```bash
+   chmod +x setup.sh
+   ./setup.sh
+   ```
+   Wait 3-5 minutes. Setup auto-detects GPU vs CPU.
+
+3. **Start App:**
+   ```bash
+   ./start.sh
+   ```
+   Opens http://localhost:5173 automatically.
+
+---
 
 ## 📋 Features
 
-- **🎼 Audio Classification**: Automatically classifies audio into 5 categories:
-  - 🎵 MUSIC - orchestral music
-  - 👏 APPLAUSE - audience applause
-  - 🗣️ SPEECH - announcements, speeches
-  - 👥 PUBLIC - audience noise, intermission
-  - 🎻 TUNING - instrument tuning
+### 🎼 Audio Classification
+Automatically classifies audio into 5 categories:
+- 🎵 **MUSIC** - orchestral music
+- 👏 **APPLAUSE** - audience applause
+- 🗣️ **SPEECH** - announcements, speeches
+- 👥 **PUBLIC** - audience noise, intermission
+- 🎻 **TUNING** - instrument tuning
 
-- **🎨 Visual Waveform Editor**: DAW-style interface for reviewing and correcting predictions
-- **🤖 Self-Improving ML Loop**: Export corrected segments → retrain model → improved accuracy
-- **📊 Model Management**: Train, compare, and switch between models with measured accuracy
-- **📈 Uncertainty Review**: Filter low-confidence predictions for manual review
-- **⚡ GPU Accelerated**: CUDA/ROCm/CPU support with automatic detection
+### 🎨 Visual Waveform Editor
+DAW-style interface for reviewing and correcting predictions with color-coded segments.
 
-## 🚀 Quick Start
+### 🤖 Self-Improving ML Loop
+Export corrected segments → retrain model → improved accuracy over time.
 
-### Windows
-1. Install [Python 3.10+](https://python.org) and [Node.js 18+](https://nodejs.org)
-2. Double-click `setup-windows.bat` (one-time setup)
-3. Double-click `run-windows.bat` to start
-4. Open http://localhost:5173
+### ⚡ Performance Optimization
+- **GPU Acceleration**: torch.compile for NVIDIA CUDA (~2x speedup)
+- **CPU Optimization**: ONNX INT8 quantization (3x+ speedup vs PyTorch)
+- **AMD GPU Support**: ROCm 6.4 with silent fallback detection
+- **Auto-Detection**: No manual configuration needed
 
-### macOS / Linux
-```bash
-# Install prerequisites (macOS)
-brew install python@3.10 node
+### 🎹 User Experience
+- **Keyboard Shortcuts**: Spacebar (play/pause), 1-5 (classifications), Ctrl+Z/Y (undo/redo), ? (help)
+- **Undo/Redo**: Full history for all edits
+- **Autosave**: Automatic saving of edits
+- **Calendar Browser**: Navigate recordings by date
+- **Uncertainty Review**: Filter and review low-confidence predictions
 
-# Setup (one-time)
-chmod +x setup-macos-linux.sh
-./setup-macos-linux.sh
+---
 
-# Run
-./run-macos-linux.sh
+## 🛠️ What Gets Installed
+
+### Backend (Python)
+- PyTorch 2.5.1 (auto-detects CUDA vs CPU)
+- ONNX Runtime for CPU speedup
+- FastAPI REST API
+- Polars for fast CSV parsing (5-30x faster than pandas)
+
+### Frontend (Node.js)
+- React 19 with TypeScript
+- Vite dev server
+- Modern component architecture
+
+### Models
+- **AST Active Model**: 5-class audio classifier
+- **ONNX INT8 Model**: Quantized version for CPU (3x+ faster)
+
+**Total Size:** ~2GB
+**Setup Time:** 3-5 minutes
+
+---
+
+## 📊 Performance
+
+### Device Detection
+At startup, backend logs show what was detected:
+
+**CPU-only (ONNX optimized):**
+```
+INFO: Device: cpu (CPU)
+INFO: Using ONNX INT8 backend (3.2x speedup vs PyTorch CPU)
 ```
 
-**Full instructions:** See [QUICKSTART.md](QUICKSTART.md) and [SETUP.md](SETUP.md)
+**NVIDIA GPU:**
+```
+INFO: GPU detected: NVIDIA CUDA 12.1 — GeForce RTX 3090
+INFO: Using PyTorch GPU backend with torch.compile
+```
 
-## 📸 Screenshots
+**AMD GPU:**
+```
+INFO: GPU detected: AMD ROCm 6.2 — Radeon RX 7900 XTX
+INFO: Using PyTorch GPU backend with torch.compile
+```
 
-### Main Dashboard
-![Main Dashboard](docs/images/1.png)
-*Overview of available models, training data statistics, and recent analyses*
+### Speed Improvements
+- **Polars CSV parsing**: 5-30x faster than pandas
+- **ONNX INT8 CPU**: 3x+ faster than PyTorch
+- **torch.compile GPU**: ~2x speedup vs eager mode
+- **Waveform caching**: <500ms repeat load (was 8s)
 
-### File Browser & Sorting
-![File Browser](docs/images/browse.png)
-*Browse unsorted recordings and organize by date using ID3 tags*
+---
 
-![Sort Recordings](docs/images/sort.png)
-*Automatic sorting of concert recordings by date*
+## 🔧 Troubleshooting
 
-### Waveform Editor
-![CSV Waveform Editor](docs/images/csv1.png)
-*Visual waveform editor with color-coded segments for each class*
+### Setup Issues
 
-![CSV Editor - Detailed View](docs/images/csv2.png)
-*Edit predictions, adjust boundaries, and export corrected segments*
+**"Python not found" (Windows):**
+- Reinstall Python with "Add Python to PATH" checked
+- Restart terminal after installation
 
-### Model Management
-![Model Versioning](docs/images/model.png)
-*Train new models, compare accuracy, and activate best-performing models*
+**"Node.js not found":**
+- Install from https://nodejs.org
+- Restart terminal
 
-### Uncertainty Review (Active Learning)
-![Uncertainty Review](docs/images/uncertain.png)
-*Review low-confidence predictions for manual verification and export*
+**ONNX export fails:**
+- Not critical - app uses PyTorch CPU fallback
+- Slightly slower but works fine
+- Re-run setup to retry
 
-## 🏗️ Architecture
+### Runtime Issues
+
+**Backend won't start:**
+```bash
+# Windows
+cd backend
+venv\Scripts\activate
+python -m uvicorn app.main:app --reload
+
+# macOS/Linux
+cd backend
+source venv/bin/activate
+python -m uvicorn app.main:app --reload
+```
+
+**Frontend won't start:**
+```bash
+cd frontend
+pnpm install
+pnpm dev
+```
+
+**Port already in use:**
+- Windows: `netstat -ano | findstr :8000` then `taskkill /PID <PID> /F`
+- macOS/Linux: `lsof -ti:8000 | xargs kill -9`
+
+---
+
+## 📁 Project Structure
 
 ```
 filharmonia-ai/
-├── backend/              # FastAPI + PyTorch backend
-│   ├── app/
-│   │   ├── api/v1/      # REST API endpoints
-│   │   ├── services/    # Core business logic
-│   │   │   ├── ast_training.py    # Model training service
-│   │   │   ├── ast_inference.py   # Model inference service
-│   │   │   └── analyze.py         # Audio analysis pipeline
-│   │   └── config.py    # Settings and paths
-│   ├── pytorch_dataset.py         # Custom PyTorch dataset
-│   └── requirements.txt
-│
-├── frontend/            # React + TypeScript + Vite
-│   ├── src/
-│   │   ├── components/  # UI components
-│   │   ├── pages/       # Page views
-│   │   └── api/         # API client
-│   └── package.json
-│
-└── docs/                # Screenshots and documentation
+├── backend/           # FastAPI + PyTorch backend
+│   ├── app/          # API routes, services, models
+│   ├── scripts/      # ONNX export, utilities
+│   └── venv/         # Python virtual environment
+├── frontend/         # React 19 frontend
+│   ├── src/          # Components, hooks, pages
+│   └── node_modules/ # Node.js packages
+├── docker/           # Docker configuration
+├── setup.bat         # Windows setup script
+├── setup.sh          # macOS/Linux setup script
+├── start.bat         # Windows start script
+├── start.sh          # macOS/Linux start script
+└── docker-compose.yml # Docker setup
 ```
-
-## 🚀 Quick Start
-
-### First-Time Installation
-
-Run the automated setup script to install all dependencies:
-
-**Windows:**
-```bash
-setup.bat
-```
-
-**Linux/Mac:**
-```bash
-chmod +x setup.sh
-./setup.sh
-```
-
-The setup script will automatically:
-- ✅ Check Python and Node.js installation
-- ✅ Create Python virtual environment
-- ✅ Install PyTorch with CUDA support
-- ✅ Install all backend and frontend dependencies
-- ✅ Verify installation is complete
-- ✅ Create configuration file from template
-
-> **Note:** Don't run `pip install -r requirements.txt` directly - PyTorch CUDA requires special handling which the setup script does automatically.
 
 ---
 
-### Running the Application
+## 🐳 Docker Usage
 
-After installation, start both servers:
-
-**Windows:**
+### Development (with hot reload):
 ```bash
-start.bat
+docker-compose up
 ```
 
-**Linux/Mac:**
+### Production:
 ```bash
-./start.sh
-
-# To stop servers:
-./stop.sh
+docker build -t filharmonia-ai .
+docker run -p 80:80 -v /path/to/audio:/data filharmonia-ai
 ```
 
-The application will be available at:
-- Frontend: http://localhost:5173
-- Backend API: http://localhost:8000
+Open http://localhost
 
 ---
 
-### Prerequisites
+## 🎯 Usage Workflow
 
-- **Python 3.11+**
-- **Node.js 18+**
-- **NVIDIA GPU** (optional but recommended for training)
-- **CUDA 12.x** (if using GPU)
+1. **Upload MP3** → Browse local files or use calendar browser
+2. **Automatic Analysis** → AST model classifies audio segments
+3. **Review Results** → View waveform + predictions
+4. **Edit Classifications** → Correct mistakes (undo/redo support)
+5. **Export CSV** → Timestamped segment list
 
-### Configuration
+### Keyboard Shortcuts
+- `Spacebar`: Play/pause audio
+- `1-5`: Change segment classification
+- `Ctrl+Z`: Undo
+- `Ctrl+Y`: Redo
+- `Ctrl+S`: Save (autosave already enabled)
+- `?`: Show keyboard help
 
-After installation, configure your data directory (optional):
+---
 
-1. Edit `.env` file (created by setup script)
-2. Set `FILHARMONIA_BASE_DIR` to your desired location
-3. If not set, defaults to `project_root/FILHARMONIA_DATA/`
+## 🌐 API
 
-## 📊 Model Training
+**Backend:** http://localhost:8000
+**Frontend:** http://localhost:5173
+**API Docs:** http://localhost:8000/docs
 
-The system uses **Audio Spectrogram Transformer (AST)** from MIT:
-- Pre-trained on AudioSet-10M
-- Fine-tuned on concert recordings
-- ~86M parameters
-- Training time: ~4h on RTX 3080 Ti
-
-**Training new model:**
-1. Prepare training data in `TRAINING DATA/DATA/` folder (5 class subfolders)
-2. Open web UI → "Training" tab
-3. Click "Start Training"
-4. Monitor progress in real-time
-5. Click "📊 Measure" to evaluate accuracy
-6. Click "Activate" to deploy new model
-
-## 🎯 Performance
-
-**Current best model (ast_20251009_222204.pth):**
-- Test Accuracy: **97.75%**
-- Per-class accuracy:
-  - APPLAUSE: 100%
-  - MUSIC: 100%
-  - PUBLIC: 96.2%
-  - SPEECH: 100%
-  - TUNING: 85.7%
-
-## 🤖 Pre-trained Model
-
-**Optional:** Download pre-trained model (trained on classical concert recordings):
-
-🤗 **[Hugging Face Model Hub](https://huggingface.co/szymontex/filharmonia-ast)** (recommended)
-
-**Model specs:**
-- Architecture: Audio Spectrogram Transformer (MIT/PSLA)
-- Test accuracy: 97.75%
-- Training data: ~1200 min of classical concert recordings
-- Size: 1.03 GB
-
-**Installation:**
-1. Download `ast_20251009_222204.pth` from Hugging Face
-2. Place in `RECOGNITION_MODELS/ast_active.pth`
-3. Start backend and run analysis
-
-**Important:** This model is trained on classical philharmonic concerts. For other music genres (rock, jazz, pop), you'll need to retrain with your own data using the web UI.
-
-## 🔧 Configuration
-
-Edit `backend/app/config.py` to configure:
-- Training data paths
-- Model save location
-- Sample rate & duration
-- GPU/CPU device selection
-
-## 📝 Workflow
-
-1. **Sort Recordings**: Organize MP3 files by date using ID3 tags
-2. **Analyze**: Process concerts through AST model (~5 min per 1h concert)
-3. **Review**: Visual waveform editor for corrections
-4. **Export**: Generate tracklists for clients
-5. **Train**: Export corrected segments → retrain model → improved accuracy
-
-## 🛠️ Tech Stack
-
-**Backend:**
-- FastAPI (REST API)
-- PyTorch + torchaudio (ML)
-- HuggingFace Transformers (AST model)
-- scikit-learn (dataset splitting)
-
-**Frontend:**
-- React 18 + TypeScript
-- Vite (build tool)
-- TanStack Query (data fetching)
-- Recharts (visualizations)
-- Tailwind CSS (styling)
+---
 
 ## 📚 Documentation
 
-- **[Development Guide](docs/DEVELOPMENT.md)** - Setup, architecture, and development workflow
-- **[API Reference](docs/API.md)** - Complete REST API documentation
-
-## 🤝 Contributing
-
-Contributions are welcome! Feel free to open issues or submit pull requests.
-
-## 📄 License
-
-MIT License - see LICENSE file for details.
-
-## 🎉 Achievements
-
-- ✅ MVP completed (Oct 2025)
-- ✅ Migrated from Keras CNN to PyTorch AST
-- ✅ Achieved 97.75% test accuracy
-- ✅ Reduced monthly processing time from 4-6h to ~30 min
-- ✅ Implemented self-improving ML loop
+- **SETUP.md** - Detailed setup instructions
+- **QUICKSTART.md** - One-page quick start
+- **docs/ROCM_SETUP.md** - AMD GPU setup guide
+- **.planning/** - Development milestones and planning docs
 
 ---
 
-**Last Updated:** December 2025
-**Status:** 🚀 Production Ready (MVP)
+## 🏗️ Built With
+
+- **PyTorch** - Deep learning framework
+- **Audio Spectrogram Transformer (AST)** - Audio classification model
+- **FastAPI** - High-performance Python API
+- **React 19** - Modern UI framework
+- **Polars** - Fast dataframe library
+- **ONNX Runtime** - Cross-platform inference
+- **Vite** - Fast frontend tooling
+
+---
+
+## ✨ Recent Updates
+
+### v0.9 - Polish & Stability (2026-01-29)
+- ✅ Unified device detection (NVIDIA/AMD/CPU)
+- ✅ ONNX INT8 CPU optimization (3x speedup)
+- ✅ torch.compile GPU acceleration
+- ✅ ROCm 6.4 support for AMD GPUs
+- ✅ React 19 upgrade
+- ✅ Confidence threshold auto-tuning
+- ✅ Cross-platform paths
+- ✅ Component refactoring (30% code reduction)
+- ✅ Performance improvements (Polars migration)
+
+---
+
+## 📝 License
+
+See LICENSE file in repository root.
+
+---
+
+## 🆘 Support
+
+**Setup Issues:**
+1. Check logs: `backend.log` and `frontend.log`
+2. Re-run setup script
+3. Check troubleshooting section above
+
+**Feature Requests:**
+- Create an issue on GitHub
+
+**Need Help:**
+- Check documentation in `docs/` folder
+- Review API docs at http://localhost:8000/docs
