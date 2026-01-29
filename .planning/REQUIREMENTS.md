@@ -194,15 +194,15 @@ Based on deep code audit and technology review. Each requirement references spec
 | INFRA-03 | 3 | Pending |
 | INFRA-04 | 1 | Pending |
 | INFRA-05 | 1 | Pending |
-| GPU-01 | 6 | Pending |
-| GPU-02 | 6 | Pending |
-| GPU-03 | 6 | Pending |
-| GPU-04 | 6 | Pending |
-| GPU-05 | 6 | Pending |
-| GPU-06 | 6 | Pending |
-| FRONT-01 | 6 | Pending |
-| FRONT-02 | 6 | Pending |
-| FRONT-03 | 6 | Pending |
+| GPU-01 | 6 | Complete |
+| GPU-02 | 6 | Complete |
+| GPU-03 | 6 | Complete |
+| GPU-04 | 6 | Complete |
+| GPU-05 | 6 | Complete |
+| GPU-06 | 6 | Complete |
+| FRONT-01 | 6 | Complete |
+| FRONT-02 | 6 | Complete |
+| FRONT-03 | 6 | Complete |
 
 **Coverage:** 62/62 requirements mapped to phases
 
