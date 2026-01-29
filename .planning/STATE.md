@@ -4,10 +4,10 @@
 
 **Phase:** 6 of 6 — GPU & CPU Optimization
 **Previous:** Phase 1, 2, 3, 4, 5 Complete ✓
-**Status:** In progress (3/6 plans complete)
-**Progress:** [██████████░░] 5.5/6 phases
+**Status:** In progress (5/6 plans complete)
+**Progress:** [███████████░] 5.8/6 phases
 
-**Last activity:** 2026-01-29 — Completed 06-04 ROCm 6.4 Support
+**Last activity:** 2026-01-29 — Completed 06-03 ONNX Export & INT8 Quantization
 
 ## Project Reference
 
@@ -24,7 +24,7 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 |------|------|--------|--------|
 | 06-01 | Unified Device Detection | Complete | e19c2b1, 15288ea |
 | 06-02 | torch.compile GPU Acceleration | Complete | f7236b9 |
-| 06-03 | ONNX Export & INT8 Quantization | Pending | |
+| 06-03 | ONNX Export & INT8 Quantization | Complete | baa3927, 7717e99 |
 | 06-04 | ROCm 6.4 Support | Complete | 69a9210, e0f0f91 |
 | 06-05 | React 18 to React 19 Upgrade | Pending | |
 | 06-06 | Confidence Threshold Auto-tuning | Complete | add2430 |
@@ -265,7 +265,7 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 - [x] Begin Phase 6: GPU & CPU Optimization
 - [x] Execute Phase 6 Plan 01 - COMPLETE (2/2 tasks)
 - [x] Execute Phase 6 Plan 02 - COMPLETE (1/1 tasks)
-- [ ] Execute Phase 6 Plan 03
+- [x] Execute Phase 6 Plan 03 - COMPLETE (2/2 tasks)
 - [x] Execute Phase 6 Plan 04 - COMPLETE (2/2 tasks)
 - [ ] Execute Phase 6 Plan 05
 - [x] Execute Phase 6 Plan 06 - COMPLETE (2/2 tasks)
@@ -292,4 +292,4 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 11. .planning/phases/02-core-ux-polish/02-07-SUMMARY.md — Gap closure (spacebar + AbortController)
 
 ---
-*State updated: 2026-01-29 — 06-04 complete (ROCm silent fallback detection, setup documentation for Linux and Windows)*
+*State updated: 2026-01-29 — 06-03 complete (ONNX export pipeline, INT8 quantization, inference factory with automatic backend routing)*
