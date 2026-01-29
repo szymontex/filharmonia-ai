@@ -13,6 +13,7 @@ import { useTrackEditor } from '../hooks/useTrackEditor'
 import { useAutosave } from '../hooks/useAutosave'
 import { useUndoRedo } from '../hooks/useUndoRedo'
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts'
+import { useConfidenceAdjust } from '../hooks/useConfidenceAdjust'
 import { calculateDuration, timeToSeconds } from '../utils/timeCalculations'
 
 // Classification order for number key shortcuts (1-5)
@@ -61,7 +62,7 @@ export default function CsvViewer({ onBack, initialCsv }: CsvViewerProps = {}) {
     seekToTime,
     clearSeekRequest,
     playFromSegment,
-    isPlaying,  // Used indirectly via setIsPlaying callback (updated by StickyPlayer)
+    isPlaying: _isPlaying,  // Used indirectly via setIsPlaying callback (updated by StickyPlayer)
     setIsPlaying,
     togglePlaybackRef,
     togglePlayback
@@ -72,6 +73,9 @@ export default function CsvViewer({ onBack, initialCsv }: CsvViewerProps = {}) {
 
   const [csvFiles, setCsvFiles] = useState<CsvFile[]>([])
   const [selectedCsv, setSelectedCsv] = useState<string | null>(null)
+
+  // Confidence threshold auto-tuning (learns from user corrections)
+  const { threshold: _confidenceThreshold, recordCorrection, refresh: refreshConfidence } = useConfidenceAdjust(selectedCsv)
   const [loading, setLoading] = useState(false)
   const [mp3Path, setMp3Path] = useState<string>('')
   const [showSaveModal, setShowSaveModal] = useState(false)
@@ -189,6 +193,11 @@ export default function CsvViewer({ onBack, initialCsv }: CsvViewerProps = {}) {
       console.error('Error loading CSVs with exports:', error)
     }
   }
+
+  // Refresh confidence threshold when recording changes
+  useEffect(() => {
+    refreshConfidence()
+  }, [selectedCsv, refreshConfidence])
 
   useEffect(() => {
     if (initialCsv) {
@@ -541,7 +550,8 @@ export default function CsvViewer({ onBack, initialCsv }: CsvViewerProps = {}) {
   const wrappedDeleteTrack = useCallback((id: string) => {
     undoRedo.pushState(tracks)
     deleteTrack(id)
-  }, [tracks, undoRedo, deleteTrack])
+    recordCorrection('delete')
+  }, [tracks, undoRedo, deleteTrack, recordCorrection])
 
   const wrappedMergeWithNext = useCallback((id: string) => {
     undoRedo.pushState(tracks)
@@ -551,7 +561,8 @@ export default function CsvViewer({ onBack, initialCsv }: CsvViewerProps = {}) {
   const wrappedAddSegmentBelow = useCallback((id: string) => {
     undoRedo.pushState(tracks)
     addSegmentBelow(id)
-  }, [tracks, undoRedo, addSegmentBelow])
+    recordCorrection('add')
+  }, [tracks, undoRedo, addSegmentBelow, recordCorrection])
 
   // Undo/redo handlers
   const handleUndo = useCallback(() => {
