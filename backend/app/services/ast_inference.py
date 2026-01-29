@@ -2,6 +2,7 @@
 PyTorch AST Inference Service
 Replaces Keras CNN with Audio Spectrogram Transformer
 """
+import logging
 import os
 import torch
 import torch.nn as nn
@@ -10,6 +11,9 @@ import torchaudio.transforms as T
 from pathlib import Path
 from transformers import ASTForAudioClassification
 from app.config import settings
+from app.core.device_manager import get_device_manager
+
+logger = logging.getLogger(__name__)
 
 # IMPORTANT: Limit CPU threads to prevent 100% CPU usage blocking the system
 # This allows other processes (like the web server) to remain responsive
@@ -23,7 +27,8 @@ class ASTInferenceService:
 
     def __init__(self):
         self.model = None
-        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        self.device_manager = get_device_manager()
+        self.device = self.device_manager.device
 
         # Create mel-spectrogram transform (IDENTICAL to training!)
         self.mel_transform = T.MelSpectrogram(
@@ -56,10 +61,9 @@ class ASTInferenceService:
         self.model.eval()
         self.model = self.model.to(self.device)
 
-        print(f"[OK] AST model loaded: {model_path.name}")
-        print(f"  Device: {self.device}")
+        logger.info("AST model loaded: %s (device: %s)", model_path.name, self.device_manager.device_type)
         if 'val_acc' in checkpoint:
-            print(f"  Validation accuracy: {checkpoint['val_acc']:.2f}%")
+            logger.info("  Validation accuracy: %.2f%%", checkpoint['val_acc'])
 
     def preprocess_audio_segment(self, audio_segment: np.ndarray) -> torch.Tensor:
         """
@@ -187,5 +191,5 @@ def get_ast_inference_service() -> ASTInferenceService:
         try:
             _service.load_model()
         except FileNotFoundError:
-            print("⚠ AST model not found - will need to train first")
+            logger.warning("AST model not found - will need to train first")
     return _service

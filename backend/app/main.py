@@ -54,16 +54,13 @@ async def lifespan(app: FastAPI):
     print("Filharmonia AI - Starting up...")
     print("=" * 50)
 
-    # Check PyTorch and GPU
+    # Unified device detection
     try:
         import torch
-        gpu_available = torch.cuda.is_available()
-        device = "CUDA" if gpu_available else "CPU"
-        if gpu_available:
-            gpu_name = torch.cuda.get_device_name(0)
-            print(f"  PyTorch device: {device} ({gpu_name})")
-        else:
-            print(f"  PyTorch device: {device}")
+        from app.core.device_manager import get_device_manager
+        dm = get_device_manager()
+        logger.info("Device: %s (%s)", dm.device_type, dm.device_name)
+        print(f"  PyTorch device: {dm.device_type} ({dm.device_name})")
         print(f"  PyTorch version: {torch.__version__}")
     except ImportError:
         print("  WARNING: PyTorch not installed")
