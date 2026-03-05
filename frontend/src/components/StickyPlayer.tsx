@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useLayoutEffect, useRef } from 'react'
 import axios from 'axios'
 import { CLASS_COLORS } from '../constants/colors'
 
@@ -208,10 +208,6 @@ export default function StickyPlayer({ mp3Path, tracks, onClose, onTrackUpdate, 
     const ctx = canvas.getContext('2d')
     if (!ctx) return
 
-    // Set canvas internal resolution (not in JSX) so clear+draw happen in same frame = no flicker
-    const targetWidth = 1400 * zoom
-    if (canvas.width !== targetWidth) canvas.width = targetWidth
-
     const width = canvas.width
     const height = canvas.height
     const data = waveformData.data
@@ -282,8 +278,8 @@ export default function StickyPlayer({ mp3Path, tracks, onClose, onTrackUpdate, 
     }
   }
 
-  // Redraw when deps change
-  useEffect(() => {
+  // Redraw when deps change - useLayoutEffect runs before browser paint = no flicker
+  useLayoutEffect(() => {
     drawCanvas.current()
   }, [waveformData, tracks, zoom, hoverMarker, selectedTrackId, amplitudeScale])
 
@@ -542,9 +538,10 @@ export default function StickyPlayer({ mp3Path, tracks, onClose, onTrackUpdate, 
             </div>
           ) : (
             <>
-              <div ref={scrollContainerRef} className="overflow-x-auto flex-1">
+              <div ref={scrollContainerRef} className="overflow-x-scroll flex-1">
                 <canvas
                   ref={canvasRef}
+                  width={1400 * zoom}
                   height={150}
                   onClick={handleCanvasClick}
                   onMouseDown={handleMouseDown}
@@ -553,7 +550,6 @@ export default function StickyPlayer({ mp3Path, tracks, onClose, onTrackUpdate, 
                   onMouseLeave={handleMouseLeave}
                   className="cursor-pointer border border-gray-200 rounded"
                   style={{
-                    width: `${1400 * zoom}px`,
                     minWidth: '100%',
                     opacity: seeking ? 0.5 : 1,
                     cursor: hoverMarker ? 'ew-resize' : (addMode ? 'crosshair' : 'pointer')
