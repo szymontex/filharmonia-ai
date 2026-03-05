@@ -7,13 +7,28 @@ import AnalysisMonitor from './pages/AnalysisMonitor'
 import TrainingManager from './pages/TrainingManager'
 import UncertaintyReview from './pages/UncertaintyReview'
 import ToastContainer from './components/ToastContainer'
+import { useDarkMode } from './hooks/useDarkMode'
+
+function DarkModeToggle({ dark, toggle }: { dark: boolean; toggle: () => void }) {
+  return (
+    <button
+      onClick={toggle}
+      className="fixed top-4 right-4 z-50 p-2 rounded-full bg-gray-200 dark:bg-gray-700 hover:scale-110 transition-transform shadow-lg"
+      title={dark ? 'Switch to light mode' : 'Switch to dark mode'}
+    >
+      {dark ? '\u2600\uFE0F' : '\uD83C\uDF19'}
+    </button>
+  )
+}
 
 function App() {
   const [page, setPage] = useState<'home' | 'csv' | 'calendar' | 'sort' | 'monitor' | 'training' | 'uncertainty'>('home')
   const [csvToOpen, setCsvToOpen] = useState<string | null>(null)
+  const [dark, toggleDark] = useDarkMode()
 
   return (
     <>
+      <DarkModeToggle dark={dark} toggle={toggleDark} />
       <ToastContainer />
       {page === 'csv' && <CsvViewer onBack={() => setPage('home')} initialCsv={csvToOpen} />}
       {page === 'calendar' && (
