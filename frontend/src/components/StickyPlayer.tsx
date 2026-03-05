@@ -103,6 +103,17 @@ export default function StickyPlayer({ mp3Path, tracks, onClose, onTrackUpdate, 
     }
   }, [tracks])
 
+  // Pending scroll position after zoom (applied in layout effect)
+  const pendingScrollRef = useRef<number | null>(null)
+
+  // Apply pending scroll after zoom re-render changes canvas width
+  useEffect(() => {
+    if (pendingScrollRef.current !== null && scrollContainerRef.current) {
+      scrollContainerRef.current.scrollLeft = pendingScrollRef.current
+      pendingScrollRef.current = null
+    }
+  }, [zoom])
+
   // Handle wheel zoom with native event listener (to use preventDefault)
   useEffect(() => {
     const canvas = canvasRef.current
@@ -111,55 +122,52 @@ export default function StickyPlayer({ mp3Path, tracks, onClose, onTrackUpdate, 
     const handleNativeWheel = (e: WheelEvent) => {
       if (!scrollContainerRef.current || !waveformData) return
 
-      e.preventDefault() // This works with passive: false
+      e.preventDefault()
 
       const container = scrollContainerRef.current
       const containerRect = container.getBoundingClientRect()
-
-      // Mouse position relative to CONTAINER (viewport), not canvas
-      const mouseXInContainer = e.clientX - containerRect.left
-
-      // Calculate OLD canvas width from current zoom
       const oldCanvasWidth = 1400 * zoom
 
-      // Get mouse position in canvas coordinates (accounting for scroll)
-      const canvasMouseX = mouseXInContainer + container.scrollLeft
+      // Determine anchor point: playhead if playing, mouse cursor if not
+      let anchorXInCanvas: number
+      let anchorXInContainer: number
 
-      // Calculate what percentage of the canvas the mouse is at
-      const mouseRatio = canvasMouseX / oldCanvasWidth
+      if (isPlaying && audioRef.current && audioRef.current.duration > 0) {
+        // Zoom centered on playhead
+        const progress = audioRef.current.currentTime / waveformData.duration
+        anchorXInCanvas = progress * oldCanvasWidth
+        anchorXInContainer = container.clientWidth / 2
+      } else {
+        // Zoom centered on mouse cursor
+        anchorXInContainer = e.clientX - containerRect.left
+        anchorXInCanvas = anchorXInContainer + container.scrollLeft
+      }
 
-      // Zoom in or out based on wheel direction
+      const anchorRatio = anchorXInCanvas / oldCanvasWidth
+
+      // Calculate new zoom level
       const delta = e.deltaY > 0 ? -1 : 1
-      let newZoom = zoom
-
+      let newZoom: number
       if (delta > 0) {
         newZoom = Math.min(zoom * 1.5, 10)
       } else {
         newZoom = Math.max(zoom / 1.5, 1)
       }
-
       if (newZoom === zoom) return
 
-      // Calculate NEW canvas width
+      // Calculate new scroll to keep anchor point stable
       const newCanvasWidth = 1400 * newZoom
+      const newAnchorX = newCanvasWidth * anchorRatio
+      const newScrollLeft = Math.max(0, newAnchorX - anchorXInContainer)
 
-      // Mouse should stay at the same ratio position
-      const newCanvasMouseX = newCanvasWidth * mouseRatio
-
-      // Calculate new scroll position to keep mouse at same position IN CONTAINER
-      const newScrollLeft = newCanvasMouseX - mouseXInContainer
-
+      // Store scroll for after re-render, then trigger zoom
+      pendingScrollRef.current = newScrollLeft
       setZoom(newZoom)
-
-      // Use requestAnimationFrame for smoother update
-      requestAnimationFrame(() => {
-        container.scrollLeft = newScrollLeft
-      })
     }
 
     canvas.addEventListener('wheel', handleNativeWheel, { passive: false })
     return () => canvas.removeEventListener('wheel', handleNativeWheel)
-  }, [zoom, waveformData])
+  }, [zoom, waveformData, isPlaying])
 
   // Handle external seek requests
   useEffect(() => {
@@ -391,6 +399,18 @@ export default function StickyPlayer({ mp3Path, tracks, onClose, onTrackUpdate, 
         ctx.moveTo(playheadX, 0)
         ctx.lineTo(playheadX, height)
         ctx.stroke()
+
+        // Auto-scroll to keep playhead visible when zoomed in and playing
+        if (!audioRef.current.paused && scrollContainerRef.current && zoom > 1) {
+          const container = scrollContainerRef.current
+          const viewLeft = container.scrollLeft
+          const viewRight = viewLeft + container.clientWidth
+          const margin = container.clientWidth * 0.15 // 15% margin before edge
+
+          if (playheadX < viewLeft + margin || playheadX > viewRight - margin) {
+            container.scrollLeft = playheadX - container.clientWidth / 2
+          }
+        }
       }
     }
 
