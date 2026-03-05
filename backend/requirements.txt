@@ -68,6 +68,7 @@ nvidia-cudnn-cu11==9.10.2.21
 oauthlib==3.3.1
 opt_einsum==3.4.0
 packaging==25.0
+pdfplumber>=0.11
 polars==1.23.0
 pillow==11.3.0
 platformdirs==4.4.0

@@ -1,14 +1,17 @@
 """
 Scraper for filharmonia.pl concert programs.
 Fetches concert details (pieces, performers) for a given date.
+Supports both HTML program pages and PDF brochures (common for children's concerts).
 """
 
+import io
 import logging
 import re
 import time
 from datetime import datetime
 from typing import Optional
 
+import pdfplumber
 import requests
 from bs4 import BeautifulSoup
 from pydantic import BaseModel
@@ -73,6 +76,17 @@ class FilharmoniaScraper:
             resp = self._session.get(full_url, timeout=15)
             resp.raise_for_status()
             return BeautifulSoup(resp.text, "html.parser")
+        except Exception as e:
+            logger.error(f"Failed to fetch {full_url}: {e}")
+            return None
+
+    def _fetch_bytes(self, url: str) -> Optional[bytes]:
+        full_url = url if url.startswith("http") else BASE_URL + url
+        self._rate_limit()
+        try:
+            resp = self._session.get(full_url, timeout=30)
+            resp.raise_for_status()
+            return resp.content
         except Exception as e:
             logger.error(f"Failed to fetch {full_url}: {e}")
             return None
@@ -231,8 +245,13 @@ class FilharmoniaScraper:
                     else:
                         soloists.append(name)
 
-        # Program pieces
+        # Program pieces: try HTML first, fallback to PDF brochure
         pieces = self._parse_pieces(soup)
+        if not pieces:
+            pdf_url = self._find_pdf_url(soup)
+            if pdf_url:
+                logger.info(f"No HTML program found, trying PDF: {pdf_url}")
+                pieces = self._parse_pdf_program(pdf_url)
 
         return ConcertProgram(
             title=title,
@@ -332,6 +351,360 @@ class FilharmoniaScraper:
             ))
 
         return pieces
+
+    def _find_pdf_url(self, soup: BeautifulSoup) -> Optional[str]:
+        """Find a program PDF link on the concert page."""
+        downloads = soup.find("div", class_="item-downloads")
+        if downloads:
+            for link in downloads.find_all("a", href=True):
+                if link["href"].endswith(".pdf"):
+                    return link["href"]
+        # Fallback: any PDF link with "program" in text or URL
+        for link in soup.find_all("a", href=True):
+            href = link["href"]
+            if href.endswith(".pdf") and "program" in (href + link.get_text()).lower():
+                return href
+        return None
+
+    def _parse_pdf_program(self, pdf_url: str) -> list[ProgramPiece]:
+        """Download a PDF program brochure and extract pieces from it."""
+        pdf_bytes = self._fetch_bytes(pdf_url)
+        if not pdf_bytes:
+            return []
+
+        try:
+            return self._extract_pieces_from_pdf(pdf_bytes)
+        except Exception as e:
+            logger.error(f"Failed to parse PDF program {pdf_url}: {e}")
+            return []
+
+    def _extract_pieces_from_pdf(self, pdf_bytes: bytes) -> list[ProgramPiece]:
+        """Parse program pieces from PDF text content."""
+        all_text = ""
+        with pdfplumber.open(io.BytesIO(pdf_bytes)) as pdf:
+            for page in pdf.pages:
+                text = page.extract_text()
+                if not text or "Program" not in text:
+                    continue
+
+                # Detect two-column layout: "przerwa" in right half only
+                if self._is_two_column_page(page):
+                    text = self._extract_two_column_text(page)
+
+                all_text += text + "\n"
+
+        if not all_text:
+            return []
+
+        # Find the "Program" section
+        program_match = re.search(r'^Program\s*$', all_text, re.MULTILINE)
+        if not program_match:
+            return []
+
+        program_text = all_text[program_match.end():]
+
+        # Cut off footer text (invitations to next concert, info about latecomers, etc.)
+        for cutoff in [
+            r'Na następn',
+            r'Uprzejmie informujemy',
+            r'Dyrektor\s+(Naczelna|Artystyczny)',
+            r'opracowanie muzyczne',
+            r'opracowanie wszystkich',
+            r'[Ww]\s*opracowaniu',
+            r'[Ww]szystkie utwory',
+            r'●\s*utwory',
+        ]:
+            cutoff_match = re.search(cutoff, program_text)
+            if cutoff_match:
+                program_text = program_text[:cutoff_match.start()]
+
+        # Pre-process lines: clean bullets, merge split composer names
+        program_text = self._clean_pdf_text(program_text)
+
+        return self._parse_pdf_lines(program_text)
+
+    def _is_two_column_page(self, page) -> bool:
+        """Detect two-column layout by checking if 'przerwa' is in the right half only."""
+        w = page.width
+        mid = w / 2
+        left_crop = page.crop((0, 0, mid, page.height))
+        right_crop = page.crop((mid, 0, w, page.height))
+        left_text = (left_crop.extract_text() or "").lower()
+        right_text = (right_crop.extract_text() or "").lower()
+        return "przerwa" in right_text and "przerwa" not in left_text
+
+    def _extract_two_column_text(self, page) -> str:
+        """Extract text from a two-column page by reading left then right."""
+        w = page.width
+        mid = w / 2
+        left_crop = page.crop((0, 0, mid, page.height))
+        right_crop = page.crop((mid, 0, w, page.height))
+        left_text = left_crop.extract_text() or ""
+        right_text = right_crop.extract_text() or ""
+        return left_text + "\n" + right_text
+
+    def _clean_pdf_text(self, text: str) -> str:
+        """Pre-process PDF text: remove bullet markers, merge split composer lines."""
+        lines = text.split("\n")
+        cleaned = []
+        for line in lines:
+            # Remove standalone bullet markers (• used as decorative separators)
+            line = line.strip()
+            if line in ("•", "·", "∙"):
+                continue
+            # Remove leading/trailing bullets
+            line = re.sub(r'^[•·∙]\s*', '', line)
+            line = re.sub(r'\s*[•·∙]$', '', line)
+            if line:
+                cleaned.append(line)
+
+        # Merge composer lines split across line breaks (ending with "/")
+        merged = []
+        i = 0
+        while i < len(cleaned):
+            line = cleaned[i]
+            if line.rstrip().endswith("/") and i + 1 < len(cleaned):
+                # Merge with next line (multi-composer credit split across lines)
+                merged.append(line.rstrip() + " " + cleaned[i + 1].strip())
+                i += 2
+            else:
+                merged.append(line)
+                i += 1
+
+        return "\n".join(merged)
+
+    def _parse_pdf_lines(self, text: str) -> list[ProgramPiece]:
+        """Parse cleaned program text into ProgramPiece objects.
+
+        Uses strict alternation: composer line, then title line(s), repeat.
+        Multi-line titles are detected via continuation patterns (lowercase start,
+        parenthetical annotations). Multiple titles under one composer are detected
+        via musical terminology in what would otherwise be the next composer line.
+        Special handling for "(wybór)" (selection) titles where sub-fragments follow.
+        """
+        lines = [l.strip() for l in text.strip().split("\n") if l.strip()]
+        pieces: list[ProgramPiece] = []
+        i = 0
+
+        while i < len(lines):
+            line = lines[i]
+
+            # Break / intermission
+            if "przerwa" in line.lower():
+                pieces.append(ProgramPiece(title="Przerwa", is_break=True))
+                i += 1
+                continue
+
+            # Footer-like lines to skip
+            if self._is_pdf_footer_line(line):
+                i += 1
+                continue
+
+            # Step 1: This line is a composer
+            composer = line
+            i += 1
+
+            # Step 2: Read title(s) for this composer
+            while i < len(lines):
+                if "przerwa" in lines[i].lower():
+                    break
+                if self._is_pdf_footer_line(lines[i]):
+                    i += 1
+                    continue
+
+                # Read one title (first line + continuations)
+                title_parts = [lines[i]]
+                i += 1
+
+                # Collect continuation lines (lowercase start or parenthetical)
+                while i < len(lines):
+                    nl = lines[i]
+                    if self._is_title_continuation(nl):
+                        title_parts.append(nl)
+                        i += 1
+                    else:
+                        break
+
+                full_title = " ".join(title_parts)
+
+                # Extract annotation
+                annotation = None
+                ann_match = re.search(r'\(([^)]+)\)\s*$', full_title)
+                if ann_match:
+                    potential_ann = ann_match.group(1)
+                    if any(kw in potential_ann.lower() for kw in [
+                        'fragment', 'oprac', 'wersja', 'arr.', 'wybór',
+                    ]):
+                        annotation = potential_ann
+                        full_title = full_title[:ann_match.start()].strip()
+
+                # Clean up ● markers
+                full_title = full_title.replace(" ●", "").replace("●", "").strip()
+
+                # If title is empty (e.g. only annotation was present), the
+                # "composer" line was actually the title of a piece without composer
+                if not full_title:
+                    full_title = composer
+                    composer = ""
+
+                # Check if this is a "selection" title (wybór/Fragmenty)
+                # If so, following lines are sub-fragment titles by the same composer
+                is_selection = (
+                    annotation and "wybór" in annotation.lower()
+                ) or "fragmenty" in full_title.lower()
+
+                pieces.append(ProgramPiece(
+                    composer=composer,
+                    title=full_title,
+                    annotation=annotation,
+                ))
+
+                if is_selection:
+                    # Consume sub-fragment titles until we hit a new composer,
+                    # break, or footer
+                    i = self._consume_selection_fragments(
+                        lines, i, composer, full_title, pieces,
+                    )
+
+                # Check if next line is another title by same composer
+                # (has musical terminology) or a new composer
+                if i < len(lines) and "przerwa" not in lines[i].lower():
+                    if self._is_musical_title(lines[i]):
+                        continue  # Another title by same composer
+                    else:
+                        break  # New composer
+
+        return pieces
+
+    def _consume_selection_fragments(
+        self,
+        lines: list[str],
+        i: int,
+        composer: str,
+        parent_title: str,
+        pieces: list[ProgramPiece],
+    ) -> int:
+        """After a '(wybór)' title, consume sub-fragment titles as separate pieces."""
+        while i < len(lines):
+            line = lines[i]
+            if "przerwa" in line.lower():
+                break
+            if self._is_pdf_footer_line(line):
+                i += 1
+                continue
+            # A new composer is detected by lookahead: this line is followed by
+            # a title containing strong indicators (z baletu, z filmu, Fragmenty, etc.)
+            if self._looks_like_new_composer(lines, i):
+                break
+            # This is a sub-fragment title
+            # Collect any continuation lines
+            title_parts = [line]
+            i += 1
+            while i < len(lines):
+                nl = lines[i]
+                if self._is_title_continuation(nl):
+                    title_parts.append(nl)
+                    i += 1
+                else:
+                    break
+
+            frag_title = " ".join(title_parts)
+            # Extract annotation from fragment title
+            annotation = None
+            ann_match = re.search(r'\(([^)]+)\)\s*$', frag_title)
+            if ann_match:
+                potential_ann = ann_match.group(1)
+                if any(kw in potential_ann.lower() for kw in [
+                    'fragment', 'oprac', 'wersja', 'arr.',
+                ]):
+                    annotation = potential_ann
+                    frag_title = frag_title[:ann_match.start()].strip()
+
+            frag_title = frag_title.replace(" ●", "").replace("●", "").strip()
+            if frag_title:
+                pieces.append(ProgramPiece(
+                    composer=composer,
+                    title=f"{parent_title}: {frag_title}",
+                    annotation=annotation,
+                ))
+        return i
+
+    def _looks_like_new_composer(self, lines: list[str], idx: int) -> bool:
+        """Check if lines[idx] is a new composer by looking ahead at lines[idx+1]."""
+        line = lines[idx]
+        # Lines with ":" are likely fragment/excerpt titles, not composers
+        if ":" in line:
+            return False
+        # Lines with "(fragment)" or "(wybór)" are titles
+        if "(" in line and any(kw in line.lower() for kw in ['fragment', 'wybór']):
+            return False
+        if idx + 1 >= len(lines):
+            return False
+        next_line = lines[idx + 1]
+        next_lower = next_line.lower()
+        # Strong title indicators in the following line suggest current line is a composer
+        strong_indicators = [
+            'z baletu', 'z filmu', 'z opery', 'z suity', 'ze zbioru',
+            'z musicalu', 'z cyklu', 'z muzyki', 'fragmenty', '(wybór)',
+            'op.', 'kv ', 'bwv ',
+        ]
+        if any(ind in next_lower for ind in strong_indicators):
+            return True
+        # Also check if the following line starts with a musical form word
+        if self._is_musical_title(next_line):
+            return True
+        return False
+
+    def _is_title_continuation(self, line: str) -> bool:
+        """Check if a line is a continuation of the previous title."""
+        if not line:
+            return False
+        # Lines starting with "(" are annotations
+        if line.startswith("("):
+            return True
+        # Lines starting with lowercase are continuations
+        if line[0].islower():
+            return True
+        return False
+
+    def _is_musical_title(self, line: str) -> bool:
+        """Check if a line contains musical terminology, indicating it's a
+        piece title rather than a composer name."""
+        lower = line.lower()
+        musical_terms = [
+            'op.', ' nr ', 'kv ', 'bwv ', 'cz.', ' k ',
+            '-dur', '-moll',
+            'z filmu', 'z baletu', 'z opery', 'z suity', 'ze zbioru',
+            'z musicalu', 'z cyklu', 'z muzyki',
+            'sł.', 'oprac.',
+        ]
+        if any(term in lower for term in musical_terms):
+            return True
+        # Musical form words at the start
+        form_words = [
+            'sonata', 'sonatina', 'kwintet', 'kwartet', 'trio', 'duet',
+            'koncert', 'symfoni', 'uwertura', 'suita', 'nokturn',
+            'preludium', 'fuga', 'walc', 'mazur', 'polone', 'taniec',
+            'marsz', 'pieśń', 'pieśn', 'aria', 'romans', 'etiuda',
+            'fantazja', 'rapsod', 'scherzo', 'rondo', 'menuet',
+            'variazioni', 'allegro', 'adagio', 'andante',
+        ]
+        first_word = lower.split()[0] if lower.split() else ""
+        if any(first_word.startswith(fw) for fw in form_words):
+            return True
+        return False
+
+    def _is_pdf_footer_line(self, line: str) -> bool:
+        """Check if a line is a footer/metadata line to skip."""
+        lower = line.lower()
+        return any(kw in lower for kw in [
+            'opracowanie muzyczne utworów',
+            'opracowanie wszystkich',
+            'w opracowaniu',
+            'wszystkie utwory',
+            'na następn',
+            'uprzejmie informujemy',
+        ])
 
     def _extract_duration(self, el) -> Optional[int]:
         """Extract duration in minutes from a span.time element like [36']."""
