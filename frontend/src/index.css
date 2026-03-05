@@ -16,10 +16,27 @@ code {
     monospace;
 }
 
-/* Dark mode global overrides */
+/* Dark mode: base text and background */
+.dark {
+  color-scheme: dark;
+}
+
 .dark body,
 .dark .min-h-screen {
   background-color: #111827 !important;
+  color: #e5e7eb !important;
+}
+
+.dark h1, .dark h2, .dark h3, .dark h4, .dark h5, .dark h6 {
+  color: #f3f4f6 !important;
+}
+
+.dark p, .dark span, .dark li, .dark label, .dark div {
+  color: inherit;
+}
+
+.dark .text-black {
+  color: #f3f4f6 !important;
 }
 
 .dark .bg-white {
@@ -76,6 +93,23 @@ code {
   background-color: #374151 !important;
   color: #f3f4f6 !important;
   border-color: #4b5563 !important;
+  color-scheme: dark;
+}
+
+.dark select option {
+  background-color: #374151 !important;
+  color: #f3f4f6 !important;
+}
+
+.dark select:focus,
+.dark input:focus,
+.dark textarea:focus {
+  background-color: #374151 !important;
+  outline-color: #6b7280 !important;
+}
+
+.dark button:not([class*="bg-"]) {
+  color: #e5e7eb !important;
 }
 
 .dark table th {
@@ -85,6 +119,7 @@ code {
 
 .dark table td {
   border-color: #374151 !important;
+  color: #e5e7eb !important;
 }
 
 .dark .bg-gray-300 {
