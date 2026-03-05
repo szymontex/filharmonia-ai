@@ -46,12 +46,14 @@ export default function CalendarBrowser({ onBack, onOpenCsv }: CalendarBrowserPr
       })
       setAnalyzedFiles(analyzed)
 
-      // Set default year/month to most recent recording if not set
+      // Set default year/month to most recent recording with a valid date
       if (!selectedYear && recordingsRes.data.length > 0) {
-        const latestDate = recordingsRes.data[0].date  // Already sorted newest first
-        const [year, month] = latestDate.split('-')
-        setSelectedYear(year)
-        setSelectedMonth(month.replace(/^0/, ''))  // Remove leading zero: '09' -> '9'
+        const latest = recordingsRes.data.find((r: Recording) => /^\d{4}-\d{2}-\d{2}$/.test(r.date))
+        if (latest) {
+          const [year, month] = latest.date.split('-')
+          setSelectedYear(year)
+          setSelectedMonth(month.replace(/^0/, ''))  // Remove leading zero: '09' -> '9'
+        }
       }
     } catch (error) {
       console.error('Error loading recordings:', error)
@@ -62,7 +64,7 @@ export default function CalendarBrowser({ onBack, onOpenCsv }: CalendarBrowserPr
 
   // Get unique years from recordings
   const availableYears = Array.from(
-    new Set(recordings.map(r => r.date.split('-')[0]))
+    new Set(recordings.map(r => r.date.split('-')[0]).filter(y => /^\d{4}$/.test(y)))
   ).sort().reverse()
 
   // Filter recordings by selected year/month

@@ -42,10 +42,8 @@ function HomePage({ onNavigate }: { onNavigate: (page: 'home' | 'csv' | 'calenda
     axios.get('/health')
       .then(res => {
         setStatus(`✅ Backend: ${res.data.status}`)
-        return axios.get('/api/v1/info')
-      })
-      .then(res => {
-        setGpuAvailable(res.data.gpu_available)
+        // /health returns device: "cuda" or "cpu"
+        setGpuAvailable(res.data.device === 'cuda')
       })
       .catch(() => setStatus('❌ Backend offline'))
   }, [])

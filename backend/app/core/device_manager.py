@@ -143,6 +143,10 @@ class DeviceManager:
 
     @property
     def supports_compile(self) -> bool:
+        import sys
+        # torch.compile requires Triton which is not available on Windows
+        if sys.platform == 'win32':
+            return False
         return self.is_gpu
 
     @property

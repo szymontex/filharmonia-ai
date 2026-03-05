@@ -10,6 +10,7 @@ interface TrackTableProps {
   // Track operations
   onToggleSelect: (id: string) => void
   onUpdateName: (id: string, name: string) => void
+  onNameFocus?: () => void
   onUpdateClass: (id: string, predicted_class: string) => void
   onUpdateStart: (id: string, start: string) => void
   onUpdateStop: (id: string, stop: string) => void
@@ -43,6 +44,7 @@ export function TrackTable({
   selectedTrackId,
   onToggleSelect,
   onUpdateName,
+  onNameFocus,
   onUpdateClass,
   onUpdateStart,
   onUpdateStop,
@@ -139,6 +141,7 @@ export function TrackTable({
                     type="text"
                     value={track.name}
                     onChange={(e) => onUpdateName(track.id, e.target.value)}
+                    onFocus={onNameFocus}
                     className="w-full px-2 py-1 border rounded"
                     placeholder="Track name..."
                   />

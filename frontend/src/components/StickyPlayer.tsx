@@ -553,13 +553,18 @@ export default function StickyPlayer({ mp3Path, tracks, onClose, onTrackUpdate, 
     audio.pause()
     setSeeking(true)
 
-    const onSeeked = () => {
+    const cleanup = () => {
       audio.removeEventListener('seeked', onSeeked)
+      clearTimeout(timeout)
       setSeeking(false)
       if (wasPlaying) {
         audio.play()
       }
     }
+
+    const onSeeked = () => cleanup()
+    // Safety timeout - if seeked never fires (unbuffered region), unblock after 3s
+    const timeout = setTimeout(cleanup, 3000)
 
     audio.addEventListener('seeked', onSeeked)
     audio.currentTime = newTime

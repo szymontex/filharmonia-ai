@@ -7,6 +7,7 @@ import { TrackTable } from '../components/TrackTable'
 import { CsvSelector } from '../components/CsvSelector'
 import { PlayerControls } from '../components/PlayerControls'
 import KeyboardHelp from '../components/KeyboardHelp'
+import { ImportTracklistDialog } from '../components/ImportTracklistDialog'
 import { useExponentialPolling } from '../hooks/useExponentialPolling'
 import { useAudioPlayer } from '../hooks/useAudioPlayer'
 import { useTrackEditor } from '../hooks/useTrackEditor'
@@ -89,11 +90,12 @@ export default function CsvViewer({ onBack, initialCsv }: CsvViewerProps = {}) {
   const [editedCsvs, setEditedCsvs] = useState<Set<string>>(new Set())  // Set of edited CSV paths
   const [exportedSegments, setExportedSegments] = useState<Set<number>>(new Set())  // Set of exported segment indices
   const [csvsWithExports, setCsvsWithExports] = useState<Set<string>>(new Set())  // Set of CSV paths that have exported segments
-  const [threshold, setThreshold] = useState(5)  // Threshold for noise filtering
-  const [debouncedThreshold, setDebouncedThreshold] = useState(5)  // Debounced threshold for API calls
+  const [threshold, setThreshold] = useState(3)  // Threshold for noise filtering
+  const [debouncedThreshold, setDebouncedThreshold] = useState(3)  // Debounced threshold for API calls
   const [progressStage, setProgressStage] = useState<string | null>(null)  // Progress indicator for operations
   const abortRef = useRef<AbortController | null>(null)  // AbortController for analysis cancellation
   const [showKeyboardHelp, setShowKeyboardHelp] = useState(false)  // Keyboard help panel visibility
+  const [showImportDialog, setShowImportDialog] = useState(false)  // Import tracklist dialog
 
   // Fetch function for exponential backoff polling
   const fetchAnalysisStatus = useCallback(async () => {
@@ -217,7 +219,7 @@ export default function CsvViewer({ onBack, initialCsv }: CsvViewerProps = {}) {
   // Reload tracks when debounced threshold changes
   useEffect(() => {
     if (selectedCsv && !hasUnsavedChanges) {
-      loadCsv(selectedCsv)
+      loadCsv(selectedCsv, { skipAutosaveCheck: true })
     }
   }, [debouncedThreshold])
 
@@ -231,7 +233,7 @@ export default function CsvViewer({ onBack, initialCsv }: CsvViewerProps = {}) {
     }
   }
 
-  const loadCsv = async (csvPath: string) => {
+  const loadCsv = async (csvPath: string, { skipAutosaveCheck = false } = {}) => {
     // Abort any in-flight request and create new controller
     abortRef.current?.abort()
     abortRef.current = new AbortController()
@@ -241,19 +243,21 @@ export default function CsvViewer({ onBack, initialCsv }: CsvViewerProps = {}) {
     setSelectedCsv(csvPath)
 
     try {
-      // Check for autosave
-      const autosaveCheck = await axios.get(`/api/v1/csv/check-autosave?path=${encodeURIComponent(csvPath)}`, {
-        signal: abortRef.current.signal
-      })
-
       let pathToLoad = csvPath
 
-      if (autosaveCheck.data.has_autosave && autosaveCheck.data.autosave_newer) {
-        const useAutosave = window.confirm(
-          `Found newer autosave from ${new Date(autosaveCheck.data.autosave_time).toLocaleString()}.\n\nLoad autosave instead of original?`
-        )
-        if (useAutosave) {
-          pathToLoad = autosaveCheck.data.autosave_path
+      // Only check autosave on initial file load, not on threshold changes
+      if (!skipAutosaveCheck) {
+        const autosaveCheck = await axios.get(`/api/v1/csv/check-autosave?path=${encodeURIComponent(csvPath)}`, {
+          signal: abortRef.current.signal
+        })
+
+        if (autosaveCheck.data.has_autosave && autosaveCheck.data.autosave_newer) {
+          const useAutosave = window.confirm(
+            `Found newer autosave from ${new Date(autosaveCheck.data.autosave_time).toLocaleString()}.\n\nLoad autosave instead of original?`
+          )
+          if (useAutosave) {
+            pathToLoad = autosaveCheck.data.autosave_path
+          }
         }
       }
 
@@ -455,6 +459,12 @@ export default function CsvViewer({ onBack, initialCsv }: CsvViewerProps = {}) {
       })
   }
 
+  const handleImportTracklist = (updatedTracks: typeof tracks) => {
+    undoRedo.pushState(tracks)
+    setTracks(updatedTracks)
+    setHasUnsavedChanges(true)
+  }
+
   const exportToTrainingData = () => {
     if (!selectedCsv || !mp3Path) {
       setErrorToast({ show: true, message: 'No CSV or MP3 selected' })
@@ -528,9 +538,12 @@ export default function CsvViewer({ onBack, initialCsv }: CsvViewerProps = {}) {
   }, [tracks, undoRedo, toggleSelect])
 
   const wrappedUpdateName = useCallback((id: string, name: string) => {
-    undoRedo.pushState(tracks)
     updateName(id, name)
-  }, [tracks, undoRedo, updateName])
+  }, [updateName])
+
+  const pushUndoForName = useCallback(() => {
+    undoRedo.pushState(tracks)
+  }, [tracks, undoRedo])
 
   const wrappedUpdateClass = useCallback((id: string, predicted_class: string) => {
     undoRedo.pushState(tracks)
@@ -564,26 +577,22 @@ export default function CsvViewer({ onBack, initialCsv }: CsvViewerProps = {}) {
     recordCorrection('add')
   }, [tracks, undoRedo, addSegmentBelow, recordCorrection])
 
-  // Undo/redo handlers
+  // Undo/redo handlers - apply returned tracks directly
   const handleUndo = useCallback(() => {
-    if (undoRedo.canUndo) {
-      undoRedo.undo()
-    }
-  }, [undoRedo])
-
-  const handleRedo = useCallback(() => {
-    if (undoRedo.canRedo) {
-      undoRedo.redo()
-    }
-  }, [undoRedo])
-
-  // Sync tracks when undo/redo present state changes
-  useEffect(() => {
-    if (undoRedo.present.length > 0 && undoRedo.present !== tracks) {
-      setTracks(undoRedo.present)
+    const restored = undoRedo.undo()
+    if (restored) {
+      setTracks(restored)
       setHasUnsavedChanges(true)
     }
-  }, [undoRedo.present])
+  }, [undoRedo, setTracks, setHasUnsavedChanges])
+
+  const handleRedo = useCallback(() => {
+    const restored = undoRedo.redo()
+    if (restored) {
+      setTracks(restored)
+      setHasUnsavedChanges(true)
+    }
+  }, [undoRedo, setTracks, setHasUnsavedChanges])
 
   // Keyboard shortcut handlers
   const keyboardHandlers = useMemo(() => ({
@@ -717,6 +726,7 @@ export default function CsvViewer({ onBack, initialCsv }: CsvViewerProps = {}) {
                 selectedCount={tracks.filter(t => t.selected).length}
                 onExportToTraining={exportToTrainingData}
                 onCopyTracklist={copyTracklistToClipboard}
+                onImportTracklist={() => setShowImportDialog(true)}
                 progressStage={progressStage}
                 onUndo={handleUndo}
                 onRedo={handleRedo}
@@ -733,6 +743,7 @@ export default function CsvViewer({ onBack, initialCsv }: CsvViewerProps = {}) {
               selectedTrackId={selectedTrackId}
               onToggleSelect={wrappedToggleSelect}
               onUpdateName={wrappedUpdateName}
+              onNameFocus={pushUndoForName}
               onUpdateClass={wrappedUpdateClass}
               onUpdateStart={wrappedUpdateStart}
               onUpdateStop={wrappedUpdateStop}
@@ -872,6 +883,15 @@ export default function CsvViewer({ onBack, initialCsv }: CsvViewerProps = {}) {
         color="purple"
         index={(showSaveModal ? 1 : 0) + (successToast.show ? 1 : 0) + (errorToast.show ? 1 : 0) + (exportConfirm.show ? 1 : 0)}
         autoClose={6000}
+      />
+
+      {/* Import Tracklist Dialog */}
+      <ImportTracklistDialog
+        show={showImportDialog}
+        onClose={() => setShowImportDialog(false)}
+        csvName={selectedCsv}
+        tracks={tracks}
+        onImport={handleImportTracklist}
       />
 
       {/* Keyboard Help Panel */}

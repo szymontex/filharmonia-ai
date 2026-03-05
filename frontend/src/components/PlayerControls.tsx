@@ -18,6 +18,7 @@ interface PlayerControlsProps {
   selectedCount: number
   onExportToTraining: () => void
   onCopyTracklist: () => void
+  onImportTracklist?: () => void
 
   // Progress indicator
   progressStage?: string | null
@@ -49,6 +50,7 @@ export function PlayerControls({
   selectedCount,
   onExportToTraining,
   onCopyTracklist,
+  onImportTracklist,
   progressStage,
   onUndo,
   onRedo,
@@ -142,6 +144,16 @@ export function PlayerControls({
       >
         Copy Tracklist
       </button>
+
+      {onImportTracklist && (
+        <button
+          onClick={onImportTracklist}
+          className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
+          title="Import tracklist from filharmonia.pl"
+        >
+          Import z FN
+        </button>
+      )}
 
       {/* Keyboard Help Button */}
       {onShowKeyboardHelp && (

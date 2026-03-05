@@ -31,48 +31,108 @@ class FileInfo(BaseModel):
     type: str  # "mp3" or "csv"
     time: str = ""  # HH:MM from ID3 tag (optional)
 
+# Cache for sorted files listing (avoid repeated network scans)
+_sorted_files_cache: dict = {"files": None, "timestamp": 0, "loading": False}
+_SORTED_CACHE_TTL = 1800  # 30 minutes - network share doesn't change often
+
+def _scan_sorted_files_sync() -> list:
+    """Scan sorted folder using scandir - fastest option for network shares."""
+    import os
+    files = []
+    sorted_root = str(settings.SORTED_FOLDER)
+    skip_dirs = {'ANALYSIS_RESULTS', '.waveform_cache'}
+
+    def scan_dir(dirpath, depth=0, year="", month="", day=""):
+        """Recursive scandir - avoids os.walk overhead and extra stat calls."""
+        try:
+            with os.scandir(dirpath) as it:
+                for entry in it:
+                    if entry.is_dir(follow_symlinks=False):
+                        if entry.name in skip_dirs or entry.name.startswith('.'):
+                            continue
+                        # Track year/month/day from folder depth
+                        if depth == 0 and entry.name.isdigit():
+                            scan_dir(entry.path, 1, year=entry.name)
+                        elif depth == 1 and entry.name.isdigit():
+                            scan_dir(entry.path, 2, year=year, month=entry.name)
+                        elif depth == 2 and entry.name.isdigit():
+                            scan_dir(entry.path, 3, year=year, month=month, day=entry.name)
+                        else:
+                            scan_dir(entry.path, depth, year=year, month=month, day=day)
+                    elif entry.name.upper().endswith('.MP3'):
+                        date_str = "Unknown"
+                        if year and month and day:
+                            date_str = f"{year}-{month.zfill(2)}-{day.zfill(2)}"
+                        try:
+                            fsize = entry.stat().st_size
+                        except OSError:
+                            fsize = 0
+                        files.append(FileInfo(
+                            path=entry.path,
+                            name=entry.name,
+                            size=fsize,
+                            date=date_str,
+                            type="mp3",
+                            time=""
+                        ))
+        except PermissionError:
+            pass
+
+    t0 = time.time()
+    scan_dir(sorted_root)
+    files.sort(key=lambda x: x.date, reverse=True)
+    elapsed = time.time() - t0
+    logger.info("Sorted files scan: %d MP3s in %.1fs", len(files), elapsed)
+    return files
+
+def _warm_cache_background():
+    """Warm the cache in a background thread at startup."""
+    import threading
+    def _do():
+        try:
+            _sorted_files_cache["loading"] = True
+            files = _scan_sorted_files_sync()
+            _sorted_files_cache["files"] = files
+            _sorted_files_cache["timestamp"] = time.time()
+        finally:
+            _sorted_files_cache["loading"] = False
+    t = threading.Thread(target=_do, daemon=True)
+    t.start()
+
+# Start warming cache immediately on module load
+_warm_cache_background()
+
 @router.get("/sorted", response_model=List[FileInfo])
 async def list_sorted_files():
     """
-    List all MP3 files from SORTED/ folder
+    List all MP3 files from SORTED/ folder.
+    Cache is warmed at startup. Returns instantly after first scan.
     """
-    files = []
+    import asyncio
 
-    # Search both .mp3 and .MP3 extensions
-    mp3_files = list(settings.SORTED_FOLDER.rglob("*.mp3")) + list(settings.SORTED_FOLDER.rglob("*.MP3"))
+    now = time.time()
+    if _sorted_files_cache["files"] is not None and (now - _sorted_files_cache["timestamp"]) < _SORTED_CACHE_TTL:
+        return _sorted_files_cache["files"]
 
-    for mp3_file in mp3_files:
-        # Parse date from folder structure: SORTED/YYYY/MM/DD/file.mp3
-        rel_path = mp3_file.relative_to(settings.SORTED_FOLDER)
-        parts = rel_path.parts
+    # Cache expired or not ready yet - scan in thread
+    if _sorted_files_cache["loading"]:
+        # Already scanning in background, return what we have (or empty)
+        return _sorted_files_cache["files"] or []
 
-        date_str = "Unknown"
-        if len(parts) >= 3 and parts[0].isdigit() and parts[1].isdigit() and parts[2].isdigit():
-            date_str = f"{parts[0]}-{parts[1].zfill(2)}-{parts[2].zfill(2)}"
+    loop = asyncio.get_event_loop()
+    files = await loop.run_in_executor(None, _scan_sorted_files_sync)
 
-        # Extract time from ID3 tag
-        time_str = ""
-        try:
-            audiofile = eyed3.load(str(mp3_file))
-            if audiofile and audiofile.tag and audiofile.tag.title:
-                record_date = datetime.strptime(audiofile.tag.title, 'Untitled %m/%d/%Y %H:%M:%S')
-                time_str = f"{record_date.hour:02d}:{record_date.minute:02d}"
-        except Exception as e:
-            logger.debug(f"Could not read ID3 tag from {mp3_file}: {e}")
-
-        files.append(FileInfo(
-            path=str(mp3_file),
-            name=mp3_file.name,
-            size=mp3_file.stat().st_size,
-            date=date_str,
-            type="mp3",
-            time=time_str
-        ))
-
-    # Sort by date (newest first)
-    files.sort(key=lambda x: x.date, reverse=True)
+    _sorted_files_cache["files"] = files
+    _sorted_files_cache["timestamp"] = time.time()
 
     return files
+
+@router.post("/sorted/refresh")
+async def refresh_sorted_cache():
+    """Force refresh the sorted files cache"""
+    _sorted_files_cache["files"] = None
+    _sorted_files_cache["timestamp"] = 0
+    return {"message": "Cache cleared, next request will rescan"}
 
 @router.get("/analysis-results", response_model=List[FileInfo])
 async def list_analysis_results():

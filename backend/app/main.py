@@ -11,7 +11,7 @@ import uuid
 from app.config import settings
 
 logger = logging.getLogger(__name__)
-from app.api.v1 import files, analyze, csv_parser, batch, audio, waveform, sort, export, training, uncertainty
+from app.api.v1 import files, analyze, csv_parser, batch, audio, waveform, sort, export, training, uncertainty, filharmonia
 
 
 def terminate_all_workers():
@@ -120,7 +120,9 @@ async def lifespan(app: FastAPI):
         logger.info(f"Received signal {signum}, initiating graceful shutdown...")
         terminate_all_workers()
 
-    signal.signal(signal.SIGTERM, signal_handler)
+    import sys
+    if sys.platform != 'win32':
+        signal.signal(signal.SIGTERM, signal_handler)
     signal.signal(signal.SIGINT, signal_handler)
 
     yield
@@ -227,6 +229,15 @@ app.add_middleware(
 from app.core.middleware import TimeoutMiddleware
 app.add_middleware(TimeoutMiddleware, timeout=60.0)
 
+# Silence noisy polling/autosave endpoints from uvicorn access log
+class _QuietPollFilter(logging.Filter):
+    NOISY = ("/csv/autosave", "/analyze/batch")
+    def filter(self, record: logging.LogRecord) -> bool:
+        msg = record.getMessage()
+        return not any(path in msg for path in self.NOISY)
+
+logging.getLogger("uvicorn.access").addFilter(_QuietPollFilter())
+
 # Include routers
 app.include_router(files.router, prefix="/api/v1")
 app.include_router(analyze.router, prefix="/api/v1")
@@ -238,6 +249,7 @@ app.include_router(sort.router, prefix="/api/v1")
 app.include_router(export.router, prefix="/api/v1")
 app.include_router(training.router, prefix="/api/v1")
 app.include_router(uncertainty.router, prefix="/api/v1")
+app.include_router(filharmonia.router, prefix="/api/v1")
 
 @app.get("/")
 async def root():
