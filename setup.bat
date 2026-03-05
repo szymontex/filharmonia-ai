@@ -318,7 +318,7 @@ set "FILTER_SCRIPT=%TEMP%\filharmonia_filter_req.py"
     echo except Exception as e:
     echo     print(f'  [ERROR] Cannot read requirements.txt: {e}'^)
     echo     sys.exit(1^)
-    echo skip = ['torch==','torchaudio==','torchvision==','nvidia-cublas','nvidia-cudnn','nvidia-cuda','nvidia-cu','nvidia-nccl','nvidia-nvjitlink','nvidia-nvtx','tensorflow','keras==','tensorboard','ml-dtypes==0.2','ml_dtypes==0.2','triton']
+    echo skip = ['torch==','torchaudio==','torchvision==','nvidia-cublas','nvidia-cudnn','nvidia-cuda','nvidia-cu','nvidia-nccl','nvidia-nvjitlink','nvidia-nvtx','tensorflow','keras==','tensorboard','ml-dtypes==0.2','ml_dtypes==0.2','triton','coverage']
     echo filtered = [l for l in lines if not any(s in l for s in skip^) and l.strip(^) and not l.strip(^).startswith('#'^)]
     echo open('_req_filtered.txt','w',encoding='utf-8'^).writelines(filtered^)
     echo print(f'  Filtered: {len(lines^)} -> {len(filtered^)} packages'^)
