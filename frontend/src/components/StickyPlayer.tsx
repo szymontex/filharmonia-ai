@@ -562,21 +562,22 @@ export default function StickyPlayer({ mp3Path, tracks, onClose, onTrackUpdate, 
                 <span className="text-xs text-gray-600 font-medium whitespace-nowrap" title="Waveform amplitude zoom">
                   Amp
                 </span>
-                <input
-                  type="range"
-                  min="1"
-                  max="10"
-                  step="0.5"
-                  value={amplitudeScale}
-                  onChange={(e) => setAmplitudeScale(parseFloat(e.target.value))}
-                  className="h-24 cursor-pointer"
-                  style={{
-                    writingMode: 'bt-lr' as React.CSSProperties['writingMode'],
-                    WebkitAppearance: 'slider-vertical',
-                    width: '8px'
-                  }}
-                  title={`Amplitude: ${amplitudeScale}x`}
-                />
+                <div className="flex items-center justify-center" style={{ width: 24, height: 96 }}>
+                  <input
+                    type="range"
+                    min="1"
+                    max="10"
+                    step="0.5"
+                    value={amplitudeScale}
+                    onChange={(e) => setAmplitudeScale(parseFloat(e.target.value))}
+                    className="cursor-pointer"
+                    style={{
+                      width: '96px',
+                      transform: 'rotate(-90deg)',
+                    }}
+                    title={`Amplitude: ${amplitudeScale}x`}
+                  />
+                </div>
                 <span className="text-xs text-blue-600 font-semibold">
                   {amplitudeScale}x
                 </span>
