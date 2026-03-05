@@ -357,18 +357,20 @@ REM ============================================================
 echo.
 echo [5/6] Setting up React frontend...
 
-if not exist "%SCRIPT_DIR%frontend\" (
+set "FRONTEND_DIR=%SCRIPT_DIR%frontend"
+if not exist "!FRONTEND_DIR!\" (
     echo   [ERROR] frontend folder not found!
     set "ERRORS=1"
     goto :skip_frontend
 )
-cd /d "%SCRIPT_DIR%frontend"
-echo   [*] Working directory: !CD!
-if not exist package.json (
-    echo   [ERROR] package.json not found in !CD!
+if not exist "!FRONTEND_DIR!\package.json" (
+    echo   [ERROR] package.json not found in !FRONTEND_DIR!
     set "ERRORS=1"
     goto :skip_frontend
 )
+
+pushd "!FRONTEND_DIR!"
+echo   [*] Working directory: !CD!
 
 set "PATH=%APPDATA%\npm;%ProgramFiles%\nodejs;!PATH!"
 
@@ -377,28 +379,25 @@ if exist node_modules (
     echo   [*] Updating dependencies...
 )
 
-REM Set CI=true so pnpm works in non-interactive/piped mode
-set "CI=true"
 where pnpm >nul 2>&1
 if !errorlevel! equ 0 (
-    pnpm install
+    cmd /c "set CI=true && pnpm install --dir "!FRONTEND_DIR!""
 ) else (
     echo   [!] pnpm not available, using npm...
-    npm install
+    npm install --prefix "!FRONTEND_DIR!"
 )
-set "CI="
 if !errorlevel! neq 0 (
     echo   [ERROR] Failed to install frontend dependencies!
     set "ERRORS=1"
 )
-
 echo   [*] Checking TypeScript...
-call npx tsc --noEmit >nul 2>&1
+call npx --prefix "!FRONTEND_DIR!" tsc --noEmit >nul 2>&1
 if !errorlevel! equ 0 (
     echo   [OK] TypeScript - no errors
 ) else (
     echo   [WARN] TypeScript errors found - may need fixes
 )
+popd
 
 :skip_frontend
 cd /d "%SCRIPT_DIR%"
