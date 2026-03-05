@@ -387,7 +387,7 @@ class FilharmoniaScraper:
                 if not text or "Program" not in text:
                     continue
 
-                # Detect two-column layout: "przerwa" in right half only
+                # Detect two-column layout and re-extract in correct order
                 if self._is_two_column_page(page):
                     text = self._extract_two_column_text(page)
 
@@ -424,21 +424,60 @@ class FilharmoniaScraper:
         return self._parse_pdf_lines(program_text)
 
     def _is_two_column_page(self, page) -> bool:
-        """Detect two-column layout by checking if 'przerwa' is in the right half only."""
+        """Detect two-column layout by analyzing word x-positions for a gap in the middle."""
+        words = page.extract_words()
+        if len(words) < 10:
+            return False
+
         w = page.width
-        mid = w / 2
-        left_crop = page.crop((0, 0, mid, page.height))
-        right_crop = page.crop((mid, 0, w, page.height))
-        left_text = (left_crop.extract_text() or "").lower()
-        right_text = (right_crop.extract_text() or "").lower()
-        return "przerwa" in right_text and "przerwa" not in left_text
+        # Check if there's a clear vertical gap in the middle third of the page
+        mid_left = w * 0.35
+        mid_right = w * 0.65
+
+        # Count words whose center falls in the left, middle, and right zones
+        left_count = 0
+        right_count = 0
+        mid_count = 0
+        for word in words:
+            cx = (word["x0"] + word["x1"]) / 2
+            if cx < mid_left:
+                left_count += 1
+            elif cx > mid_right:
+                right_count += 1
+            else:
+                mid_count += 1
+
+        # Two-column if both sides have significant text and the middle gap is sparse
+        has_both_sides = left_count >= 5 and right_count >= 5
+        gap_is_sparse = mid_count < (left_count + right_count) * 0.15
+        return has_both_sides and gap_is_sparse
 
     def _extract_two_column_text(self, page) -> str:
-        """Extract text from a two-column page by reading left then right."""
+        """Extract text from a two-column page by reading left column then right column."""
+        words = page.extract_words()
+        if not words:
+            return page.extract_text() or ""
+
+        # Find the split point: largest horizontal gap between word clusters
+        x_starts = sorted(set(round(w["x0"]) for w in words))
         w = page.width
-        mid = w / 2
-        left_crop = page.crop((0, 0, mid, page.height))
-        right_crop = page.crop((mid, 0, w, page.height))
+        best_gap_x = w / 2
+        best_gap_size = 0
+
+        # Only look for gaps in the middle 30-70% of the page
+        for j in range(len(x_starts) - 1):
+            gap_start = x_starts[j]
+            gap_end = x_starts[j + 1]
+            gap_center = (gap_start + gap_end) / 2
+            if w * 0.3 < gap_center < w * 0.7:
+                gap_size = gap_end - gap_start
+                if gap_size > best_gap_size:
+                    best_gap_size = gap_size
+                    best_gap_x = gap_center
+
+        # Crop at the split point and extract each column
+        left_crop = page.crop((0, 0, best_gap_x, page.height))
+        right_crop = page.crop((best_gap_x, 0, w, page.height))
         left_text = left_crop.extract_text() or ""
         right_text = right_crop.extract_text() or ""
         return left_text + "\n" + right_text
