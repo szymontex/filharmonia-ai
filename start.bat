@@ -44,7 +44,7 @@ if not exist "frontend\node_modules" (
 )
 
 echo [1/4] Starting backend server...
-start "Filharmonia Backend" cmd /k "cd backend && venv\Scripts\activate && python -m uvicorn app.main:app --host 0.0.0.0 --port 8000"
+start "Filharmonia Backend" cmd /k "cd backend && venv\Scripts\python.exe -m uvicorn app.main:app --host 0.0.0.0 --port 8000"
 timeout /t 3 /nobreak >nul
 
 echo [2/4] Starting frontend server...

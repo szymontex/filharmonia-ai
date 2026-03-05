@@ -264,11 +264,20 @@ if not exist "venv\Scripts\activate.bat" (
     )
 )
 
-echo   [*] Activating virtualenv...
-call venv\Scripts\activate.bat
+REM Use explicit venv paths - activate.bat doesn't work reliably in piped mode
+set "VENV_PYTHON=venv\Scripts\python.exe"
+set "VENV_PIP=venv\Scripts\pip.exe"
+
+echo   [*] Verifying venv python...
+"!VENV_PYTHON!" --version
+if !errorlevel! neq 0 (
+    echo   [ERROR] venv python not working!
+    set "ERRORS=1"
+    goto :skip_backend
+)
 
 echo   [*] Upgrading pip...
-python -m pip install --upgrade pip >nul 2>&1
+"!VENV_PYTHON!" -m pip install --upgrade pip >nul 2>&1
 
 REM Detect GPU
 echo   [*] Detecting GPU...
@@ -284,16 +293,16 @@ if !errorlevel! equ 0 (
 REM Install PyTorch
 echo   [*] Installing PyTorch - this may take a few minutes...
 if !CUDA_AVAILABLE! equ 1 (
-    pip install torch==2.5.1 torchvision==0.20.1 torchaudio==2.5.1 --index-url https://download.pytorch.org/whl/cu121
+    "!VENV_PIP!" install torch==2.5.1 torchvision==0.20.1 torchaudio==2.5.1 --index-url https://download.pytorch.org/whl/cu121
 ) else (
-    pip install torch==2.5.1 torchvision==0.20.1 torchaudio==2.5.1 --index-url https://download.pytorch.org/whl/cpu
+    "!VENV_PIP!" install torch==2.5.1 torchvision==0.20.1 torchaudio==2.5.1 --index-url https://download.pytorch.org/whl/cpu
 )
 if !errorlevel! neq 0 (
     echo   [WARN] Pinned versions failed, trying without version pins...
     if !CUDA_AVAILABLE! equ 1 (
-        pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+        "!VENV_PIP!" install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
     ) else (
-        pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+        "!VENV_PIP!" install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
     )
     if !errorlevel! neq 0 (
         echo   [ERROR] Failed to install PyTorch!
@@ -323,7 +332,7 @@ set "FILTER_SCRIPT=%TEMP%\filharmonia_filter_req.py"
     echo open('_req_filtered.txt','w',encoding='utf-8'^).writelines(filtered^)
     echo print(f'  Filtered: {len(lines^)} -> {len(filtered^)} packages'^)
 )
-python "!FILTER_SCRIPT!"
+"!VENV_PYTHON!" "!FILTER_SCRIPT!"
 del /f "!FILTER_SCRIPT!" >nul 2>&1
 
 if not exist _req_filtered.txt (
@@ -331,19 +340,19 @@ if not exist _req_filtered.txt (
     goto :skip_requirements
 )
 
-pip install -r _req_filtered.txt 2>&1 | findstr /V "already satisfied"
+"!VENV_PIP!" install -r _req_filtered.txt 2>&1 | findstr /V "already satisfied"
 if !errorlevel! neq 0 (
     echo   [WARN] Some packages failed. Installing one by one...
     for /f "usebackq delims=" %%L in ("_req_filtered.txt") do (
         set "PKG=%%L"
-        if not "!PKG!"=="" if not "!PKG:~0,1!"=="#" pip install "!PKG!" >nul 2>&1
+        if not "!PKG!"=="" if not "!PKG:~0,1!"=="#" "!VENV_PIP!" install "!PKG!" >nul 2>&1
     )
 )
 del /f _req_filtered.txt >nul 2>&1
 
 :skip_requirements
 echo   [*] Verifying critical dependencies...
-pip install aiosqlite polars cachetools fastapi uvicorn pydantic python-dotenv python-multipart >nul 2>&1
+"!VENV_PIP!" install aiosqlite polars cachetools fastapi uvicorn pydantic python-dotenv python-multipart >nul 2>&1
 
 echo   [OK] Backend configured
 
@@ -435,7 +444,6 @@ echo  =========================================
 echo.
 
 cd /d "%SCRIPT_DIR%backend"
-if exist "venv\Scripts\activate.bat" call venv\Scripts\activate.bat
 
 REM Write verification script to temp file
 set "VERIFY_SCRIPT=%TEMP%\filharmonia_verify.py"
@@ -478,7 +486,11 @@ set "VERIFY_SCRIPT=%TEMP%\filharmonia_verify.py"
     echo if fail ^> 0:
     echo     print(f'  {fail} packages missing - manual install may be needed'^)
 )
-python "!VERIFY_SCRIPT!"
+if exist "venv\Scripts\python.exe" (
+    venv\Scripts\python.exe "!VERIFY_SCRIPT!"
+) else (
+    python "!VERIFY_SCRIPT!"
+)
 del /f "!VERIFY_SCRIPT!" >nul 2>&1
 
 cd /d "%SCRIPT_DIR%"
