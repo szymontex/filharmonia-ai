@@ -113,20 +113,14 @@ code {
   color: #e5e7eb !important;
 }
 
-.dark button:disabled,
-.dark button[disabled] {
-  background-color: #4b5563 !important;
-  color: #9ca3af !important;
-}
-
 .dark .disabled\:bg-gray-300:disabled {
   background-color: #4b5563 !important;
-  color: #9ca3af !important;
+  color: #e5e7eb !important;
 }
 
 .dark .disabled\:bg-gray-400:disabled {
   background-color: #4b5563 !important;
-  color: #9ca3af !important;
+  color: #e5e7eb !important;
 }
 
 .dark table th {
