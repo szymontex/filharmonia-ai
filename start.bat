@@ -10,22 +10,36 @@ echo.
 REM Kill existing servers if running
 echo [0/4] Stopping existing servers...
 
-REM Kill ALL python/uvicorn processes on port 8000
-REM Use powershell for reliable PID extraction
-powershell -Command "Get-NetTCPConnection -LocalPort 8000 -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue }" >nul 2>&1
-
-REM Kill ALL node processes on port 5173
-powershell -Command "Get-NetTCPConnection -LocalPort 5173 -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue }" >nul 2>&1
-
-REM Also kill by window title as backup
+REM Kill by window title first (kills the cmd host windows)
 taskkill /F /FI "WINDOWTITLE eq Filharmonia Backend*" >nul 2>&1
 taskkill /F /FI "WINDOWTITLE eq Filharmonia Frontend*" >nul 2>&1
+
+REM Kill processes on port 8000 (backend)
+for /f "tokens=5" %%a in ('netstat -aon ^| findstr ":8000 " ^| findstr "LISTEN"') do (
+    echo   Killing PID %%a on port 8000
+    taskkill /F /PID %%a >nul 2>&1
+)
+
+REM Kill processes on port 5173 (frontend)
+for /f "tokens=5" %%a in ('netstat -aon ^| findstr ":5173 " ^| findstr "LISTEN"') do (
+    echo   Killing PID %%a on port 5173
+    taskkill /F /PID %%a >nul 2>&1
+)
 
 REM Wait for ports to free up
 timeout /t 2 /nobreak >nul
 
-REM Verify ports are free
-powershell -Command "$p8000 = Get-NetTCPConnection -LocalPort 8000 -State Listen -ErrorAction SilentlyContinue; $p5173 = Get-NetTCPConnection -LocalPort 5173 -State Listen -ErrorAction SilentlyContinue; if ($p8000) { Write-Host '  WARNING: Port 8000 still in use by PID' $p8000.OwningProcess; Stop-Process -Id $p8000.OwningProcess -Force -ErrorAction SilentlyContinue }; if ($p5173) { Write-Host '  WARNING: Port 5173 still in use by PID' $p5173.OwningProcess; Stop-Process -Id $p5173.OwningProcess -Force -ErrorAction SilentlyContinue }"
+REM Verify ports are free - retry kill if needed
+for /f "tokens=5" %%a in ('netstat -aon ^| findstr ":8000 " ^| findstr "LISTEN"') do (
+    echo   WARNING: Port 8000 still in use by PID %%a, force killing...
+    taskkill /F /PID %%a >nul 2>&1
+    taskkill /F /T /PID %%a >nul 2>&1
+)
+for /f "tokens=5" %%a in ('netstat -aon ^| findstr ":5173 " ^| findstr "LISTEN"') do (
+    echo   WARNING: Port 5173 still in use by PID %%a, force killing...
+    taskkill /F /PID %%a >nul 2>&1
+    taskkill /F /T /PID %%a >nul 2>&1
+)
 
 REM Check if backend venv exists
 if not exist "backend\venv\Scripts\activate.bat" (
