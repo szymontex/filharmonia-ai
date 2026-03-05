@@ -87,10 +87,62 @@ code {
   border-color: #374151 !important;
 }
 
+.dark .bg-gray-300 {
+  background-color: #4b5563 !important;
+}
+
+.dark .bg-gray-400 {
+  background-color: #6b7280 !important;
+}
+
+.dark .bg-gray-600 {
+  background-color: #d1d5db !important;
+}
+
+.dark .text-gray-400 {
+  color: #9ca3af !important;
+}
+
 .dark .hover\:bg-gray-50:hover {
   background-color: #283548 !important;
 }
 
 .dark .hover\:bg-gray-100:hover {
   background-color: #1f2937 !important;
+}
+
+.dark .hover\:bg-gray-200:hover {
+  background-color: #374151 !important;
+}
+
+/* Dark mode: status badges */
+.dark .bg-green-100 { background-color: #064e3b !important; }
+.dark .text-green-800 { color: #6ee7b7 !important; }
+.dark .bg-red-100 { background-color: #7f1d1d !important; }
+.dark .text-red-800 { color: #fca5a5 !important; }
+.dark .bg-yellow-100 { background-color: #78350f !important; }
+.dark .text-yellow-800 { color: #fde68a !important; }
+.dark .bg-blue-100 { background-color: #1e3a5f !important; }
+.dark .text-blue-800 { color: #93c5fd !important; }
+.dark .bg-orange-100 { background-color: #7c2d12 !important; }
+.dark .text-orange-800 { color: #fdba74 !important; }
+.dark .bg-purple-100 { background-color: #4c1d95 !important; }
+.dark .text-purple-800 { color: #c4b5fd !important; }
+
+/* Dark mode: alert/info boxes */
+.dark .bg-blue-50 { background-color: #172554 !important; }
+.dark .bg-green-50 { background-color: #052e16 !important; }
+.dark .bg-red-50 { background-color: #450a0a !important; }
+.dark .bg-yellow-50 { background-color: #422006 !important; }
+.dark .bg-orange-50 { background-color: #431407 !important; }
+.dark .bg-purple-50 { background-color: #2e1065 !important; }
+
+/* Dark mode: scrollbar */
+.dark ::-webkit-scrollbar { background: #1f2937; }
+.dark ::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 4px; }
+
+/* Dark mode: modal/dialog overlays */
+.dark .bg-black\/50,
+.dark .bg-black\/40 {
+  background-color: rgba(0, 0, 0, 0.7) !important;
 }
