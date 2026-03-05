@@ -347,6 +347,8 @@ export default function CsvViewer({ onBack, initialCsv }: CsvViewerProps = {}) {
         path: selectedCsv,
         tracks: tracks
       })
+      // Clean up autosave file after successful save
+      await axios.delete(`/api/v1/csv/discard-autosave?path=${encodeURIComponent(selectedCsv)}`).catch(() => {})
       setHasUnsavedChanges(false)
       setShowSaveModal(true)
       setTimeout(() => setShowSaveModal(false), 2000)
