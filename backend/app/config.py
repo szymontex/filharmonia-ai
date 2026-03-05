@@ -2,9 +2,12 @@
 Application configuration with environment variable support
 """
 import os
+import logging
 from pathlib import Path
 from typing import List
 from dotenv import load_dotenv
+
+logger = logging.getLogger(__name__)
 
 # Load .env file from project root (3 levels up from this file)
 _project_root = Path(__file__).parent.parent.parent
@@ -24,8 +27,11 @@ class Settings:
         # Default: create FILHARMONIA_DATA folder in project root
         FILHARMONIA_BASE: Path = Path(__file__).parent.parent.parent / "FILHARMONIA_DATA"
 
-    # Ensure base directory exists
-    FILHARMONIA_BASE.mkdir(parents=True, exist_ok=True)
+    if not FILHARMONIA_BASE.exists():
+        try:
+            FILHARMONIA_BASE.mkdir(parents=True, exist_ok=True)
+        except (PermissionError, OSError) as e:
+            logger.warning(f"Cannot create base directory {FILHARMONIA_BASE}: {e}")
 
     # Data paths - configurable folder names via environment variables
     SORTED_FOLDER: Path = FILHARMONIA_BASE / os.getenv("SORTED_FOLDER_NAME", "SORTED")
