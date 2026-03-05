@@ -3,6 +3,17 @@ setlocal enabledelayedexpansion
 chcp 65001 >nul 2>&1
 title Filharmonia AI - Setup
 
+REM Log all output to file for debugging
+set "LOGFILE=%~dp0setup.log"
+if "%~1"=="__logged__" goto :main
+echo Setup started: %date% %time% > "!LOGFILE!"
+powershell -NoProfile -Command "& cmd /c '\"%~f0\" __logged__' 2>&1 | Tee-Object -FilePath '!LOGFILE!' -Append"
+echo.
+echo  Log saved to: !LOGFILE!
+pause
+exit /b
+
+:main
 echo.
 echo  =========================================
 echo   Filharmonia AI - Setup Wizard
