@@ -199,81 +199,69 @@ export default function StickyPlayer({ mp3Path, tracks, onClose, onTrackUpdate, 
     }
   }, [seekToTime, waveformData, onSeekComplete])
 
-  // Draw waveform
-  useEffect(() => {
+  // Shared draw function - renders entire waveform, regions, markers, playhead
+  const drawCanvas = useRef<() => void>(() => {})
+  drawCanvas.current = () => {
     if (!canvasRef.current || !waveformData) return
 
     const canvas = canvasRef.current
     const ctx = canvas.getContext('2d')
     if (!ctx) return
 
+    // Set canvas internal resolution (not in JSX) so clear+draw happen in same frame = no flicker
+    const targetWidth = 1400 * zoom
+    if (canvas.width !== targetWidth) canvas.width = targetWidth
+
     const width = canvas.width
     const height = canvas.height
     const data = waveformData.data
+    const totalDuration = waveformData.duration
 
-    // Clear canvas with white background
     ctx.fillStyle = '#ffffff'
     ctx.fillRect(0, 0, width, height)
 
-    // Draw waveform with darker color
+    // Waveform
     const step = width / data.length
-    ctx.strokeStyle = '#4b5563' // gray-600 - darker
+    ctx.strokeStyle = '#4b5563'
     ctx.lineWidth = 1
-
     ctx.beginPath()
     data.forEach((point: any, i: number) => {
       const x = i * step
       const yMin = (height / 2) - (point.min * height / 2 * amplitudeScale)
       const yMax = (height / 2) - (point.max * height / 2 * amplitudeScale)
-
-      if (i === 0) {
-        ctx.moveTo(x, yMin)
-      }
+      if (i === 0) ctx.moveTo(x, yMin)
       ctx.lineTo(x, yMin)
       ctx.lineTo(x, yMax)
     })
     ctx.stroke()
 
-    // Draw regions (colored overlays)
-    const totalDuration = waveformData.duration
+    // Regions
     tracks.forEach((track, idx) => {
       const start = timeToSeconds(track.start)
       const startX = (start / totalDuration) * width
-
-      // End position: if there's a next track, draw until its start; otherwise use track's stop
       let endX
       if (idx < tracks.length - 1) {
-        const nextTrackStart = timeToSeconds(tracks[idx + 1].start)
-        endX = (nextTrackStart / totalDuration) * width
+        endX = (timeToSeconds(tracks[idx + 1].start) / totalDuration) * width
       } else {
-        const end = timeToSeconds(track.stop)
-        endX = (end / totalDuration) * width
+        endX = (timeToSeconds(track.stop) / totalDuration) * width
       }
 
       ctx.fillStyle = CLASS_COLORS[track.predicted_class as keyof typeof CLASS_COLORS]?.rgba || 'rgba(128, 128, 128, 0.4)'
       ctx.fillRect(startX, 0, endX - startX, height)
 
-      // Draw selection border if this track is selected (inset to avoid overlapping markers)
       if (selectedTrackId === track.id) {
-        ctx.strokeStyle = '#2563eb' // blue-600
+        ctx.strokeStyle = '#2563eb'
         ctx.lineWidth = 3
-        // Inset by 1.5px (half the line width) to keep border inside the region
         ctx.strokeRect(startX + 1.5, 1.5, (endX - startX) - 3, height - 3)
       }
     })
 
-    // Draw boundary markers at the start of each next track
+    // Boundary markers
     for (let i = 0; i < tracks.length - 1; i++) {
       const currentTrack = tracks[i]
       const nextTrack = tracks[i + 1]
-
-      // Marker at the start of the next track
-      const nextStart = timeToSeconds(nextTrack.start)
-      const boundaryX = (nextStart / totalDuration) * width
-
-      // Check if this boundary is being hovered
+      const boundaryX = (timeToSeconds(nextTrack.start) / totalDuration) * width
       const isHover = hoverMarker?.prevTrackId === currentTrack.id && hoverMarker?.nextTrackId === nextTrack.id
-
       ctx.strokeStyle = isHover ? '#3b82f6' : '#1f2937'
       ctx.lineWidth = isHover ? 3 : 2
       ctx.beginPath()
@@ -282,7 +270,7 @@ export default function StickyPlayer({ mp3Path, tracks, onClose, onTrackUpdate, 
       ctx.stroke()
     }
 
-    // Draw playhead
+    // Playhead
     if (audioRef.current) {
       const playheadX = (audioRef.current.currentTime / totalDuration) * width
       ctx.strokeStyle = '#ef4444'
@@ -292,10 +280,14 @@ export default function StickyPlayer({ mp3Path, tracks, onClose, onTrackUpdate, 
       ctx.lineTo(playheadX, height)
       ctx.stroke()
     }
+  }
 
+  // Redraw when deps change
+  useEffect(() => {
+    drawCanvas.current()
   }, [waveformData, tracks, zoom, hoverMarker, selectedTrackId, amplitudeScale])
 
-  // Redraw playhead on time update
+  // Redraw + auto-scroll on time update
   useEffect(() => {
     if (!audioRef.current) return
 
@@ -304,7 +296,6 @@ export default function StickyPlayer({ mp3Path, tracks, onClose, onTrackUpdate, 
       const currentSeconds = audioRef.current.currentTime
       setCurrentTime(secondsToTime(currentSeconds))
 
-      // Find which track is currently playing
       if (onPlayingTrackChange) {
         const playingTrack = tracks.find(track => {
           const startSeconds = timeToSeconds(track.start)
@@ -314,102 +305,19 @@ export default function StickyPlayer({ mp3Path, tracks, onClose, onTrackUpdate, 
         onPlayingTrackChange(playingTrack ? playingTrack.id : null)
       }
 
-      // Redraw canvas with updated playhead
-      if (canvasRef.current && waveformData) {
+      drawCanvas.current()
+
+      // Auto-scroll to keep playhead visible when zoomed in and playing
+      if (!audioRef.current.paused && scrollContainerRef.current && canvasRef.current && zoom > 1) {
         const canvas = canvasRef.current
-        const ctx = canvas.getContext('2d')
-        if (!ctx) return
+        const container = scrollContainerRef.current
+        const playheadX = (currentSeconds / waveformData.duration) * canvas.width
+        const viewLeft = container.scrollLeft
+        const viewRight = viewLeft + container.clientWidth
+        const margin = container.clientWidth * 0.15
 
-        const width = canvas.width
-        const height = canvas.height
-        const data = waveformData.data
-
-        ctx.fillStyle = '#ffffff'
-        ctx.fillRect(0, 0, width, height)
-
-        // Draw waveform
-        const step = width / data.length
-        ctx.strokeStyle = '#4b5563' // gray-600 - darker
-        ctx.lineWidth = 1
-
-        ctx.beginPath()
-        data.forEach((point: any, i: number) => {
-          const x = i * step
-          const yMin = (height / 2) - (point.min * height / 2 * amplitudeScale)
-          const yMax = (height / 2) - (point.max * height / 2 * amplitudeScale)
-
-          if (i === 0) ctx.moveTo(x, yMin)
-          ctx.lineTo(x, yMin)
-          ctx.lineTo(x, yMax)
-        })
-        ctx.stroke()
-
-        // Draw regions
-        const totalDuration = waveformData.duration
-        tracks.forEach((track, idx) => {
-          const start = timeToSeconds(track.start)
-          const startX = (start / totalDuration) * width
-
-          // End position: if there's a next track, draw until its start; otherwise use track's stop
-          let endX
-          if (idx < tracks.length - 1) {
-            const nextTrackStart = timeToSeconds(tracks[idx + 1].start)
-            endX = (nextTrackStart / totalDuration) * width
-          } else {
-            const end = timeToSeconds(track.stop)
-            endX = (end / totalDuration) * width
-          }
-
-          ctx.fillStyle = CLASS_COLORS[track.predicted_class as keyof typeof CLASS_COLORS]?.rgba || 'rgba(128, 128, 128, 0.4)'
-          ctx.fillRect(startX, 0, endX - startX, height)
-
-          // Draw selection border if this track is selected (inset to avoid overlapping markers)
-          if (selectedTrackId === track.id) {
-            ctx.strokeStyle = '#2563eb' // blue-600
-            ctx.lineWidth = 3
-            // Inset by 1.5px (half the line width) to keep border inside the region
-            ctx.strokeRect(startX + 1.5, 1.5, (endX - startX) - 3, height - 3)
-          }
-        })
-
-        // Draw boundary markers
-        for (let i = 0; i < tracks.length - 1; i++) {
-          const currentTrack = tracks[i]
-          const nextTrack = tracks[i + 1]
-
-          // Marker at the start of the next track
-          const nextStart = timeToSeconds(nextTrack.start)
-          const boundaryX = (nextStart / totalDuration) * width
-
-          const isHover = hoverMarker?.prevTrackId === currentTrack.id && hoverMarker?.nextTrackId === nextTrack.id
-
-          ctx.strokeStyle = isHover ? '#3b82f6' : '#1f2937'
-          ctx.lineWidth = isHover ? 3 : 2
-          ctx.beginPath()
-          ctx.moveTo(boundaryX, 0)
-          ctx.lineTo(boundaryX, height)
-          ctx.stroke()
-        }
-
-        // Draw playhead
-        const playheadX = (audioRef.current.currentTime / totalDuration) * width
-        ctx.strokeStyle = '#ef4444'
-        ctx.lineWidth = 2
-        ctx.beginPath()
-        ctx.moveTo(playheadX, 0)
-        ctx.lineTo(playheadX, height)
-        ctx.stroke()
-
-        // Auto-scroll to keep playhead visible when zoomed in and playing
-        if (!audioRef.current.paused && scrollContainerRef.current && zoom > 1) {
-          const container = scrollContainerRef.current
-          const viewLeft = container.scrollLeft
-          const viewRight = viewLeft + container.clientWidth
-          const margin = container.clientWidth * 0.15 // 15% margin before edge
-
-          if (playheadX < viewLeft + margin || playheadX > viewRight - margin) {
-            container.scrollLeft = playheadX - container.clientWidth / 2
-          }
+        if (playheadX < viewLeft + margin || playheadX > viewRight - margin) {
+          container.scrollLeft = playheadX - container.clientWidth / 2
         }
       }
     }
@@ -425,6 +333,12 @@ export default function StickyPlayer({ mp3Path, tracks, onClose, onTrackUpdate, 
     } else {
       audioRef.current.play()
     }
+  }
+
+  // Convert CSS pixel position to canvas internal coordinate
+  const cssToCanvasX = (cssX: number, rect: DOMRect): number => {
+    if (!canvasRef.current) return cssX
+    return (cssX / rect.width) * canvasRef.current.width
   }
 
   // Helper to find boundary marker between consecutive tracks
@@ -486,7 +400,7 @@ export default function StickyPlayer({ mp3Path, tracks, onClose, onTrackUpdate, 
     if (!canvasRef.current || !waveformData) return
 
     const rect = canvasRef.current.getBoundingClientRect()
-    const x = e.clientX - rect.left
+    const x = cssToCanvasX(e.clientX - rect.left, rect)
 
     if (draggingMarker) {
       // Update boundary marker position during drag - affects both adjacent segments
@@ -520,7 +434,7 @@ export default function StickyPlayer({ mp3Path, tracks, onClose, onTrackUpdate, 
     if (!canvasRef.current) return
 
     const rect = canvasRef.current.getBoundingClientRect()
-    const x = e.clientX - rect.left
+    const x = cssToCanvasX(e.clientX - rect.left, rect)
 
     const marker = findMarkerNear(x)
     if (marker) {
@@ -544,7 +458,7 @@ export default function StickyPlayer({ mp3Path, tracks, onClose, onTrackUpdate, 
 
     const canvas = canvasRef.current
     const rect = canvas.getBoundingClientRect()
-    const x = e.clientX - rect.left
+    const x = cssToCanvasX(e.clientX - rect.left, rect)
 
     // Don't seek if we clicked on a marker
     if (draggingMarker || hoverMarker) return
@@ -557,7 +471,7 @@ export default function StickyPlayer({ mp3Path, tracks, onClose, onTrackUpdate, 
     e.stopPropagation()
 
     const clickRatio = x / canvas.width
-    const clickTimeSeconds = clickRatio * audio.duration
+    const clickTimeSeconds = clickRatio * waveformData.duration
 
     // If in add mode OR holding Ctrl/Cmd, add segment instead of seeking
     if ((addMode || e.ctrlKey || e.metaKey) && onAddSegment) {
@@ -631,7 +545,6 @@ export default function StickyPlayer({ mp3Path, tracks, onClose, onTrackUpdate, 
               <div ref={scrollContainerRef} className="overflow-x-auto flex-1">
                 <canvas
                   ref={canvasRef}
-                  width={1400 * zoom}
                   height={150}
                   onClick={handleCanvasClick}
                   onMouseDown={handleMouseDown}
@@ -640,6 +553,7 @@ export default function StickyPlayer({ mp3Path, tracks, onClose, onTrackUpdate, 
                   onMouseLeave={handleMouseLeave}
                   className="cursor-pointer border border-gray-200 rounded"
                   style={{
+                    width: `${1400 * zoom}px`,
                     minWidth: '100%',
                     opacity: seeking ? 0.5 : 1,
                     cursor: hoverMarker ? 'ew-resize' : (addMode ? 'crosshair' : 'pointer')
