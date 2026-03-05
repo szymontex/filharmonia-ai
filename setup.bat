@@ -224,12 +224,13 @@ REM ============================================================
 echo.
 echo [4/6] Setting up Python backend...
 
-if not exist "%SCRIPT_DIR%backend" (
+if not exist "%SCRIPT_DIR%backend\" (
     echo   [ERROR] backend folder not found!
     set "ERRORS=1"
     goto :skip_backend
 )
 cd /d "%SCRIPT_DIR%backend"
+echo   [*] Working directory: !CD!
 
 if exist venv (
     echo   [OK] virtualenv already exists
@@ -317,7 +318,7 @@ set "FILTER_SCRIPT=%TEMP%\filharmonia_filter_req.py"
     echo except Exception as e:
     echo     print(f'  [ERROR] Cannot read requirements.txt: {e}'^)
     echo     sys.exit(1^)
-    echo skip = ['torch==','torchaudio==','torchvision==','nvidia-cublas','nvidia-cudnn','tensorflow','keras==','tensorboard']
+    echo skip = ['torch==','torchaudio==','torchvision==','nvidia-cublas','nvidia-cudnn','nvidia-cuda','nvidia-cu','nvidia-nccl','nvidia-nvjitlink','nvidia-nvtx','tensorflow','keras==','tensorboard','ml-dtypes==0.2','ml_dtypes==0.2','triton']
     echo filtered = [l for l in lines if not any(s in l for s in skip^) and l.strip(^) and not l.strip(^).startswith('#'^)]
     echo open('_req_filtered.txt','w',encoding='utf-8'^).writelines(filtered^)
     echo print(f'  Filtered: {len(lines^)} -> {len(filtered^)} packages'^)
@@ -348,6 +349,7 @@ echo   [OK] Backend configured
 
 :skip_backend
 cd /d "%SCRIPT_DIR%"
+echo   [*] Back to: !CD!
 
 REM ============================================================
 REM  STEP 5: Setup frontend
@@ -355,12 +357,18 @@ REM ============================================================
 echo.
 echo [5/6] Setting up React frontend...
 
-if not exist "%SCRIPT_DIR%frontend" (
+if not exist "%SCRIPT_DIR%frontend\" (
     echo   [ERROR] frontend folder not found!
     set "ERRORS=1"
     goto :skip_frontend
 )
 cd /d "%SCRIPT_DIR%frontend"
+echo   [*] Working directory: !CD!
+if not exist package.json (
+    echo   [ERROR] package.json not found in !CD!
+    set "ERRORS=1"
+    goto :skip_frontend
+)
 
 set "PATH=%APPDATA%\npm;%ProgramFiles%\nodejs;!PATH!"
 
@@ -369,6 +377,8 @@ if exist node_modules (
     echo   [*] Updating dependencies...
 )
 
+REM Set CI=true so pnpm works in non-interactive/piped mode
+set "CI=true"
 where pnpm >nul 2>&1
 if !errorlevel! equ 0 (
     pnpm install
@@ -376,6 +386,7 @@ if !errorlevel! equ 0 (
     echo   [!] pnpm not available, using npm...
     npm install
 )
+set "CI="
 if !errorlevel! neq 0 (
     echo   [ERROR] Failed to install frontend dependencies!
     set "ERRORS=1"
