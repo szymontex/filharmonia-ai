@@ -31,12 +31,13 @@ code {
   color: #f3f4f6 !important;
 }
 
-.dark p, .dark span, .dark li, .dark label, .dark div {
-  color: inherit;
-}
-
 .dark .text-black {
   color: #f3f4f6 !important;
+}
+
+/* Ensure white text on colored buttons stays white */
+.dark .text-white {
+  color: #ffffff !important;
 }
 
 .dark .bg-white {
@@ -149,6 +150,56 @@ code {
 .dark .hover\:bg-gray-200:hover {
   background-color: #374151 !important;
 }
+
+.dark .hover\:bg-gray-300:hover {
+  background-color: #4b5563 !important;
+}
+
+.dark .hover\:bg-blue-100:hover {
+  background-color: #1e3a5f !important;
+}
+
+.dark .hover\:bg-green-200:hover {
+  background-color: #065f46 !important;
+}
+
+.dark .hover\:bg-red-200:hover {
+  background-color: #991b1b !important;
+}
+
+.dark .hover\:bg-blue-200:hover {
+  background-color: #1e40af !important;
+}
+
+.dark .hover\:bg-purple-700:hover {
+  background-color: #6d28d9 !important;
+}
+
+.dark .hover\:bg-green-700:hover {
+  background-color: #15803d !important;
+}
+
+.dark .hover\:bg-red-700:hover {
+  background-color: #b91c1c !important;
+}
+
+.dark .hover\:bg-blue-700:hover {
+  background-color: #1d4ed8 !important;
+}
+
+/* Dark mode: colored text on colored backgrounds */
+.dark .text-green-700 { color: #6ee7b7 !important; }
+.dark .text-green-600 { color: #6ee7b7 !important; }
+.dark .text-red-700 { color: #fca5a5 !important; }
+.dark .text-red-600 { color: #fca5a5 !important; }
+.dark .text-red-500 { color: #fca5a5 !important; }
+.dark .text-blue-700 { color: #93c5fd !important; }
+.dark .text-blue-600 { color: #93c5fd !important; }
+.dark .text-yellow-700 { color: #fde68a !important; }
+.dark .text-yellow-600 { color: #fde68a !important; }
+.dark .text-orange-700 { color: #fdba74 !important; }
+.dark .text-orange-600 { color: #fdba74 !important; }
+.dark .text-purple-700 { color: #c4b5fd !important; }
 
 /* Dark mode: status badges */
 .dark .bg-green-100 { background-color: #064e3b !important; }
