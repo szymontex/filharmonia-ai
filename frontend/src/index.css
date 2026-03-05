@@ -155,8 +155,20 @@ code {
   background-color: #4b5563 !important;
 }
 
+.dark .hover\:bg-blue-50:hover {
+  background-color: #172554 !important;
+}
+
 .dark .hover\:bg-blue-100:hover {
   background-color: #1e3a5f !important;
+}
+
+.dark .hover\:bg-red-100:hover {
+  background-color: #7f1d1d !important;
+}
+
+.dark .hover\:bg-green-100:hover {
+  background-color: #064e3b !important;
 }
 
 .dark .hover\:bg-green-200:hover {
