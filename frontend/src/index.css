@@ -113,6 +113,22 @@ code {
   color: #e5e7eb !important;
 }
 
+.dark button:disabled,
+.dark button[disabled] {
+  background-color: #4b5563 !important;
+  color: #9ca3af !important;
+}
+
+.dark .disabled\:bg-gray-300:disabled {
+  background-color: #4b5563 !important;
+  color: #9ca3af !important;
+}
+
+.dark .disabled\:bg-gray-400:disabled {
+  background-color: #4b5563 !important;
+  color: #9ca3af !important;
+}
+
 .dark table th {
   background-color: #1f2937 !important;
   color: #e5e7eb !important;
