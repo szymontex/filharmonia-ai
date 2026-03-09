@@ -66,7 +66,7 @@ echo ""
 # [1/7] Prerequisites
 # ========================================
 
-echo "[1/7] Checking prerequisites..."
+echo "[1/9] Checking prerequisites..."
 echo ""
 
 # --- Python ---
@@ -181,7 +181,7 @@ echo ""
 # [2/7] Backend - Virtual Environment
 # ========================================
 
-echo "[2/7] Setting up Python backend..."
+echo "[2/9] Setting up Python backend..."
 
 cd "$SCRIPT_DIR/backend"
 
@@ -202,7 +202,7 @@ echo ""
 # [3/7] Detect Hardware (GPU/CPU)
 # ========================================
 
-echo "[3/7] Detecting hardware..."
+echo "[3/9] Detecting hardware..."
 
 DEVICE="CPU"
 CUDA_VER=""
@@ -227,7 +227,7 @@ echo ""
 # [4/7] Install PyTorch
 # ========================================
 
-echo "[4/7] Installing PyTorch..."
+echo "[4/9] Installing PyTorch..."
 
 if [ "$DEVICE" = "CUDA" ]; then
     # Pick the right CUDA wheel based on detected CUDA version
@@ -272,7 +272,7 @@ echo ""
 # [5/7] Install Backend Dependencies
 # ========================================
 
-echo "[5/7] Installing backend dependencies..."
+echo "[5/9] Installing backend dependencies..."
 
 # Filter out platform-specific packages from requirements.txt
 # These are handled separately or are not needed on all platforms
@@ -293,7 +293,7 @@ echo ""
 # [6/7] ONNX Optimization (optional)
 # ========================================
 
-echo "[6/7] Optimizing for CPU inference..."
+echo "[6/9] Optimizing for CPU inference..."
 
 if [ "$DEVICE" = "CPU" ]; then
     info "Exporting ONNX INT8 model (takes ~30 seconds)..."
@@ -313,7 +313,7 @@ echo ""
 # [7/7] Frontend Setup
 # ========================================
 
-echo "[7/7] Setting up React frontend..."
+echo "[7/9] Setting up React frontend..."
 
 cd "$SCRIPT_DIR/frontend"
 
@@ -325,6 +325,66 @@ else
 fi
 
 cd "$SCRIPT_DIR"
+echo ""
+
+# ========================================
+# [8/9] Data Directory Structure
+# ========================================
+
+echo "[8/9] Setting up data directory structure..."
+
+# Determine base directory from .env or use default
+if [ -f "$SCRIPT_DIR/.env" ]; then
+    FILHARMONIA_BASE=$(grep -E '^FILHARMONIA_BASE_DIR=' "$SCRIPT_DIR/.env" 2>/dev/null | cut -d= -f2- | tr -d '"' | tr -d "'")
+fi
+if [ -z "$FILHARMONIA_BASE" ]; then
+    FILHARMONIA_BASE="$SCRIPT_DIR/FILHARMONIA_DATA"
+fi
+
+# Create required directories
+for dir in SORTED NAGRANIA_KONCERTOW TRAINING_DATA/DATA RECOGNITION_MODELS ML_EXPERIMENTS/datasets; do
+    mkdir -p "$FILHARMONIA_BASE/$dir"
+done
+
+# Create training data class subdirectories
+for cls in APPLAUSE MUSIC PUBLIC SPEECH TUNING; do
+    mkdir -p "$FILHARMONIA_BASE/TRAINING_DATA/DATA/$cls"
+done
+
+ok "Data directories ready at $FILHARMONIA_BASE"
+echo ""
+
+# ========================================
+# [9/9] Download Pre-trained Model
+# ========================================
+
+echo "[9/9] Downloading pre-trained model..."
+
+MODEL_DIR="$FILHARMONIA_BASE/RECOGNITION_MODELS"
+MODEL_FILE="$MODEL_DIR/ast_active.pth"
+
+if [ -f "$MODEL_FILE" ]; then
+    info "Model already exists at $MODEL_FILE — skipping download"
+else
+    HF_MODEL_URL="https://huggingface.co/szymontex/filharmonia-ast/resolve/main/ast_20251009_222204.pth"
+    info "Downloading AST model from HuggingFace (~1GB)..."
+
+    # Try wget, then curl
+    if command -v wget &>/dev/null; then
+        wget -q --show-progress -O "$MODEL_FILE" "$HF_MODEL_URL" \
+            || { rm -f "$MODEL_FILE"; fail "Model download failed"; }
+    elif command -v curl &>/dev/null; then
+        curl -L --progress-bar -o "$MODEL_FILE" "$HF_MODEL_URL" \
+            || { rm -f "$MODEL_FILE"; fail "Model download failed"; }
+    else
+        fail "Neither wget nor curl found — cannot download model"
+    fi
+
+    if [ -f "$MODEL_FILE" ]; then
+        ok "Model downloaded to $MODEL_FILE"
+    fi
+fi
+
 echo ""
 
 # ========================================
