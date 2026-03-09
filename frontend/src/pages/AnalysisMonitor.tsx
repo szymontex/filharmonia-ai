@@ -156,7 +156,7 @@ export default function AnalysisMonitor({ onBack }: AnalysisMonitorProps) {
                       <div className="font-medium text-gray-900">
                         {job.type === 'single' ? (
                           <>
-                            {job.file ? job.file.split('\\').pop() : 'Single file'}
+                            {job.file ? job.file.split(/[/\\]/).pop() : 'Single file'}
                             {job.status === 'running' && ` (${job.completed}/${job.total} segments)`}
                           </>
                         ) : (
@@ -286,11 +286,11 @@ export default function AnalysisMonitor({ onBack }: AnalysisMonitorProps) {
                   {jobStatus.results.map((result, idx) => (
                     <div key={idx} className="flex items-center justify-between p-3 bg-green-50 rounded">
                       <div className="flex-1">
-                        <div className="font-medium text-sm">{result.mp3.split('\\').pop()}</div>
+                        <div className="font-medium text-sm">{result.mp3.split(/[/\\]/).pop()}</div>
                         <div className="text-xs text-gray-600">{result.segments} segments</div>
                       </div>
                       <div className="text-xs text-gray-500">
-                        CSV: {result.csv.split('\\').pop()}
+                        CSV: {result.csv.split(/[/\\]/).pop()}
                       </div>
                     </div>
                   ))}
@@ -305,7 +305,7 @@ export default function AnalysisMonitor({ onBack }: AnalysisMonitorProps) {
                 <div className="space-y-2 max-h-64 overflow-y-auto">
                   {jobStatus.errors.map((error, idx) => (
                     <div key={idx} className="p-3 bg-red-50 rounded">
-                      <div className="font-medium text-sm text-red-900">{error.mp3.split('\\').pop()}</div>
+                      <div className="font-medium text-sm text-red-900">{error.mp3.split(/[/\\]/).pop()}</div>
                       <div className="text-xs text-red-600">{error.error}</div>
                     </div>
                   ))}

@@ -270,7 +270,7 @@ export default function WaveformEditor({ mp3Path, tracks, onBack }: WaveformEdit
               ← Back to CSV Viewer
             </button>
             <h1 className="text-3xl font-bold">Waveform Editor</h1>
-            <p className="text-gray-600 text-sm mt-1">{mp3Path.split('\\').pop()}</p>
+            <p className="text-gray-600 text-sm mt-1">{mp3Path.split(/[/\\]/).pop()}</p>
           </div>
           <button
             onClick={handleExportMarkers}

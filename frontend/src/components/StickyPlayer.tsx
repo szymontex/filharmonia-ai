@@ -509,7 +509,7 @@ export default function StickyPlayer({ mp3Path, tracks, onClose, onTrackUpdate, 
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-3">
             <h3 className="font-semibold text-lg">Audio Player</h3>
-            <span className="text-sm text-gray-600">{mp3Path.split('\\').pop()?.replace('.MP3', '').replace('.mp3', '')}</span>
+            <span className="text-sm text-gray-600">{mp3Path.split(/[/\\]/).pop()?.replace('.MP3', '').replace('.mp3', '')}</span>
             {recordingDate && (
               <>
                 <span className="text-gray-400">•</span>

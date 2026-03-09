@@ -517,7 +517,7 @@ export default function UncertaintyReview({ onBack }: { onBack: () => void }) {
 
       setSuccessToast({
         show: true,
-        message: `↩️ Undone export: ${response.data.deleted_wav.split('\\').pop()?.split('/').pop()}`
+        message: `↩️ Undone export: ${response.data.deleted_wav.split(/[/\\]/).pop()?.split('/').pop()}`
       })
 
       // Go back to previous segment
@@ -553,7 +553,7 @@ export default function UncertaintyReview({ onBack }: { onBack: () => void }) {
       })
 
       const skippedCount = response.data.segments_skipped
-      const fileName = currentSegment.mp3_path.split('\\').pop()?.split('/').pop()
+      const fileName = currentSegment.mp3_path.split(/[/\\]/).pop()?.split('/').pop()
 
       setSuccessToast({
         show: true,
@@ -783,7 +783,7 @@ export default function UncertaintyReview({ onBack }: { onBack: () => void }) {
         {/* Segment Info */}
         <div className="mb-4">
           <h2 className="text-xl font-semibold">
-            📁 {currentSegment.mp3_path.split('\\').pop()?.split('/').pop()}
+            📁 {currentSegment.mp3_path.split(/[/\\]/).pop()?.split('/').pop()}
           </h2>
           <p className="text-gray-600">
             📅 Concert date: <span className="font-medium">

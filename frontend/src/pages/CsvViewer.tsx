@@ -380,7 +380,7 @@ export default function CsvViewer({ onBack, initialCsv }: CsvViewerProps = {}) {
 
   const deleteCsv = (csvPath: string, event: React.MouseEvent) => {
     event.stopPropagation()
-    setDeleteConfirm({ show: true, path: csvPath, name: csvPath.split('\\').pop() || '' })
+    setDeleteConfirm({ show: true, path: csvPath, name: csvPath.split(/[/\\]/).pop() || '' })
   }
 
   const confirmDelete = async () => {
@@ -692,7 +692,7 @@ export default function CsvViewer({ onBack, initialCsv }: CsvViewerProps = {}) {
             <div className="p-4 border-b flex justify-between items-center">
               <div>
                 <div className="text-lg font-semibold">
-                  {mp3Path.split('\\').pop()?.replace('.MP3', '').replace('.mp3', '')}
+                  {mp3Path.split(/[/\\]/).pop()?.replace('.MP3', '').replace('.mp3', '')}
                   <span className="mx-2 text-gray-400">•</span>
                   <span className="text-blue-600">
                     {selectedCsv ? (() => {

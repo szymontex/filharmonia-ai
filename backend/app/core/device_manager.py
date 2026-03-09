@@ -147,7 +147,14 @@ class DeviceManager:
         # torch.compile requires Triton which is not available on Windows
         if sys.platform == 'win32':
             return False
-        return self.is_gpu
+        if not self.is_gpu:
+            return False
+        # Triton requires CUDA Capability >= 7.0 (Volta+)
+        if torch.cuda.is_available() and torch.cuda.device_count() > 0:
+            major, _ = torch.cuda.get_device_capability(0)
+            if major < 7:
+                return False
+        return True
 
     @property
     def rocm_version(self) -> Optional[str]:
