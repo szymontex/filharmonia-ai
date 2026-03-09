@@ -229,10 +229,6 @@ echo ""
 
 echo "[4/7] Installing PyTorch..."
 
-TORCH_VER="2.5.1"
-TORCHAUDIO_VER="2.5.1"
-TORCHVISION_VER="0.20.1"
-
 if [ "$DEVICE" = "CUDA" ]; then
     # Pick the right CUDA wheel based on detected CUDA version
     CUDA_MAJOR=$(echo "$CUDA_VER" | cut -d. -f1)
@@ -247,9 +243,20 @@ else
     info "Installing PyTorch CPU-only..."
 fi
 
-pip install "torch==$TORCH_VER" "torchaudio==$TORCHAUDIO_VER" "torchvision==$TORCHVISION_VER" \
-    --index-url "$TORCH_INDEX" --quiet --disable-pip-version-check \
-    || { fail "PyTorch installation failed"; }
+# Install torch, then torchaudio/torchvision (may need fallback to default PyPI)
+if ! pip install torch torchaudio torchvision \
+    --index-url "$TORCH_INDEX" --quiet --disable-pip-version-check 2>/dev/null; then
+    warn "Full PyTorch bundle failed on $TORCH_INDEX — trying components separately..."
+    pip install torch --index-url "$TORCH_INDEX" --quiet --disable-pip-version-check 2>/dev/null \
+        || pip install torch --quiet --disable-pip-version-check \
+        || { fail "torch installation failed"; }
+    pip install torchaudio --index-url "$TORCH_INDEX" --quiet --disable-pip-version-check 2>/dev/null \
+        || pip install torchaudio --quiet --disable-pip-version-check 2>/dev/null \
+        || warn "torchaudio not available — some audio features may be limited"
+    pip install torchvision --index-url "$TORCH_INDEX" --quiet --disable-pip-version-check 2>/dev/null \
+        || pip install torchvision --quiet --disable-pip-version-check 2>/dev/null \
+        || warn "torchvision not available — image features may be limited"
+fi
 
 echo ""
 

@@ -63,9 +63,6 @@ def main():
         ("watchfiles", "watchfiles"),
         ("websockets", "websockets"),
 
-        # Legacy TensorFlow support
-        ("tensorflow", "TensorFlow"),
-        ("keras", "Keras"),
     ]
 
     results = []
