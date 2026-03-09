@@ -21,14 +21,14 @@ Docker handles everything automatically.
 ### Option 2: Local Setup (Windows)
 
 1. **Install Prerequisites:**
-   - [Python 3.10+](https://python.org) ✅ Check "Add Python to PATH"
+   - [Python 3.11](https://python.org) ✅ Check "Add Python to PATH"
    - [Node.js 18+](https://nodejs.org)
 
 2. **Run Setup (one time):**
    ```
    Double-click: setup.bat
    ```
-   Wait 3-5 minutes. Setup auto-detects GPU vs CPU.
+   Setup auto-detects GPU vs CPU, downloads the pre-trained model from HuggingFace, and creates the data directory structure.
 
 3. **Start App:**
    ```
@@ -40,29 +40,24 @@ Docker handles everything automatically.
 
 ### Option 3: Local Setup (macOS / Linux)
 
-1. **Install Prerequisites:**
-   ```bash
-   # macOS
-   brew install python@3.10 node
+No manual prerequisite installation needed — `setup.sh` handles everything automatically.
 
-   # Ubuntu/Linux
-   sudo apt install python3.10 python3.10-venv python3-pip
-   curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
-   sudo apt install -y nodejs
-   ```
+```bash
+chmod +x setup.sh
+./setup.sh
+./start.sh
+```
 
-2. **Run Setup (one time):**
-   ```bash
-   chmod +x setup.sh
-   ./setup.sh
-   ```
-   Wait 3-5 minutes. Setup auto-detects GPU vs CPU.
+The setup script will:
+- Auto-detect your OS (Debian/Fedora/Arch/macOS) and install system packages (Python 3.11, Node.js, pnpm, ffmpeg, etc.)
+- Install Python 3.11 via pyenv if not available from system packages
+- Create a Python virtual environment and install all dependencies
+- Auto-detect GPU and install the correct PyTorch version (CUDA 12.4 → 12.1 → CPU fallback)
+- Download the pre-trained AST model (~1GB) from HuggingFace
+- Create the data directory structure
+- Install frontend dependencies and build
 
-3. **Start App:**
-   ```bash
-   ./start.sh
-   ```
-   Opens http://localhost:5173 automatically.
+Opens http://localhost:5173 automatically.
 
 ---
 
@@ -118,8 +113,8 @@ Export corrected segments → retrain model → improved accuracy over time.
 
 ## 🛠️ What Gets Installed
 
-### Backend (Python)
-- PyTorch 2.5.1 (auto-detects CUDA vs CPU)
+### Backend (Python 3.11)
+- PyTorch (auto-detects CUDA 12.4/12.1 vs CPU)
 - ONNX Runtime for CPU speedup
 - FastAPI REST API
 - Polars for fast CSV parsing (5-30x faster than pandas)
@@ -130,11 +125,13 @@ Export corrected segments → retrain model → improved accuracy over time.
 - Modern component architecture
 
 ### Models
-- **AST Active Model**: 5-class audio classifier
+- **AST Active Model**: Pre-trained 5-class audio classifier (auto-downloaded from [HuggingFace](https://huggingface.co/szymontex/filharmonia-ast))
+- **Base Architecture**: `MIT/ast-finetuned-audioset-10-10-0.4593`
 - **ONNX INT8 Model**: Quantized version for CPU (3x+ faster)
 
-**Total Size:** ~2GB
-**Setup Time:** 3-5 minutes
+**Total Size:** ~2GB (including model download)
+
+> **Note:** Python 3.11 is required. Python 3.13+ has breaking stdlib removals (`aifc`, `audioop`) that affect audio processing libraries.
 
 ---
 
@@ -151,7 +148,7 @@ INFO: Using ONNX INT8 backend (3.2x speedup vs PyTorch CPU)
 
 **NVIDIA GPU:**
 ```
-INFO: GPU detected: NVIDIA CUDA 12.1 — GeForce RTX 3090
+INFO: GPU detected: NVIDIA CUDA 12.4 — GeForce RTX 3090
 INFO: Using PyTorch GPU backend with torch.compile
 ```
 
@@ -160,6 +157,8 @@ INFO: Using PyTorch GPU backend with torch.compile
 INFO: GPU detected: AMD ROCm 6.2 — Radeon RX 7900 XTX
 INFO: Using PyTorch GPU backend with torch.compile
 ```
+
+> **Note:** `torch.compile` requires NVIDIA GPUs with CUDA capability >= 7.0 (Volta+). Older GPUs (e.g. GTX 1060) will automatically fall back to eager mode.
 
 ### Speed Improvements
 - **Polars CSV parsing**: 5-30x faster than pandas
@@ -174,17 +173,26 @@ INFO: Using PyTorch GPU backend with torch.compile
 ### Setup Issues
 
 **"Python not found" (Windows):**
-- Reinstall Python with "Add Python to PATH" checked
+- Install Python 3.11 with "Add Python to PATH" checked
 - Restart terminal after installation
 
+**"Python not found" (Linux/macOS):**
+- `setup.sh` installs Python 3.11 automatically via system packages or pyenv
+- If it fails, install pyenv manually: `curl https://pyenv.run | bash` then re-run setup
+
 **"Node.js not found":**
-- Install from https://nodejs.org
+- On Linux/macOS, `setup.sh` installs it automatically
+- On Windows, install from https://nodejs.org
 - Restart terminal
 
 **ONNX export fails:**
 - Not critical - app uses PyTorch CPU fallback
 - Slightly slower but works fine
 - Re-run setup to retry
+
+**`No module named 'aifc'` or `audioop`:**
+- You're running Python 3.13+ which removed these modules
+- Switch to Python 3.11 (recommended version for this project)
 
 ### Runtime Issues
 
@@ -225,11 +233,15 @@ filharmonia-ai/
 ├── frontend/         # React 19 frontend
 │   ├── src/          # Components, hooks, pages
 │   └── node_modules/ # Node.js packages
+├── data/             # Working data directory (auto-created)
+│   ├── SORTED/       # Analyzed recordings
+│   └── NAGRANIA_KONCERTOW/  # Raw concert recordings
 ├── docker/           # Docker configuration
 ├── setup.bat         # Windows setup script
-├── setup.sh          # macOS/Linux setup script
+├── setup.sh          # macOS/Linux setup script (auto-installs everything)
 ├── start.bat         # Windows start script
-├── start.sh          # macOS/Linux start script
+├── start.sh          # macOS/Linux start script (proper process cleanup on Ctrl+C)
+├── stop.sh           # macOS/Linux stop script
 └── docker-compose.yml # Docker setup
 ```
 
@@ -298,6 +310,16 @@ Open http://localhost
 ---
 
 ## ✨ Recent Updates
+
+### v0.10 - Cross-Platform & Reliability (2026-03-10)
+- ✅ Python 3.11 standardization (3.13+ breaks audio libs)
+- ✅ `setup.sh` auto-installs all prerequisites (OS-aware)
+- ✅ Pre-trained model auto-download from HuggingFace
+- ✅ Multi-index PyTorch install fallback (cu124 → cu121 → CPU)
+- ✅ `torch.compile` CUDA capability check (graceful fallback on older GPUs)
+- ✅ Cross-platform path display fixes (Linux + Windows)
+- ✅ Proper process cleanup on Ctrl+C (`setsid` + process group kills)
+- ✅ Data directory structure auto-creation
 
 ### v0.9 - Polish & Stability (2026-01-29)
 - ✅ Unified device detection (NVIDIA/AMD/CPU)
