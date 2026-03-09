@@ -50,3 +50,6 @@ temp_dataset_*/
 
 # Logs
 *.log
+
+# Setup marker
+.setup_complete
