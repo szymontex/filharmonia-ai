@@ -243,19 +243,27 @@ else
     info "Installing PyTorch CPU-only..."
 fi
 
-# Install torch, then torchaudio/torchvision (may need fallback to default PyPI)
-if ! pip install torch torchaudio torchvision \
-    --index-url "$TORCH_INDEX" --quiet --disable-pip-version-check 2>/dev/null; then
-    warn "Full PyTorch bundle failed on $TORCH_INDEX — trying components separately..."
-    pip install torch --index-url "$TORCH_INDEX" --quiet --disable-pip-version-check 2>/dev/null \
-        || pip install torch --quiet --disable-pip-version-check \
-        || { fail "torch installation failed"; }
-    pip install torchaudio --index-url "$TORCH_INDEX" --quiet --disable-pip-version-check 2>/dev/null \
-        || pip install torchaudio --quiet --disable-pip-version-check 2>/dev/null \
-        || warn "torchaudio not available — some audio features may be limited"
-    pip install torchvision --index-url "$TORCH_INDEX" --quiet --disable-pip-version-check 2>/dev/null \
-        || pip install torchvision --quiet --disable-pip-version-check 2>/dev/null \
-        || warn "torchvision not available — image features may be limited"
+# PyTorch wheels live on their own index — try preferred index, then fallback indexes
+# IMPORTANT: torchvision/torchaudio MUST come from a PyTorch index, NOT vanilla PyPI
+TORCH_INDEXES=(
+    "$TORCH_INDEX"
+    "https://download.pytorch.org/whl/cu124"
+    "https://download.pytorch.org/whl/cu121"
+    "https://download.pytorch.org/whl/cpu"
+)
+
+TORCH_INSTALLED=false
+for idx in "${TORCH_INDEXES[@]}"; do
+    if pip install torch torchaudio torchvision \
+        --index-url "$idx" --quiet --disable-pip-version-check 2>/dev/null; then
+        TORCH_INSTALLED=true
+        ok "PyTorch installed from $idx"
+        break
+    fi
+done
+
+if [ "$TORCH_INSTALLED" = false ]; then
+    fail "PyTorch installation failed from all indexes"
 fi
 
 echo ""
