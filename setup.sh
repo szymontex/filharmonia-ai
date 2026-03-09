@@ -69,37 +69,68 @@ echo ""
 echo "[1/9] Checking prerequisites..."
 echo ""
 
-# --- Python ---
-if ! command -v python3 &>/dev/null; then
-    info "Python 3 not found — attempting to install..."
+# --- Python (prefer 3.11 for maximum compatibility) ---
+PYTHON_CMD=""
+
+# Check for python3.11 first (pyenv, system, brew)
+for candidate in \
+    "$HOME/.pyenv/versions/3.11.11/bin/python3.11" \
+    "$HOME/.pyenv/versions/3.11.*/bin/python3.11" \
+    "$(command -v python3.11 2>/dev/null)"; do
+    if [ -x "$candidate" ] 2>/dev/null; then
+        PYTHON_CMD="$candidate"
+        break
+    fi
+done
+
+# Fall back to python3 if no 3.11 found
+if [ -z "$PYTHON_CMD" ]; then
+    if command -v python3 &>/dev/null; then
+        PYTHON_CMD="python3"
+    fi
+fi
+
+# Still no Python — try to install
+if [ -z "$PYTHON_CMD" ]; then
+    info "Python not found — attempting to install..."
     case "$OS" in
         debian) sudo apt-get update -qq && sudo apt-get install -y python3 python3-venv python3-pip ;;
         fedora) sudo dnf install -y python3 python3-pip ;;
         arch)   sudo pacman -S --noconfirm python python-pip ;;
         macos)
             if command -v brew &>/dev/null; then
-                brew install python@3
+                brew install python@3.11 || brew install python@3
             else
-                fatal "Python 3 not found. Install Homebrew (https://brew.sh) then run: brew install python@3"
+                fatal "Python not found. Install Homebrew (https://brew.sh) then run: brew install python@3.11"
             fi
             ;;
-        *) fatal "Python 3 not found. Please install Python 3.10+ manually." ;;
+        *) fatal "Python not found. Please install Python 3.10-3.12 manually." ;;
     esac
+    PYTHON_CMD="python3"
 fi
 
-if ! command -v python3 &>/dev/null; then
-    fatal "Python 3 installation failed. Please install manually."
+if ! "$PYTHON_CMD" --version &>/dev/null; then
+    fatal "Python installation failed. Please install Python 3.10-3.12 manually."
 fi
 
-PYTHON_VER=$(python3 --version | cut -d' ' -f2)
+PYTHON_VER=$("$PYTHON_CMD" --version | cut -d' ' -f2)
+PYTHON_MINOR=$(echo "$PYTHON_VER" | cut -d. -f1-2)
+
 if ! version_gte "$PYTHON_VER" "3.10.0"; then
     fatal "Python >= 3.10 required, found $PYTHON_VER"
 fi
-ok "Python $PYTHON_VER"
+
+# Warn about Python 3.13+ compatibility issues
+if version_gte "$PYTHON_VER" "3.13.0"; then
+    warn "Python $PYTHON_VER detected — some packages may have compatibility issues"
+    warn "Recommended: Python 3.10-3.12 (install via pyenv: pyenv install 3.11.11)"
+fi
+
+ok "Python $PYTHON_VER ($PYTHON_CMD)"
 
 # --- python3-venv (Debian/Ubuntu needs it as a separate package) ---
 if [ "$OS" = "debian" ]; then
-    if ! python3 -m venv --help &>/dev/null; then
+    if ! "$PYTHON_CMD" -m venv --help &>/dev/null; then
         info "Installing python3-venv..."
         sudo apt-get install -y python3-venv
     fi
@@ -187,7 +218,7 @@ cd "$SCRIPT_DIR/backend"
 
 if [ ! -d "venv" ]; then
     info "Creating Python virtual environment..."
-    python3 -m venv venv || fatal "Failed to create virtual environment"
+    "$PYTHON_CMD" -m venv venv || fatal "Failed to create virtual environment"
 fi
 
 # Activate venv
