@@ -47,6 +47,14 @@ class Settings:
     else:
         WAVEFORM_CACHE_DIR: Path = SORTED_FOLDER / ".waveform_cache"
 
+    # Ensure data directories exist
+    for _dir in [SORTED_FOLDER, NAGRANIA_FOLDER, TRAINING_DATA_FOLDER, RECOGNITION_MODELS_FOLDER, ML_EXPERIMENTS_FOLDER]:
+        if not _dir.exists():
+            try:
+                _dir.mkdir(parents=True, exist_ok=True)
+            except (PermissionError, OSError) as e:
+                logger.warning(f"Cannot create directory {_dir}: {e}")
+
     # Models
     # Legacy Keras CNN (deprecated, kept for backwards compatibility)
     MODEL_PATH: Path = RECOGNITION_MODELS_FOLDER / "cnn_model.h5"

@@ -3,8 +3,6 @@
 #  Easy setup for all platforms
 # ========================================
 
-version: '3.8'
-
 services:
   # Backend API Server
   backend:
@@ -16,12 +14,20 @@ services:
       - "8000:8000"
     volumes:
       - ./backend:/app/backend
-      - ./data:/data  # Mount your audio files here
-      - backend-venv:/app/backend/venv
+      - ./data:/data
     environment:
       - PYTHONUNBUFFERED=1
       - FILHARMONIA_BASE_DIR=/data
-    command: uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+      - NVIDIA_VISIBLE_DEVICES=all
+    working_dir: /app/backend
+    command: python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
@@ -41,11 +47,11 @@ services:
       - ./frontend:/app/frontend
       - frontend-modules:/app/frontend/node_modules
     environment:
-      - VITE_API_URL=http://localhost:8000
+      - VITE_API_URL=http://backend:8000
+      - VITE_PROXY_TARGET=http://backend:8000
     command: pnpm dev --host 0.0.0.0
     depends_on:
       - backend
 
 volumes:
-  backend-venv:
   frontend-modules:

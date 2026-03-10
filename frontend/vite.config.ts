@@ -14,6 +14,8 @@ export default defineConfig(({ mode }) => {
     ...(env.VITE_ALLOWED_HOSTS?.split(',').map(h => h.trim()).filter(Boolean) || [])
   ]
 
+  const proxyTarget = env.VITE_PROXY_TARGET || 'http://localhost:8000'
+
   return {
     plugins: [react()],
     resolve: {
@@ -26,11 +28,11 @@ export default defineConfig(({ mode }) => {
       allowedHosts,
       proxy: {
         '/api': {
-          target: 'http://localhost:8000',
+          target: proxyTarget,
           changeOrigin: true,
         },
         '/health': {
-          target: 'http://localhost:8000',
+          target: proxyTarget,
           changeOrigin: true,
         },
       },
