@@ -48,6 +48,131 @@ version_gte() {
     printf '%s\n%s\n' "$2" "$1" | sort -V -C
 }
 
+version_lt() {
+    ! version_gte "$1" "$2"
+}
+
+# Python 3.13+ removed stdlib modules (aifc, audioop) required by audio libraries.
+# This project requires Python 3.10-3.12.
+PYTHON_MIN="3.10.0"
+PYTHON_MAX="3.13.0"  # exclusive upper bound
+
+python_version_ok() {
+    local ver="$1"
+    version_gte "$ver" "$PYTHON_MIN" && version_lt "$ver" "$PYTHON_MAX"
+}
+
+find_compatible_python() {
+    local candidate ver
+
+    # 1. Check pyenv versions directory directly (most reliable on dev machines)
+    if [ -d "$HOME/.pyenv/versions" ]; then
+        local pyenv_dir
+        for pyenv_dir in $(ls -d "$HOME/.pyenv/versions"/3.12.* \
+                                  "$HOME/.pyenv/versions"/3.11.* \
+                                  "$HOME/.pyenv/versions"/3.10.* 2>/dev/null | sort -rV); do
+            candidate="$pyenv_dir/bin/python3"
+            if [ -x "$candidate" ]; then
+                ver="$("$candidate" --version 2>/dev/null | cut -d' ' -f2)"
+                if python_version_ok "$ver"; then
+                    echo "$candidate"
+                    return 0
+                fi
+            fi
+        done
+    fi
+
+    # 2. Check PATH for versioned executables (python3.12, python3.11, python3.10)
+    local suffix
+    for suffix in 3.12 3.11 3.10; do
+        candidate="$(command -v "python$suffix" 2>/dev/null || true)"
+        if [ -n "$candidate" ] && [ -x "$candidate" ]; then
+            ver="$("$candidate" --version 2>/dev/null | cut -d' ' -f2)"
+            if python_version_ok "$ver"; then
+                echo "$candidate"
+                return 0
+            fi
+        fi
+    done
+
+    # 3. Check unversioned python3 (might be compatible)
+    candidate="$(command -v python3 2>/dev/null || true)"
+    if [ -n "$candidate" ]; then
+        ver="$("$candidate" --version 2>/dev/null | cut -d' ' -f2)"
+        if python_version_ok "$ver"; then
+            echo "$candidate"
+            return 0
+        fi
+    fi
+
+    return 1
+}
+
+install_compatible_python() {
+    # Install a compatible Python via pyenv
+
+    # Ensure pyenv is available
+    if ! command -v pyenv &>/dev/null; then
+        case "$OS" in
+            macos)
+                if command -v brew &>/dev/null; then
+                    info "Installing pyenv via Homebrew..."
+                    brew install pyenv || return 1
+                else
+                    info "Installing pyenv via installer..."
+                    curl -fsSL https://pyenv.run | bash || return 1
+                fi
+                ;;
+            *)
+                info "Installing pyenv..."
+                curl -fsSL https://pyenv.run | bash || return 1
+                ;;
+        esac
+
+        # Initialize pyenv for this session
+        export PYENV_ROOT="${PYENV_ROOT:-$HOME/.pyenv}"
+        [ -d "$PYENV_ROOT/bin" ] && export PATH="$PYENV_ROOT/bin:$PATH"
+        eval "$(pyenv init - 2>/dev/null)" || true
+    fi
+
+    # Install build dependencies (Linux only — macOS has Xcode CLT)
+    case "$OS" in
+        debian)
+            info "Installing Python build dependencies..."
+            sudo apt-get update -qq 2>/dev/null
+            sudo apt-get install -y build-essential libssl-dev zlib1g-dev \
+                libbz2-dev libreadline-dev libsqlite3-dev libncursesw5-dev \
+                xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev 2>/dev/null
+            ;;
+        fedora)
+            info "Installing Python build dependencies..."
+            sudo dnf install -y gcc make zlib-devel bzip2-devel readline-devel \
+                sqlite-devel openssl-devel tk-devel libffi-devel xz-devel 2>/dev/null
+            ;;
+        arch)
+            info "Installing Python build dependencies..."
+            sudo pacman -S --noconfirm --needed base-devel openssl zlib 2>/dev/null
+            ;;
+    esac
+
+    # Try multiple versions in preference order
+    local target
+    for target in 3.12.12 3.12.11 3.12.10 3.11.11 3.11.10 3.10.16; do
+        info "Installing Python $target via pyenv..."
+        if pyenv install -s "$target" 2>&1; then
+            local installed="$HOME/.pyenv/versions/$target/bin/python3"
+            if [ -x "$installed" ]; then
+                ok "Python $target installed via pyenv"
+                echo "$installed"
+                return 0
+            fi
+        fi
+        warn "Python $target installation failed, trying next version..."
+    done
+
+    return 1
+}
+
 # ========================================
 # Start
 # ========================================
@@ -69,62 +194,51 @@ echo ""
 echo "[1/9] Checking prerequisites..."
 echo ""
 
-# --- Python (prefer 3.11 for maximum compatibility) ---
-PYTHON_CMD=""
+# --- Python (require 3.10-3.12 for audio library compatibility) ---
+PYTHON_CMD="$(find_compatible_python || true)"
 
-# Check for python3.11 first (pyenv, system, brew)
-for candidate in \
-    "$HOME/.pyenv/versions/3.11.11/bin/python3.11" \
-    "$HOME/.pyenv/versions/3.11.*/bin/python3.11" \
-    "$(command -v python3.11 2>/dev/null)"; do
-    if [ -x "$candidate" ] 2>/dev/null; then
-        PYTHON_CMD="$candidate"
-        break
-    fi
-done
-
-# Fall back to python3 if no 3.11 found
 if [ -z "$PYTHON_CMD" ]; then
-    if command -v python3 &>/dev/null; then
-        PYTHON_CMD="python3"
+    # No compatible Python found — check what's available and try to fix it
+    SYS_VER="$(python3 --version 2>/dev/null | cut -d' ' -f2 || echo "none")"
+
+    if [ "$SYS_VER" != "none" ] && version_gte "$SYS_VER" "$PYTHON_MAX"; then
+        warn "System Python $SYS_VER is too new — audio libraries require Python 3.10-3.12"
+        info "Attempting to install a compatible Python via pyenv..."
+        PYTHON_CMD="$(install_compatible_python || true)"
+    elif [ "$SYS_VER" = "none" ]; then
+        info "Python not found — attempting to install..."
+        case "$OS" in
+            debian) sudo apt-get update -qq && sudo apt-get install -y python3 python3-venv python3-pip ;;
+            fedora) sudo dnf install -y python3 python3-pip ;;
+            arch)   sudo pacman -S --noconfirm python python-pip ;;
+            macos)
+                if command -v brew &>/dev/null; then
+                    brew install python@3.12 || brew install python@3.11 || brew install python@3
+                else
+                    fatal "Python not found. Install Homebrew (https://brew.sh) then run: brew install python@3.12"
+                fi
+                ;;
+            *) fatal "Python not found. Please install Python 3.10-3.12 manually." ;;
+        esac
+        PYTHON_CMD="$(find_compatible_python || true)"
+    else
+        fatal "Python $SYS_VER is too old. This project requires Python 3.10-3.12."
     fi
 fi
 
-# Still no Python — try to install
 if [ -z "$PYTHON_CMD" ]; then
-    info "Python not found — attempting to install..."
-    case "$OS" in
-        debian) sudo apt-get update -qq && sudo apt-get install -y python3 python3-venv python3-pip ;;
-        fedora) sudo dnf install -y python3 python3-pip ;;
-        arch)   sudo pacman -S --noconfirm python python-pip ;;
-        macos)
-            if command -v brew &>/dev/null; then
-                brew install python@3.11 || brew install python@3
-            else
-                fatal "Python not found. Install Homebrew (https://brew.sh) then run: brew install python@3.11"
-            fi
-            ;;
-        *) fatal "Python not found. Please install Python 3.10-3.12 manually." ;;
-    esac
-    PYTHON_CMD="python3"
-fi
+    fatal "No compatible Python (3.10-3.12) found.
+  Python 3.13+ removed stdlib modules (aifc, audioop) required by audio libraries.
 
-if ! "$PYTHON_CMD" --version &>/dev/null; then
-    fatal "Python installation failed. Please install Python 3.10-3.12 manually."
+  Install a compatible version:
+    pyenv install 3.12.12    # any OS with pyenv
+    brew install python@3.12 # macOS with Homebrew
+
+  Then re-run: ./setup.sh"
 fi
 
 PYTHON_VER=$("$PYTHON_CMD" --version | cut -d' ' -f2)
 PYTHON_MINOR=$(echo "$PYTHON_VER" | cut -d. -f1-2)
-
-if ! version_gte "$PYTHON_VER" "3.10.0"; then
-    fatal "Python >= 3.10 required, found $PYTHON_VER"
-fi
-
-# Warn about Python 3.13+ compatibility issues
-if version_gte "$PYTHON_VER" "3.13.0"; then
-    warn "Python $PYTHON_VER detected — some packages may have compatibility issues"
-    warn "Recommended: Python 3.10-3.12 (install via pyenv: pyenv install 3.11.11)"
-fi
 
 ok "Python $PYTHON_VER ($PYTHON_CMD)"
 
@@ -216,8 +330,17 @@ echo "[2/9] Setting up Python backend..."
 
 cd "$SCRIPT_DIR/backend"
 
+# Check if existing venv uses a compatible Python
+if [ -d "venv" ]; then
+    VENV_PY_VER="$(venv/bin/python3 --version 2>/dev/null | cut -d' ' -f2 || echo "0.0.0")"
+    if ! python_version_ok "$VENV_PY_VER"; then
+        warn "Existing venv uses Python $VENV_PY_VER (incompatible) — recreating..."
+        rm -rf venv
+    fi
+fi
+
 if [ ! -d "venv" ]; then
-    info "Creating Python virtual environment..."
+    info "Creating Python virtual environment with Python $PYTHON_VER..."
     "$PYTHON_CMD" -m venv venv || fatal "Failed to create virtual environment"
 fi
 
@@ -243,7 +366,7 @@ if command -v nvidia-smi &>/dev/null; then
     if nvidia-smi &>/dev/null; then
         DEVICE="CUDA"
         # Extract CUDA version from nvidia-smi
-        CUDA_VER=$(nvidia-smi 2>/dev/null | grep -oP 'CUDA Version: \K[0-9]+\.[0-9]+' || echo "")
+        CUDA_VER=$(nvidia-smi 2>/dev/null | sed -n 's/.*CUDA Version: \([0-9]*\.[0-9]*\).*/\1/p')
         info "NVIDIA GPU detected (CUDA $CUDA_VER)"
     fi
 fi
@@ -305,10 +428,9 @@ echo ""
 
 echo "[5/9] Installing backend dependencies..."
 
-# Filter out platform-specific packages from requirements.txt
-# These are handled separately or are not needed on all platforms
+# Filter out torch lines (handled in step 4) and comments
 FILTERED_REQ=$(mktemp)
-grep -v -E '^(torch==|torchaudio==|torchvision==|nvidia-|tensorflow|keras==|tensorboard|tensorflow-intel|tensorflow-estimator|tensorflow-io-gcs-filesystem|libclang)' \
+grep -v -E '^(torch|torchaudio|torchvision|nvidia-)' \
     requirements.txt \
     | grep -v '^\s*#' \
     | grep -v '^\s*$' \

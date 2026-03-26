@@ -21,6 +21,9 @@ def main():
     print("=" * 60)
     print()
 
+    print(f"Python: {sys.version}")
+    print()
+
     tests = [
         # Core web framework
         ("fastapi", "FastAPI"),
@@ -51,7 +54,7 @@ def main():
 
         # Scientific computing
         ("numpy", "NumPy"),
-        ("pandas", "Pandas"),
+        ("polars", "Polars"),
         ("scipy", "SciPy"),
         ("sklearn", "scikit-learn"),
 

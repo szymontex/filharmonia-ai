@@ -78,7 +78,11 @@ sleep 1
 echo "[2/4] Starting backend server..."
 cd "$SCRIPT_DIR/backend"
 source venv/bin/activate
-setsid python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000 > "$SCRIPT_DIR/backend.log" 2>&1 &
+if command -v setsid &>/dev/null; then
+    setsid python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000 > "$SCRIPT_DIR/backend.log" 2>&1 &
+else
+    python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000 > "$SCRIPT_DIR/backend.log" 2>&1 &
+fi
 BACKEND_PID=$!
 CHILD_PIDS+=($BACKEND_PID)
 cd "$SCRIPT_DIR"
@@ -88,7 +92,11 @@ sleep 3
 # Start frontend in its own process group
 echo "[3/4] Starting frontend server..."
 cd "$SCRIPT_DIR/frontend"
-setsid pnpm dev > "$SCRIPT_DIR/frontend.log" 2>&1 &
+if command -v setsid &>/dev/null; then
+    setsid pnpm dev > "$SCRIPT_DIR/frontend.log" 2>&1 &
+else
+    pnpm dev > "$SCRIPT_DIR/frontend.log" 2>&1 &
+fi
 FRONTEND_PID=$!
 CHILD_PIDS+=($FRONTEND_PID)
 cd "$SCRIPT_DIR"
