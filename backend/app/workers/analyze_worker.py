@@ -11,11 +11,28 @@ import traceback
 from pathlib import Path
 
 # CRITICAL: Set CPU limits BEFORE importing torch
-os.environ["OMP_NUM_THREADS"] = "2"
-os.environ["MKL_NUM_THREADS"] = "2"
-os.environ["OPENBLAS_NUM_THREADS"] = "2"
-os.environ["VECLIB_MAXIMUM_THREADS"] = "2"
-os.environ["NUMEXPR_NUM_THREADS"] = "2"
+# Detect platform to set appropriate thread count
+import platform as _plat
+import subprocess as _sp
+
+def _get_worker_threads() -> int:
+    """Get recommended thread count for worker process."""
+    if _plat.system() == "Darwin":
+        try:
+            r = _sp.run(["sysctl", "-n", "hw.perflevel0.physicalcpu"],
+                        capture_output=True, text=True, timeout=5)
+            return min(int(r.stdout.strip()), 6)
+        except Exception:
+            pass
+    total = os.cpu_count() or 4
+    return min(max(total // 2, 2), 4)
+
+_threads = str(_get_worker_threads())
+os.environ["OMP_NUM_THREADS"] = _threads
+os.environ["MKL_NUM_THREADS"] = _threads
+os.environ["OPENBLAS_NUM_THREADS"] = _threads
+os.environ["VECLIB_MAXIMUM_THREADS"] = _threads
+os.environ["NUMEXPR_NUM_THREADS"] = _threads
 
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))

@@ -1,7 +1,8 @@
 """
 Inference factory — routes to optimal backend based on device and model availability.
 
-GPU available  -> ASTInferenceService (PyTorch, GPU is faster than ONNX)
+CUDA/ROCm GPU  -> ASTInferenceService (PyTorch GPU)
+Apple MPS      -> ASTInferenceService (PyTorch MPS — Apple Silicon GPU)
 CPU + ONNX     -> ASTInferenceONNXService (INT8 quantized, ~3x faster than eager)
 CPU + no ONNX  -> ASTInferenceService (eager PyTorch fallback)
 """
@@ -22,12 +23,18 @@ def create_inference_service():
     dm = get_device_manager()
     onnx_exists = settings.AST_ONNX_MODEL_PATH.exists()
 
-    # GPU path — always use PyTorch (GPU is faster than ONNX CPU)
+    # GPU path (CUDA, ROCm, or MPS) — always use PyTorch
     if dm.is_gpu:
         from app.services.ast_inference import ASTInferenceService
 
-        reason = "GPU detected" + (", ONNX model ignored (GPU faster)" if onnx_exists else "")
-        logger.info("Inference backend: PyTorch GPU (%s)", reason)
+        if dm.is_mps:
+            logger.info(
+                "Inference backend: PyTorch MPS (%s, batch_size=%d)",
+                dm.device_name, dm.recommended_batch_size,
+            )
+        else:
+            reason = "GPU detected" + (", ONNX model ignored (GPU faster)" if onnx_exists else "")
+            logger.info("Inference backend: PyTorch GPU (%s)", reason)
         return ASTInferenceService()
 
     # CPU path — prefer ONNX INT8 if available

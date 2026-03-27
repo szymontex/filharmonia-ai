@@ -321,7 +321,7 @@ def create_dataloaders(
         sampler=sampler,
         shuffle=shuffle,
         num_workers=num_workers,
-        pin_memory=True if torch.cuda.is_available() else False
+        pin_memory=torch.cuda.is_available()
     )
 
     val_loader = DataLoader(
@@ -329,7 +329,7 @@ def create_dataloaders(
         batch_size=batch_size,
         shuffle=False,
         num_workers=num_workers,
-        pin_memory=True if torch.cuda.is_available() else False
+        pin_memory=torch.cuda.is_available()
     )
 
     test_loader = DataLoader(
@@ -337,7 +337,7 @@ def create_dataloaders(
         batch_size=batch_size,
         shuffle=False,
         num_workers=num_workers,
-        pin_memory=True if torch.cuda.is_available() else False
+        pin_memory=torch.cuda.is_available()
     )
 
     return {

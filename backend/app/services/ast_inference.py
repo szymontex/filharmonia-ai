@@ -16,11 +16,14 @@ from app.core.device_manager import get_device_manager
 
 logger = logging.getLogger(__name__)
 
-# IMPORTANT: Limit CPU threads to prevent 100% CPU usage blocking the system
-# This allows other processes (like the web server) to remain responsive
-torch.set_num_threads(2)  # Use only 2 threads for inference
-os.environ["OMP_NUM_THREADS"] = "2"
-os.environ["MKL_NUM_THREADS"] = "2"
+# Set CPU thread count based on detected hardware
+# (imported early, before any torch operations)
+_dm = get_device_manager()
+_threads = _dm.recommended_threads
+torch.set_num_threads(_threads)
+os.environ["OMP_NUM_THREADS"] = str(_threads)
+os.environ["MKL_NUM_THREADS"] = str(_threads)
+logger.info("CPU threads set to %d (device: %s)", _threads, _dm.device_type)
 
 
 class ASTInferenceService:
@@ -70,9 +73,12 @@ class ASTInferenceService:
         self._apply_torch_compile()
 
     def _apply_torch_compile(self):
-        """Apply torch.compile on GPU for acceleration, skip on CPU."""
+        """Apply torch.compile on CUDA GPU for acceleration. Skipped on MPS and CPU."""
         if not self.device_manager.supports_compile:
-            logger.info("Skipping torch.compile on CPU")
+            if self.device_manager.is_mps:
+                logger.info("Skipping torch.compile (not supported on MPS)")
+            else:
+                logger.info("Skipping torch.compile (requires CUDA GPU)")
             return
 
         try:
@@ -88,10 +94,10 @@ class ASTInferenceService:
             eager_times = []
             with torch.no_grad():
                 for _ in range(3):
-                    torch.cuda.synchronize()
+                    self.device_manager.sync_device()
                     t0 = time.perf_counter()
                     self.model(dummy_input)
-                    torch.cuda.synchronize()
+                    self.device_manager.sync_device()
                     eager_times.append(time.perf_counter() - t0)
             eager_ms = (sum(eager_times) / len(eager_times)) * 1000
 
@@ -102,10 +108,10 @@ class ASTInferenceService:
             compiled_times = []
             with torch.no_grad():
                 for _ in range(3):
-                    torch.cuda.synchronize()
+                    self.device_manager.sync_device()
                     t0 = time.perf_counter()
                     self.model(dummy_input)
-                    torch.cuda.synchronize()
+                    self.device_manager.sync_device()
                     compiled_times.append(time.perf_counter() - t0)
             compiled_ms = (sum(compiled_times) / len(compiled_times)) * 1000
 

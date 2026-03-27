@@ -76,7 +76,9 @@ class ASTTrainingService:
         self.active_threads: Dict[str, threading.Thread] = {}
         self.metadata_path = settings.RECOGNITION_MODELS_FOLDER / "models_metadata.json"
         self.cancel_flags: Dict[str, bool] = {}
-        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        from app.core.device_manager import get_device_manager
+        self._device_manager = get_device_manager()
+        self.device = self._device_manager.device
 
     def start_training_job(self) -> str:
         """Start a new AST training job in background thread"""

@@ -85,7 +85,8 @@ class AnalyzeService:
         model_version = get_active_model_id()
 
         # Analyze segments using PyTorch AST with batch processing
-        BATCH_SIZE = 32  # Process 32 segments at once for better GPU utilization
+        from app.core.device_manager import get_device_manager
+        BATCH_SIZE = get_device_manager().recommended_batch_size
 
         with open(output_csv_tmp, 'w', newline='', encoding='utf-8') as f:
             writer = csv.writer(f)

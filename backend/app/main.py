@@ -62,6 +62,9 @@ async def lifespan(app: FastAPI):
         logger.info("Device: %s (%s)", dm.device_type, dm.device_name)
         print(f"  PyTorch device: {dm.device_type} ({dm.device_name})")
         print(f"  PyTorch version: {torch.__version__}")
+        print(f"  Threads: {dm.recommended_threads}, Batch size: {dm.recommended_batch_size}")
+        if dm.is_mps:
+            print(f"  Apple Silicon: {dm.device_name}")
     except ImportError:
         print("  WARNING: PyTorch not installed")
 
@@ -288,17 +291,21 @@ async def health():
             except ImportError:
                 audio_backend = "none"
 
+    from app.core.device_manager import get_device_manager
+    dm = get_device_manager()
+
     return {
         "status": "healthy",
-        "device": "cuda" if torch.cuda.is_available() else "cpu",
+        "device": dm.device_type,
+        "device_name": dm.device_name,
         "audio_backend": audio_backend,
         "torch_version": torch.__version__
     }
 
 def check_gpu():
-    """Check if GPU is available for PyTorch (primary ML framework)"""
+    """Check if GPU is available for PyTorch (CUDA, ROCm, or MPS)"""
     try:
-        import torch
-        return torch.cuda.is_available()
-    except ImportError:
+        from app.core.device_manager import get_device_manager
+        return get_device_manager().is_gpu
+    except Exception:
         return False
