@@ -52,13 +52,15 @@ function App() {
 function HomePage({ onNavigate }: { onNavigate: (page: 'home' | 'csv' | 'calendar' | 'sort' | 'monitor' | 'training' | 'uncertainty') => void }) {
   const [status, setStatus] = useState<string>('Checking backend...')
   const [gpuAvailable, setGpuAvailable] = useState<boolean>(false)
+  const [deviceName, setDeviceName] = useState<string>('')
 
   useEffect(() => {
     axios.get('/health')
       .then(res => {
         setStatus(`✅ Backend: ${res.data.status}`)
-        // /health returns device: "cuda" or "cpu"
-        setGpuAvailable(res.data.device === 'cuda')
+        // /health returns device: "cuda_nvidia", "cuda_amd", "mps", or "cpu"
+        setGpuAvailable(res.data.device !== 'cpu')
+        setDeviceName(res.data.device_name || res.data.device)
       })
       .catch(() => setStatus('❌ Backend offline'))
   }, [])
@@ -74,7 +76,7 @@ function HomePage({ onNavigate }: { onNavigate: (page: 'home' | 'csv' | 'calenda
           <h2 className="text-xl font-semibold mb-2">System Status</h2>
           <p className="text-lg mb-2">{status}</p>
           <p className="text-sm text-gray-600">
-            GPU: {gpuAvailable ? '✅ Available' : '⚠️ Not detected (CPU mode)'}
+            GPU: {gpuAvailable ? `✅ ${deviceName}` : '⚠️ Not detected (CPU mode)'}
           </p>
         </div>
 
