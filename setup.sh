@@ -313,10 +313,42 @@ if ! command -v node &>/dev/null; then
         fedora) sudo dnf install -y nodejs npm ;;
         arch)   sudo pacman -S --noconfirm nodejs npm ;;
         macos)
-            if command -v brew &>/dev/null; then
-                brew install node
+            # Try prebuilt binary from nodejs.org first (no compilation)
+            # brew install node compiles from source on older macOS — avoid that
+            ARCH="$(uname -m)"
+            if [ "$ARCH" = "arm64" ]; then
+                NODE_ARCH="arm64"
             else
-                fatal "Node.js not found. Install via: brew install node"
+                NODE_ARCH="x64"
+            fi
+            NODE_TARBALL="node-v20.19.2-darwin-${NODE_ARCH}.tar.xz"
+            NODE_URL="https://nodejs.org/dist/v20.19.2/${NODE_TARBALL}"
+            NODE_INSTALL_DIR="/usr/local/lib/nodejs"
+
+            info "Downloading Node.js prebuilt binary (no compilation)..."
+            if curl -fSL --progress-bar -o "/tmp/${NODE_TARBALL}" "$NODE_URL" 2>/dev/null; then
+                sudo mkdir -p "$NODE_INSTALL_DIR"
+                sudo tar -xJf "/tmp/${NODE_TARBALL}" -C "$NODE_INSTALL_DIR"
+                rm -f "/tmp/${NODE_TARBALL}"
+
+                NODE_BIN="$NODE_INSTALL_DIR/node-v20.19.2-darwin-${NODE_ARCH}/bin"
+                if [ -x "$NODE_BIN/node" ]; then
+                    # Add to PATH for this session
+                    export PATH="$NODE_BIN:$PATH"
+                    # Create symlinks so it persists
+                    sudo ln -sf "$NODE_BIN/node" /usr/local/bin/node 2>/dev/null || true
+                    sudo ln -sf "$NODE_BIN/npm" /usr/local/bin/npm 2>/dev/null || true
+                    sudo ln -sf "$NODE_BIN/npx" /usr/local/bin/npx 2>/dev/null || true
+                    ok "Node.js installed from nodejs.org binary"
+                fi
+            else
+                # Fallback to brew (may compile on older macOS)
+                if command -v brew &>/dev/null; then
+                    warn "Binary download failed, trying brew install (may take a while)..."
+                    brew install node
+                else
+                    fatal "Node.js not found. Install from https://nodejs.org or: brew install node"
+                fi
             fi
             ;;
         *) fatal "Node.js not found. Please install Node.js 18+ manually." ;;
@@ -324,7 +356,7 @@ if ! command -v node &>/dev/null; then
 fi
 
 if ! command -v node &>/dev/null; then
-    fatal "Node.js installation failed. Please install manually."
+    fatal "Node.js installation failed. Please install from https://nodejs.org manually."
 fi
 
 NODE_VER=$(node --version | tr -d 'v')
