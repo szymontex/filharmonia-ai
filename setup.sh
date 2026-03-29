@@ -219,16 +219,21 @@ if [ -z "$PYTHON_CMD" ]; then
     if [ "$SYS_VER" != "none" ] && version_gte "$SYS_VER" "$PYTHON_MAX"; then
         warn "System Python $SYS_VER is too new — audio libraries require Python 3.10-3.12"
 
-        # macOS: try Homebrew first (prebuilt binary, no compilation needed)
+        # macOS: try Homebrew first (prebuilt bottles — no compilation)
         if [ "$OS" = "macos" ] && command -v brew &>/dev/null; then
-            info "Installing Python 3.12 via Homebrew (prebuilt, fast)..."
-            brew install python@3.12 2>/dev/null || brew install python@3.11 2>/dev/null || true
-            PYTHON_CMD="$(find_compatible_python || true)"
+            for _brew_py in python@3.12 python@3.11 python@3.10; do
+                info "Trying brew install $_brew_py (prebuilt bottle)..."
+                if HOMEBREW_NO_BUILD_FROM_SOURCE=1 brew install "$_brew_py" 2>/dev/null; then
+                    PYTHON_CMD="$(find_compatible_python || true)"
+                    [ -n "$PYTHON_CMD" ] && break
+                fi
+                warn "No prebuilt bottle for $_brew_py on this macOS — skipping"
+            done
         fi
 
         # Fallback to pyenv (compiles from source — slower, needs build deps)
         if [ -z "$PYTHON_CMD" ]; then
-            info "Attempting to install a compatible Python via pyenv..."
+            info "Attempting to install a compatible Python via pyenv (may take a few minutes)..."
             PYTHON_CMD="$(install_compatible_python || true)"
         fi
     elif [ "$SYS_VER" = "none" ]; then
@@ -239,7 +244,10 @@ if [ -z "$PYTHON_CMD" ]; then
             arch)   sudo pacman -S --noconfirm python python-pip ;;
             macos)
                 if command -v brew &>/dev/null; then
-                    brew install python@3.12 || brew install python@3.11 || brew install python@3
+                    HOMEBREW_NO_BUILD_FROM_SOURCE=1 brew install python@3.12 \
+                        || HOMEBREW_NO_BUILD_FROM_SOURCE=1 brew install python@3.11 \
+                        || brew install python@3.12 \
+                        || brew install python@3
                 else
                     fatal "Python not found. Install Homebrew (https://brew.sh) then run: brew install python@3.12"
                 fi
