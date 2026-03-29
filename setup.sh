@@ -82,7 +82,22 @@ find_compatible_python() {
         done
     fi
 
-    # 2. Check PATH for versioned executables (python3.12, python3.11, python3.10)
+    # 2. Check Homebrew installations directly (macOS — brew may not link to PATH)
+    local brew_prefix
+    for brew_prefix in /opt/homebrew/opt /usr/local/opt; do
+        for suffix in 3.12 3.11 3.10; do
+            candidate="$brew_prefix/python@$suffix/bin/python$suffix"
+            if [ -x "$candidate" ]; then
+                ver="$("$candidate" --version 2>/dev/null | cut -d' ' -f2)"
+                if python_version_ok "$ver"; then
+                    echo "$candidate"
+                    return 0
+                fi
+            fi
+        done
+    done
+
+    # 3. Check PATH for versioned executables (python3.12, python3.11, python3.10)
     local suffix
     for suffix in 3.12 3.11 3.10; do
         candidate="$(command -v "python$suffix" 2>/dev/null || true)"
@@ -203,8 +218,19 @@ if [ -z "$PYTHON_CMD" ]; then
 
     if [ "$SYS_VER" != "none" ] && version_gte "$SYS_VER" "$PYTHON_MAX"; then
         warn "System Python $SYS_VER is too new — audio libraries require Python 3.10-3.12"
-        info "Attempting to install a compatible Python via pyenv..."
-        PYTHON_CMD="$(install_compatible_python || true)"
+
+        # macOS: try Homebrew first (prebuilt binary, no compilation needed)
+        if [ "$OS" = "macos" ] && command -v brew &>/dev/null; then
+            info "Installing Python 3.12 via Homebrew (prebuilt, fast)..."
+            brew install python@3.12 2>/dev/null || brew install python@3.11 2>/dev/null || true
+            PYTHON_CMD="$(find_compatible_python || true)"
+        fi
+
+        # Fallback to pyenv (compiles from source — slower, needs build deps)
+        if [ -z "$PYTHON_CMD" ]; then
+            info "Attempting to install a compatible Python via pyenv..."
+            PYTHON_CMD="$(install_compatible_python || true)"
+        fi
     elif [ "$SYS_VER" = "none" ]; then
         info "Python not found — attempting to install..."
         case "$OS" in
