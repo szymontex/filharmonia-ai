@@ -5,6 +5,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import List
 from app.services.sort import get_sort_service
+from app.api.v1.files import invalidate_sorted_cache
 
 router = APIRouter(prefix="/sort", tags=["sort"])
 
@@ -64,6 +65,9 @@ async def sort_files(request: SortRequest):
         'renamed': len(results['renamed']),
         'errors': len(results['errors'])
     }
+
+    if results['moved'] or results['duplicates_removed']:
+        invalidate_sorted_cache()
 
     return SortResponse(
         moved=results['moved'],

@@ -127,11 +127,15 @@ async def list_sorted_files():
 
     return files
 
+def invalidate_sorted_cache():
+    """Clear the sorted files cache so the next request rescans."""
+    _sorted_files_cache["files"] = None
+    _sorted_files_cache["timestamp"] = 0
+
 @router.post("/sorted/refresh")
 async def refresh_sorted_cache():
     """Force refresh the sorted files cache"""
-    _sorted_files_cache["files"] = None
-    _sorted_files_cache["timestamp"] = 0
+    invalidate_sorted_cache()
     return {"message": "Cache cleared, next request will rescan"}
 
 @router.get("/analysis-results", response_model=List[FileInfo])
