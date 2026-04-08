@@ -78,25 +78,21 @@ class AnalysisQueue:
 
     async def _maybe_start_next(self):
         """Start queued jobs until we hit the concurrency limit."""
-        async with self._lock:
-            # Reap finished processes
-            finished = []
-            for job_id, proc in self._running.items():
-                alive = self._is_alive(proc)
-                if not alive:
-                    finished.append(job_id)
-            for job_id in finished:
-                logger.info("Analysis %s finished", job_id[:8])
-                del self._running[job_id]
+        while True:
+            # Grab one entry if we have capacity
+            async with self._lock:
+                # Reap finished processes
+                finished = [jid for jid, proc in self._running.items()
+                            if not self._is_alive(proc)]
+                for jid in finished:
+                    logger.info("Analysis %s finished", jid[:8])
+                    del self._running[jid]
 
-            # Start as many jobs as concurrency allows
-            started = []
-            while self._queue and len(self._running) < self.max_concurrent:
+                if not self._queue or len(self._running) >= self.max_concurrent:
+                    break
                 entry = self._queue.popleft()
-                started.append(entry)
 
-        # Launch outside the lock
-        for entry in started:
+            # Launch outside the lock
             job_id = entry["job_id"]
             if entry["type"] == "single":
                 jobs_dir = Path(entry["jobs_dir"])
