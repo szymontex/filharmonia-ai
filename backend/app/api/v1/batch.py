@@ -11,11 +11,11 @@ from pydantic import BaseModel
 from datetime import datetime
 import uuid
 import json
-import multiprocessing
 from cachetools import TTLCache
 import polars as pl
 from app.config import settings
 from app.services.job_registry import get_job_registry
+from app.services.analysis_queue import get_analysis_queue
 
 logger = logging.getLogger(__name__)
 
@@ -75,7 +75,6 @@ def write_job_status(job_id: str, status: dict):
 # In-memory cache for job tracking
 # TTL cache: 4 hour expiry, max 50 entries (batch jobs can be long-running)
 _jobs: TTLCache = TTLCache(maxsize=50, ttl=14400)
-_processes = {}
 
 def get_unanalyzed_files(year: Optional[int] = None, month: Optional[int] = None) -> List[Path]:
     """
@@ -249,7 +248,7 @@ async def batch_analyze(request: BatchRequest):
     job_id = str(uuid.uuid4())
 
     initial_status = {
-        "status": "starting",
+        "status": "queued",
         "total": len(mp3_files),
         "completed": 0,
         "failed": 0,
@@ -276,21 +275,22 @@ async def batch_analyze(request: BatchRequest):
     except Exception as e:
         logger.warning(f"Could not persist batch job to SQLite: {e}")
 
-    # Start in separate PROCESS
-    process = multiprocessing.Process(
-        target=run_batch_analysis_process,
-        args=(job_id, [str(f) for f in mp3_files]),
-        daemon=True,
-        name=f"BatchAnalysis-{job_id[:8]}"
-    )
-    process.start()
-    _processes[job_id] = process
+    # Enqueue - the global queue starts it when no other analysis is running
+    queue = get_analysis_queue()
+    mp3_strs = [str(f) for f in mp3_files]
+    await queue.enqueue_batch(job_id, mp3_strs, JOBS_DIR)
+
+    pos = queue.queue_position(job_id)
+    if pos is not None:
+        message = f"Batch queued (position {pos + 1}): {len(mp3_files)} files"
+    else:
+        message = f"Batch analysis started: {len(mp3_files)} files"
 
     return BatchResponse(
         job_id=job_id,
         files_queued=len(mp3_files),
         files=[f.name for f in mp3_files],
-        message=f"Batch analysis started in process (PID: {process.pid}): {len(mp3_files)} files"
+        message=message
     )
 
 @router.get("/batch/{job_id}")

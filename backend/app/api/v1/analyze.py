@@ -9,12 +9,11 @@ from pathlib import Path
 from pydantic import BaseModel
 import uuid
 import json
-import subprocess
-import sys
 import tempfile
 from cachetools import TTLCache
 
 from app.services.job_registry import get_job_registry
+from app.services.analysis_queue import get_analysis_queue
 
 logger = logging.getLogger(__name__)
 
@@ -23,9 +22,6 @@ router = APIRouter(prefix="/analyze", tags=["analyze"])
 # Directory for job status files (cross-platform)
 JOBS_DIR = Path(tempfile.gettempdir()) / "filharmonia_jobs"
 JOBS_DIR.mkdir(exist_ok=True)
-
-# Path to worker script
-WORKER_SCRIPT = Path(__file__).parent.parent.parent / "workers" / "analyze_worker.py"
 
 class AnalyzeRequest(BaseModel):
     mp3_path: str
@@ -50,7 +46,6 @@ def write_job_status(job_id: str, status: dict):
     """Atomic write using temp file + rename pattern"""
     job_file = get_job_file(job_id)
 
-    # Create temp file in same directory (ensures same filesystem)
     fd, tmp_path = tempfile.mkstemp(
         suffix='.tmp',
         prefix=f'{job_id}_',
@@ -60,27 +55,22 @@ def write_job_status(job_id: str, status: dict):
         with os.fdopen(fd, 'w') as f:
             json.dump(status, f)
             f.flush()
-            os.fsync(f.fileno())  # Ensure data is on disk
+            os.fsync(f.fileno())
 
-        # Atomic replace (works on both Unix and Windows)
         os.replace(tmp_path, job_file)
     except Exception:
-        # Clean up temp file on error
         if os.path.exists(tmp_path):
             os.unlink(tmp_path)
         raise
 
-# Keep track of running processes (for cleanup)
-_processes = {}
-
-# Also maintain in-memory cache for quick access
-# TTL cache: 1 hour expiry, max 100 entries (single jobs are short-lived)
+# Keep in-memory cache for quick access
 _single_jobs: TTLCache = TTLCache(maxsize=100, ttl=3600)
 
 @router.post("/", response_model=AnalyzeResponse)
 async def analyze_file(request: AnalyzeRequest):
     """
-    Analyze MP3 file in background process - returns immediately with job_id
+    Analyze MP3 file in background process - returns immediately with job_id.
+    Jobs are queued globally so only one analysis runs at a time.
     """
     mp3_path = Path(request.mp3_path)
 
@@ -92,9 +82,8 @@ async def analyze_file(request: AnalyzeRequest):
 
     job_id = str(uuid.uuid4())
 
-    # Initialize job status BEFORE starting process
     initial_status = {
-        "status": "starting",
+        "status": "queued",
         "file": str(mp3_path),
         "progress": 0,
         "current_segment": 0,
@@ -104,7 +93,7 @@ async def analyze_file(request: AnalyzeRequest):
     write_job_status(job_id, initial_status)
     _single_jobs[job_id] = initial_status
 
-    # Persist job to SQLite for restart recovery
+    # Persist to SQLite
     try:
         registry = await get_job_registry()
         await registry.create_job(
@@ -115,40 +104,33 @@ async def analyze_file(request: AnalyzeRequest):
     except Exception as e:
         logger.warning(f"Could not persist job to SQLite: {e}")
 
-    # Get the Python executable from current virtualenv
-    python_exe = sys.executable
+    # Enqueue - the queue handles starting it when ready
+    queue = get_analysis_queue()
+    await queue.enqueue_single(job_id, str(mp3_path), JOBS_DIR)
 
-    # Log file for worker output
-    log_file = JOBS_DIR / f"{job_id}.log"
+    pos = queue.queue_position(job_id)
+    if pos is not None:
+        message = f"Analysis queued (position {pos + 1} in queue)"
+    else:
+        message = "Analysis started"
 
-    # Start analysis in separate subprocess
-    # This completely isolates CPU-heavy work from the main server
-    with open(log_file, 'w') as log:
-        process = subprocess.Popen(
-            [python_exe, str(WORKER_SCRIPT), job_id, str(mp3_path)],
-            stdout=log,
-            stderr=subprocess.STDOUT,
-            cwd=str(Path(__file__).parent.parent.parent),
-            start_new_session=True  # Detach from parent
-        )
-
-    _processes[job_id] = process
-
-    return AnalyzeResponse(
-        job_id=job_id,
-        message=f"Analysis started in background process (PID: {process.pid})"
-    )
+    return AnalyzeResponse(job_id=job_id, message=message)
 
 @router.get("/status/{job_id}")
 async def get_analysis_status(job_id: str):
     """Get status of single file analysis"""
-    # Try to read from temp file first (most up-to-date during active processing)
     status = read_job_status(job_id)
     if status:
-        # Update in-memory cache
+        # Enrich with queue position if still queued
+        if status.get("status") == "queued":
+            queue = get_analysis_queue()
+            pos = queue.queue_position(job_id)
+            if pos is not None:
+                status["queue_position"] = pos + 1
+                status["queue_total"] = queue.queue_length
+
         _single_jobs[job_id] = status
 
-        # Also update SQLite for persistence (non-blocking)
         try:
             registry = await get_job_registry()
             await registry.update_job(job_id, status)
@@ -157,11 +139,9 @@ async def get_analysis_status(job_id: str):
 
         return status
 
-    # Fallback to in-memory cache
     if job_id in _single_jobs:
         return _single_jobs[job_id]
 
-    # Final fallback: SQLite (for jobs that survived a server restart)
     try:
         registry = await get_job_registry()
         job = await registry.get_job(job_id)

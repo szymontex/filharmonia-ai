@@ -13,38 +13,10 @@ from app.config import settings
 logger = logging.getLogger(__name__)
 from app.api.v1 import files, analyze, csv_parser, batch, audio, waveform, sort, export, training, uncertainty, filharmonia
 
-
 def terminate_all_workers():
-    """Terminate all worker processes from both analyze and batch modules"""
-    from app.api.v1.analyze import _processes as single_processes
-    from app.api.v1.batch import _processes as batch_processes
-
-    all_processes = {**single_processes, **batch_processes}
-
-    for job_id, proc in list(all_processes.items()):
-        # Check if process is still running
-        if isinstance(proc, subprocess.Popen):
-            if proc.poll() is None:  # Still running
-                logger.info(f"Terminating worker for job {job_id[:8]}...")
-                proc.terminate()
-                try:
-                    proc.wait(timeout=5)
-                except subprocess.TimeoutExpired:
-                    logger.warning(f"Force killing worker for job {job_id[:8]}")
-                    proc.kill()
-                    proc.wait()
-        elif hasattr(proc, 'terminate'):  # multiprocessing.Process
-            if proc.is_alive():
-                logger.info(f"Terminating batch worker for job {job_id[:8]}...")
-                proc.terminate()
-                proc.join(timeout=5)
-                if proc.is_alive():
-                    logger.warning(f"Force killing batch worker for job {job_id[:8]}")
-                    proc.kill()
-                    proc.join()
-
-    single_processes.clear()
-    batch_processes.clear()
+    """Terminate all worker processes via global analysis queue"""
+    from app.services.analysis_queue import get_analysis_queue
+    get_analysis_queue().terminate_all()
 
 
 @asynccontextmanager
