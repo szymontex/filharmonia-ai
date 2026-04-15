@@ -6,9 +6,9 @@ Narzędzie do automatycznej analizy nagrań koncertowych. Wrzucasz MP3 z koncert
 
 ## Core Value
 
-**Zamiast ręcznie słuchać ~6-8h nagrań tygodniowo i spisywać czasy, AI robi to za ciebie.** Wszystko inne może być uproszczone — ta automatyzacja musi działać.
+**Zamiast ręcznie słuchać ~6-8h nagrań tygodniowo i spisywać czasy, AI robi to za ciebie.** Wszystko inne może być uproszczone - ta automatyzacja musi działać.
 
-## Current Milestone: v0.9 — Polish & Stability
+## Current Milestone: v0.9 - Polish & Stability
 
 **Goal:** Make the existing tool production-ready: fix security issues, improve performance, enable cross-platform deployment, and polish the UX.
 
@@ -25,17 +25,17 @@ Narzędzie do automatycznej analizy nagrań koncertowych. Wrzucasz MP3 z koncert
 
 <!-- Shipped and confirmed valuable. -->
 
-- ✓ Upload MP3 i uruchom analizę AST — existing
-- ✓ Klasyfikacja segmentów (MUSIC, APPLAUSE, SPEECH, PUBLIC, TUNING) — existing
-- ✓ Przeglądanie wyników w UI z waveformem — existing
-- ✓ Edycja/korekta granic segmentów — existing
-- ✓ Autosave edytowanych CSVów — existing
-- ✓ Eksport segmentów do training data — existing
-- ✓ Trenowanie modelu AST na własnych danych — existing
-- ✓ Przełączanie między modelami — existing
-- ✓ Batch analysis wielu plików — existing
-- ✓ Uncertainty review (przegląd niepewnych predykcji) — existing
-- ✓ Kalendarzowy browser nagrań — existing
+- ✓ Upload MP3 i uruchom analizę AST - existing
+- ✓ Klasyfikacja segmentów (MUSIC, APPLAUSE, SPEECH, PUBLIC, TUNING) - existing
+- ✓ Przeglądanie wyników w UI z waveformem - existing
+- ✓ Edycja/korekta granic segmentów - existing
+- ✓ Autosave edytowanych CSVów - existing
+- ✓ Eksport segmentów do training data - existing
+- ✓ Trenowanie modelu AST na własnych danych - existing
+- ✓ Przełączanie między modelami - existing
+- ✓ Batch analysis wielu plików - existing
+- ✓ Uncertainty review (przegląd niepewnych predykcji) - existing
+- ✓ Kalendarzowy browser nagrań - existing
 
 ### Active
 
@@ -53,7 +53,7 @@ Narzędzie do automatycznej analizy nagrań koncertowych. Wrzucasz MP3 z koncert
 - [ ] Optymalizacja ładowania audio (streaming zamiast full load)
 
 **UI/UX Polish:**
-- [ ] Uproszczony workflow — mniej kroków do wyniku
+- [ ] Uproszczony workflow - mniej kroków do wyniku
 - [ ] Czystszy, profesjonalny wygląd
 - [ ] Lepsze error handling i feedback do usera
 - [ ] Refactor monolitycznych komponentów (CsvViewer 1268 linii)
@@ -68,12 +68,12 @@ Narzędzie do automatycznej analizy nagrań koncertowych. Wrzucasz MP3 z koncert
 
 <!-- Explicit boundaries. Includes reasoning to prevent re-adding. -->
 
-- Automatyczny eksport do szablonu ZAIKS — następny milestone
-- Sprawdzanie czy utwór jest chroniony (AI + web search) — następny milestone
-- Autentykacja/autoryzacja — local tool, trusted network
-- Real-time chat/collaboration — single user tool
-- Mobile app — desktop-first
-- Usunięcie legacy Keras training service — działa, nie przeszkadza
+- Automatyczny eksport do szablonu ZAIKS - następny milestone
+- Sprawdzanie czy utwór jest chroniony (AI + web search) - następny milestone
+- Autentykacja/autoryzacja - local tool, trusted network
+- Real-time chat/collaboration - single user tool
+- Mobile app - desktop-first
+- Usunięcie legacy Keras training service - działa, nie przeszkadza
 
 ## Context
 
@@ -85,7 +85,7 @@ Narzędzie do automatycznej analizy nagrań koncertowych. Wrzucasz MP3 z koncert
 
 **Stan techniczny:**
 - React SPA + FastAPI + PyTorch AST model
-- Działa ale jest kruchy — różne wersje na różnych kompach
+- Działa ale jest kruchy - różne wersje na różnych kompach
 - Brak testów, hardcoded ścieżki, bare except blocks
 - Waveform generowany on-demand (wolne)
 - Polling zamiast WebSocket dla job status
@@ -98,9 +98,9 @@ Narzędzie do automatycznej analizy nagrań koncertowych. Wrzucasz MP3 z koncert
 
 ## Constraints
 
-- **Hardware:** Musi działać na CUDA (RTX), ROCm (Radeon), i CPU — różne maszyny w użyciu
-- **Audio params:** Sample rate 48kHz, frame duration 2.97s — NIEZMIENNE (kompatybilność z wytrenowanymi modelami)
-- **Labels:** APPLAUSE, MUSIC, PUBLIC, SPEECH, TUNING — alfabetycznie, NIEZMIENNE (model output order)
+- **Hardware:** Musi działać na CUDA (RTX), ROCm (Radeon), i CPU - różne maszyny w użyciu
+- **Audio params:** Sample rate 48kHz, frame duration 2.97s - NIEZMIENNE (kompatybilność z wytrenowanymi modelami)
+- **Labels:** APPLAUSE, MUSIC, PUBLIC, SPEECH, TUNING - alfabetycznie, NIEZMIENNE (model output order)
 - **Backward compat:** Istniejące CSVy i modele muszą nadal działać
 
 ## Key Decisions
@@ -112,7 +112,7 @@ Narzędzie do automatycznej analizy nagrań koncertowych. Wrzucasz MP3 z koncert
 | PyTorch AST over Keras CNN | Lepsze wyniki, nowszy stack | ✓ Good |
 | File-based job status (/tmp JSON) | Prostsze niż baza danych | ⚠️ Revisit (cleanup, scaling) |
 | No auth | Local trusted tool | ✓ Good for now |
-| Brownfield improvement | Istniejący kod działa, refactor > rewrite | — Pending |
+| Brownfield improvement | Istniejący kod działa, refactor > rewrite | - Pending |
 
 ---
 *Last updated: 2026-01-21 after v0.9 milestone start*

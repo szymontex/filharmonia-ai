@@ -10,7 +10,7 @@ score: 16/16 must-haves verified
 **Phase Goal:** CSV operations complete 5-30x faster; waveforms load instantly on repeat views.
 **Verified:** 2026-01-28T14:30:00Z
 **Status:** passed
-**Re-verification:** No — initial verification
+**Re-verification:** No - initial verification
 
 ## Goal Achievement
 

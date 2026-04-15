@@ -14,7 +14,7 @@ re_verification: false
 
 **Status:** PASSED
 
-**Re-verification:** No — initial verification
+**Re-verification:** No - initial verification
 
 ---
 

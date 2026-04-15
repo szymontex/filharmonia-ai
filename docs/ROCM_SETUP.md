@@ -34,7 +34,7 @@ This guide covers GPU setup for Filharmonia AI across different hardware platfor
 ### Troubleshooting
 
 - **`torch.cuda.is_available()` returns `False`:** Ensure ROCm drivers are installed and your GPU is in the supported list. Run `rocminfo` to verify the driver sees your GPU.
-- **Inference is unexpectedly slow:** Filharmonia AI runs a performance validation at startup. Check logs for "ROCm may be falling back to CPU silently" — this means the GPU path is not working correctly. Reinstall ROCm drivers.
+- **Inference is unexpectedly slow:** Filharmonia AI runs a performance validation at startup. Check logs for "ROCm may be falling back to CPU silently" - this means the GPU path is not working correctly. Reinstall ROCm drivers.
 - **`libamdhip64.so` not found:** Add ROCm libraries to your path: `export LD_LIBRARY_PATH=/opt/rocm/lib:$LD_LIBRARY_PATH`
 
 ## Windows ROCm (Experimental)

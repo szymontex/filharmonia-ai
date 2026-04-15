@@ -36,7 +36,7 @@ ROCm-aware device detection with timing-based silent CPU fallback validation and
 Enhanced DeviceManager with ROCm-specific validation:
 
 - `_validate_rocm()` runs after ROCm detection: logs GPU memory, runs trivial matmul sanity check (<100ms threshold), then full performance validation
-- `validate_gpu_performance()` compares 256x256 matmul on GPU vs CPU — logs CRITICAL warning if GPU is slower (indicates silent CPU fallback)
+- `validate_gpu_performance()` compares 256x256 matmul on GPU vs CPU - logs CRITICAL warning if GPU is slower (indicates silent CPU fallback)
 - `rocm_version` property exposes `torch.version.hip` for downstream consumers
 - All ROCm-specific code wrapped in try/except with CPU fallback
 

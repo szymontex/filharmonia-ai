@@ -18,7 +18,7 @@ re_verification:
 **Phase Goal:** Users can efficiently edit audio classifications with keyboard shortcuts and undo mistakes.
 **Verified:** 2026-01-29T01:00:00Z
 **Status:** passed
-**Re-verification:** Yes — after gap closure via Plan 02-07
+**Re-verification:** Yes - after gap closure via Plan 02-07
 
 ## Goal Achievement
 
@@ -94,15 +94,15 @@ re_verification:
 
 | Requirement | Status | Blocking Issue |
 |-------------|--------|----------------|
-| UX-01: Keyboard shortcuts — spacebar play/pause | ✓ SATISFIED | Fixed in 02-07: spacebar calls togglePlayback() which controls actual audio via ref |
+| UX-01: Keyboard shortcuts - spacebar play/pause | ✓ SATISFIED | Fixed in 02-07: spacebar calls togglePlayback() which controls actual audio via ref |
 | UX-02: Ctrl+S explicit save | ✓ SATISFIED | |
 | UX-03: Ctrl+Z undo (single step first) | ✓ SATISFIED | Full 20-step undo implemented |
 | UX-04: Number keys 1-5 for class cycling | ✓ SATISFIED | |
-| UX-05: Debounce abort — cancel in-flight requests | ✓ SATISFIED | Fixed in 02-07: signal passed to 4 axios requests, isCancel checks prevent error toasts |
+| UX-05: Debounce abort - cancel in-flight requests | ✓ SATISFIED | Fixed in 02-07: signal passed to 4 axios requests, isCancel checks prevent error toasts |
 | UX-06: Standardize error response format | ✓ SATISFIED | |
 | UX-07: Progress indicators | ✓ SATISFIED | |
 | CLEAN-04: Implement or remove handlePlayRecording | ✓ SATISFIED | |
-| CLEAN-05: Autosave atomicity — write to .tmp then rename | ✓ SATISFIED | |
+| CLEAN-05: Autosave atomicity - write to .tmp then rename | ✓ SATISFIED | |
 
 **9/9 requirements satisfied (100%)**
 
@@ -170,7 +170,7 @@ re_verification:
 2. Press Ctrl+Z repeatedly (should undo all 5)
 3. Press Ctrl+Shift+Z repeatedly (should redo all 5)
 4. Make a new edit after undo
-5. Try to redo (should not be possible — future cleared)
+5. Try to redo (should not be possible - future cleared)
 
 **Expected:** All undo/redo operations work correctly, future clears on new edit
 
@@ -211,12 +211,12 @@ re_verification:
 
 **Gaps Closed by Plan 02-07:**
 
-1. **AbortController Wiring (UX-05)** — CLOSED
+1. **AbortController Wiring (UX-05)** - CLOSED
    - **Previous:** AbortController declared but signal never passed to axios requests
    - **Fix:** Lines 227-228 abort + new controller, lines 237/253/265/488 pass signal, lines 271-272/278-279/507-508 handle isCancel
    - **Verification:** ✓ Code inspection confirms signal propagation to 4 axios calls with proper cancellation handling
 
-2. **Spacebar Play/Pause (UX-01)** — CLOSED
+2. **Spacebar Play/Pause (UX-01)** - CLOSED
    - **Previous:** Spacebar handler only toggled player visibility, not actual playback
    - **Fix:** Ref-based callback pattern - togglePlaybackRef connects CsvViewer to StickyPlayer's handlePlayPause
    - **Implementation:**
@@ -251,15 +251,15 @@ re_verification:
 
 **Achievement:** ✓ FULLY ACHIEVED
 
-1. ✓ Users can play/pause audio with spacebar — ref-based wiring enables keyboard control of StickyPlayer
-2. ✓ Users can save with Ctrl+S — explicit save action wired to saveToFile()
-3. ✓ Users can undo last change with Ctrl+Z — 20-step undo history with proper state management
-4. ✓ Users can press 1-5 to cycle through classifications — number keys map to CLASS_ORDER with guard checks
-5. ✓ Progress indicator shows current stage — "Loading...", "Analyzing...", "Saving..." displayed with animation
-6. ✓ After making a change, user can press Ctrl+Z to restore previous state — undo system preserves history across saves
-7. ✓ All API errors return consistent JSON format — status, message, and code fields in all 3 exception handlers
-8. ✓ In-flight requests cancelled when switching files — AbortController signal propagated to 4 axios calls
-9. ✓ Keyboard shortcuts discoverable — help panel accessible via ? key and toolbar icon
+1. ✓ Users can play/pause audio with spacebar - ref-based wiring enables keyboard control of StickyPlayer
+2. ✓ Users can save with Ctrl+S - explicit save action wired to saveToFile()
+3. ✓ Users can undo last change with Ctrl+Z - 20-step undo history with proper state management
+4. ✓ Users can press 1-5 to cycle through classifications - number keys map to CLASS_ORDER with guard checks
+5. ✓ Progress indicator shows current stage - "Loading...", "Analyzing...", "Saving..." displayed with animation
+6. ✓ After making a change, user can press Ctrl+Z to restore previous state - undo system preserves history across saves
+7. ✓ All API errors return consistent JSON format - status, message, and code fields in all 3 exception handlers
+8. ✓ In-flight requests cancelled when switching files - AbortController signal propagated to 4 axios calls
+9. ✓ Keyboard shortcuts discoverable - help panel accessible via ? key and toolbar icon
 
 **Success Criteria Met:** 5/5
 

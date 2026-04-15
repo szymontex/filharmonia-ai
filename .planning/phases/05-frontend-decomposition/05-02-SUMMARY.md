@@ -42,10 +42,10 @@ completed: 2026-01-28
 - **Changes:**
   - Created `frontend/src/utils/` directory
   - Created `timeCalculations.ts` with 4 exported pure functions:
-    - `calculateDuration(start, stop)` — Returns duration in M'S" format (e.g., "3'45\"")
-    - `timeToSeconds(timeStr)` — Converts HH:MM:SS to total seconds
-    - `secondsToTimeFormat(seconds)` — Converts seconds to HH:MM:SS format
-    - `parseTimeToSeconds(timeStr)` — Explicit parsing for inline usage clarity
+    - `calculateDuration(start, stop)` - Returns duration in M'S" format (e.g., "3'45\"")
+    - `timeToSeconds(timeStr)` - Converts HH:MM:SS to total seconds
+    - `secondsToTimeFormat(seconds)` - Converts seconds to HH:MM:SS format
+    - `parseTimeToSeconds(timeStr)` - Explicit parsing for inline usage clarity
   - All functions are pure (no side effects, no dependencies)
   - TypeScript compiles without errors
 
@@ -66,10 +66,10 @@ completed: 2026-01-28
 
 ## Requirements Addressed
 
-- **DECOMP-02:** Extract time calculation utilities — ✓ Complete
-- Time calculations are in single utility file — ✓ Verified
-- CsvViewer and useTrackEditor import utilities instead of defining inline — ✓ Verified
-- Duration calculation produces M'S" format — ✓ Verified
+- **DECOMP-02:** Extract time calculation utilities - ✓ Complete
+- Time calculations are in single utility file - ✓ Verified
+- CsvViewer and useTrackEditor import utilities instead of defining inline - ✓ Verified
+- Duration calculation produces M'S" format - ✓ Verified
 
 ## Deviations from Plan
 
@@ -135,19 +135,19 @@ const duration = calculateDuration(track.start, track.stop)
    - Export to training data time conversion
 
 2. **useTrackEditor.ts** (was using inline functions, now imports)
-   - `updateStart` — Recalculate duration when start time changes
-   - `updateStop` — Recalculate duration when stop time changes
-   - `deleteTrack` — Merge track durations
-   - `mergeWithNext` — Calculate merged duration
-   - `cutSegmentAtTime` — Find segment by time, create split durations
-   - `addSegmentAtTime` — Parse time, create new segment with duration
-   - `addSegmentBelow` — Create new segment with calculated boundaries
+   - `updateStart` - Recalculate duration when start time changes
+   - `updateStop` - Recalculate duration when stop time changes
+   - `deleteTrack` - Merge track durations
+   - `mergeWithNext` - Calculate merged duration
+   - `cutSegmentAtTime` - Find segment by time, create split durations
+   - `addSegmentAtTime` - Parse time, create new segment with duration
+   - `addSegmentBelow` - Create new segment with calculated boundaries
 
 ## Decisions Made
 
 | Decision | Rationale | Impact |
 |----------|-----------|--------|
-| Export both `timeToSeconds` and `parseTimeToSeconds` | Provides clarity in different contexts — `timeToSeconds` for general use, `parseTimeToSeconds` for explicit inline parsing | Better code readability |
+| Export both `timeToSeconds` and `parseTimeToSeconds` | Provides clarity in different contexts - `timeToSeconds` for general use, `parseTimeToSeconds` for explicit inline parsing | Better code readability |
 | Keep all functions pure (no side effects) | Enables unit testing, predictable behavior, easier debugging | Testable, maintainable code |
 | Use descriptive function names | Clear intent without reading implementation | Self-documenting code |
 | Create dedicated utils/ directory | Standard pattern for shared utilities | Organized structure |
@@ -164,9 +164,9 @@ const duration = calculateDuration(track.start, track.stop)
 ## Testing Notes
 
 - **TypeScript compilation:** No errors related to time calculation imports
-- **Pre-existing build errors:** Frontend has pre-existing TypeScript errors in StickyPlayer, SortManager, TrainingManager, and UncertaintyReview — these are unrelated to time calculation refactoring
+- **Pre-existing build errors:** Frontend has pre-existing TypeScript errors in StickyPlayer, SortManager, TrainingManager, and UncertaintyReview - these are unrelated to time calculation refactoring
 - **Function signatures:** All utility functions maintain same signatures as original local implementations
-- **No behavioral changes:** Refactoring is pure extraction — logic remains identical
+- **No behavioral changes:** Refactoring is pure extraction - logic remains identical
 
 ## Next Phase Readiness
 
@@ -185,11 +185,11 @@ const duration = calculateDuration(track.start, track.stop)
 ## Files Changed
 
 ### Created
-- `frontend/src/utils/timeCalculations.ts` — Time calculation utility module (48 lines)
+- `frontend/src/utils/timeCalculations.ts` - Time calculation utility module (48 lines)
 
 ### Modified
-- `frontend/src/pages/CsvViewer.tsx` — Removed local time functions, added import
-- `frontend/src/hooks/useTrackEditor.ts` — Removed inline time functions, added import
+- `frontend/src/pages/CsvViewer.tsx` - Removed local time functions, added import
+- `frontend/src/hooks/useTrackEditor.ts` - Removed inline time functions, added import
 
 ### Deleted
 None
@@ -208,8 +208,8 @@ None
 
 **Plan:** `.planning/phases/05-frontend-decomposition/05-02-PLAN.md`
 **Commits:**
-- `143bd5d` — Create timeCalculations utility module
-- `18c97c2` — Update CsvViewer and useTrackEditor to use time utilities
+- `143bd5d` - Create timeCalculations utility module
+- `18c97c2` - Update CsvViewer and useTrackEditor to use time utilities
 
 ---
 

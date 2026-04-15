@@ -1,4 +1,4 @@
-# Roadmap: Filharmonia AI v0.9 — Polish & Stability
+# Roadmap: Filharmonia AI v0.9 - Polish & Stability
 
 **Created:** 2026-01-21
 **Depth:** Comprehensive
@@ -7,7 +7,7 @@
 
 ## Overview
 
-This milestone transforms Filharmonia AI from a working but fragile prototype into a production-ready tool. The roadmap prioritizes foundation fixes (security, error handling) before UX improvements, then performance, then optional GPU optimizations. Every phase delivers observable improvements — no phase depends on unwritten future phases to be useful.
+This milestone transforms Filharmonia AI from a working but fragile prototype into a production-ready tool. The roadmap prioritizes foundation fixes (security, error handling) before UX improvements, then performance, then optional GPU optimizations. Every phase delivers observable improvements - no phase depends on unwritten future phases to be useful.
 
 ---
 
@@ -20,13 +20,13 @@ This milestone transforms Filharmonia AI from a working but fragile prototype in
 **Plans:** 7 plans
 
 Plans:
-- [x] 01-01-PLAN.md — Replace bare except clauses with specific exceptions
-- [x] 01-02-PLAN.md — Add path traversal prevention
-- [x] 01-03-PLAN.md — Global exception handler and type hints
-- [x] 01-04-PLAN.md — Cross-platform temp directories
-- [x] 01-05-PLAN.md — MP3 path resolution API endpoint
-- [x] 01-06-PLAN.md — Remove hardcoded frontend paths
-- [x] 01-07-PLAN.md — Startup validation and PyTorch pinning
+- [x] 01-01-PLAN.md - Replace bare except clauses with specific exceptions
+- [x] 01-02-PLAN.md - Add path traversal prevention
+- [x] 01-03-PLAN.md - Global exception handler and type hints
+- [x] 01-04-PLAN.md - Cross-platform temp directories
+- [x] 01-05-PLAN.md - MP3 path resolution API endpoint
+- [x] 01-06-PLAN.md - Remove hardcoded frontend paths
+- [x] 01-07-PLAN.md - Startup validation and PyTorch pinning
 
 **Requirements:**
 - CRIT-01: Replace bare `except:` at `main.py:84`
@@ -70,24 +70,24 @@ Plans:
 **Plans:** 7 plans
 
 Plans:
-- [x] 02-01-PLAN.md — Create useUndoRedo and useKeyboardShortcuts hooks
-- [x] 02-02-PLAN.md — Toast store, error interceptor, and backend error codes
-- [x] 02-03-PLAN.md — Atomic file writes for CSV save
-- [x] 02-04-PLAN.md — Wire shortcuts, undo/redo, and toasts into CsvViewer
-- [x] 02-05-PLAN.md — Progress indicators, debounce abort, handlePlayRecording
-- [x] 02-06-PLAN.md — Keyboard help panel
-- [x] 02-07-PLAN.md — Gap closure: AbortController wiring, spacebar play/pause, cleanup
+- [x] 02-01-PLAN.md - Create useUndoRedo and useKeyboardShortcuts hooks
+- [x] 02-02-PLAN.md - Toast store, error interceptor, and backend error codes
+- [x] 02-03-PLAN.md - Atomic file writes for CSV save
+- [x] 02-04-PLAN.md - Wire shortcuts, undo/redo, and toasts into CsvViewer
+- [x] 02-05-PLAN.md - Progress indicators, debounce abort, handlePlayRecording
+- [x] 02-06-PLAN.md - Keyboard help panel
+- [x] 02-07-PLAN.md - Gap closure: AbortController wiring, spacebar play/pause, cleanup
 
 **Requirements:**
-- UX-01: Keyboard shortcuts — spacebar play/pause
+- UX-01: Keyboard shortcuts - spacebar play/pause
 - UX-02: Ctrl+S explicit save
 - UX-03: Ctrl+Z undo (single step first)
 - UX-04: Number keys 1-5 for class cycling
-- UX-05: Debounce abort — cancel in-flight requests
+- UX-05: Debounce abort - cancel in-flight requests
 - UX-06: Standardize error response format
 - UX-07: Progress indicators
 - CLEAN-04: Implement or remove `handlePlayRecording` in `CalendarBrowser.tsx:108`
-- CLEAN-05: Autosave atomicity — write to .tmp then rename
+- CLEAN-05: Autosave atomicity - write to .tmp then rename
 
 **Success Criteria:**
 1. User can play/pause audio with spacebar, save with Ctrl+S, and undo last change with Ctrl+Z
@@ -107,17 +107,17 @@ Plans:
 **Plans:** 4 plans
 
 Plans:
-- [x] 03-01-PLAN.md — SQLite job registry with TTL cache (INFRA-01)
-- [x] 03-02-PLAN.md — TTLCache for memory leaks + atomic writes (CRIT-11, CRIT-12, CRIT-13)
-- [x] 03-03-PLAN.md — Process cleanup, blocking I/O fix, timeout middleware (CRIT-14, CRIT-15, INFRA-02)
-- [x] 03-04-PLAN.md — Frontend exponential backoff polling (PERF-05)
+- [x] 03-01-PLAN.md - SQLite job registry with TTL cache (INFRA-01)
+- [x] 03-02-PLAN.md - TTLCache for memory leaks + atomic writes (CRIT-11, CRIT-12, CRIT-13)
+- [x] 03-03-PLAN.md - Process cleanup, blocking I/O fix, timeout middleware (CRIT-14, CRIT-15, INFRA-02)
+- [x] 03-04-PLAN.md - Frontend exponential backoff polling (PERF-05)
 
 **Requirements:**
-- CRIT-11: Fix memory leak in `analyze.py:48` — TTL cleanup for `_single_jobs`
-- CRIT-12: Fix memory leak in `batch.py:48-49` — TTL cleanup for `_jobs`
-- CRIT-13: Fix race condition in `batch.py:138,164` — atomic writes
-- CRIT-14: Fix zombie processes in `analyze.py:90` — cleanup on shutdown
-- CRIT-15: Fix blocking I/O in `csv_parser.py:273-276` — use `asyncio.to_thread()`
+- CRIT-11: Fix memory leak in `analyze.py:48` - TTL cleanup for `_single_jobs`
+- CRIT-12: Fix memory leak in `batch.py:48-49` - TTL cleanup for `_jobs`
+- CRIT-13: Fix race condition in `batch.py:138,164` - atomic writes
+- CRIT-14: Fix zombie processes in `analyze.py:90` - cleanup on shutdown
+- CRIT-15: Fix blocking I/O in `csv_parser.py:273-276` - use `asyncio.to_thread()`
 - INFRA-01: SQLite job registry
 - INFRA-02: Request timeout for long operations
 - INFRA-03: SQLAlchemy connection pooling (note: using aiosqlite instead, no explicit pooling needed)
@@ -141,12 +141,12 @@ Plans:
 **Plans:** 6 plans
 
 Plans:
-- [x] 04-01-PLAN.md — Install polars + fix regex recompilation (TECH-01, PERF-03)
-- [x] 04-02-PLAN.md — Waveform caching (PERF-04)
-- [x] 04-03-PLAN.md — Migrate csv_parser.py to polars (TECH-02)
-- [x] 04-04-PLAN.md — Migrate uncertainty.py to polars + fix N+1 (TECH-03, PERF-02)
-- [x] 04-05-PLAN.md — Migrate batch.py to polars + fix double-read (TECH-04, PERF-01)
-- [x] 04-06-PLAN.md — Remove pandas from requirements (TECH-05)
+- [x] 04-01-PLAN.md - Install polars + fix regex recompilation (TECH-01, PERF-03)
+- [x] 04-02-PLAN.md - Waveform caching (PERF-04)
+- [x] 04-03-PLAN.md - Migrate csv_parser.py to polars (TECH-02)
+- [x] 04-04-PLAN.md - Migrate uncertainty.py to polars + fix N+1 (TECH-03, PERF-02)
+- [x] 04-05-PLAN.md - Migrate batch.py to polars + fix double-read (TECH-04, PERF-01)
+- [x] 04-06-PLAN.md - Remove pandas from requirements (TECH-05)
 
 **Requirements:**
 - TECH-01: Install polars
@@ -170,20 +170,20 @@ Plans:
 
 ## Phase 5: Frontend Decomposition
 
-**Goal:** CsvViewer is maintainable — each component has single responsibility.
+**Goal:** CsvViewer is maintainable - each component has single responsibility.
 
 **Dependencies:** Phase 2 (UX features implemented first, then refactored)
 
 **Plans:** 7 plans
 
 Plans:
-- [x] 05-01-PLAN.md — Code cleanup (training.py, howler, filename sanitization)
-- [x] 05-02-PLAN.md — Extract time calculation utilities
-- [x] 05-03-PLAN.md — Extract useTrackEditor hook
-- [x] 05-04-PLAN.md — Extract useAutosave hook
-- [x] 05-05-PLAN.md — Extract useAudioPlayer hook
-- [x] 05-06-PLAN.md — Extract CsvSelector and PlayerControls components
-- [x] 05-07-PLAN.md — Extract TrackTable and finalize CsvViewer refactor
+- [x] 05-01-PLAN.md - Code cleanup (training.py, howler, filename sanitization)
+- [x] 05-02-PLAN.md - Extract time calculation utilities
+- [x] 05-03-PLAN.md - Extract useTrackEditor hook
+- [x] 05-04-PLAN.md - Extract useAutosave hook
+- [x] 05-05-PLAN.md - Extract useAudioPlayer hook
+- [x] 05-06-PLAN.md - Extract CsvSelector and PlayerControls components
+- [x] 05-07-PLAN.md - Extract TrackTable and finalize CsvViewer refactor
 
 **Requirements:**
 - COMP-01: Split CsvViewer into TrackTable, CsvSelector, PlayerControls
@@ -214,12 +214,12 @@ Plans:
 **Plans:** 6 plans
 
 Plans:
-- [x] 06-01-PLAN.md — Unified device detection (DeviceManager singleton)
-- [x] 06-02-PLAN.md — torch.compile GPU acceleration with warmup
-- [x] 06-03-PLAN.md — ONNX export, INT8 quantization, inference factory
-- [x] 06-04-PLAN.md — ROCm 6.4 support and setup documentation
-- [x] 06-05-PLAN.md — React 18 to React 19 upgrade
-- [x] 06-06-PLAN.md — Confidence threshold auto-tuning and wavesurfer.js evaluation
+- [x] 06-01-PLAN.md - Unified device detection (DeviceManager singleton)
+- [x] 06-02-PLAN.md - torch.compile GPU acceleration with warmup
+- [x] 06-03-PLAN.md - ONNX export, INT8 quantization, inference factory
+- [x] 06-04-PLAN.md - ROCm 6.4 support and setup documentation
+- [x] 06-05-PLAN.md - React 18 to React 19 upgrade
+- [x] 06-06-PLAN.md - Confidence threshold auto-tuning and wavesurfer.js evaluation
 
 **Requirements:**
 - GPU-01: Unified device detection (distinguish NVIDIA from AMD)

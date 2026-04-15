@@ -66,15 +66,15 @@ Spacebar toggles audio play/pause (not just visibility), in-flight CSV loads can
 
 ### Task 1: Spacebar Play/Pause Control
 
-**Problem:** Spacebar handler (line 560-567) only toggled player visibility, not actual playback. StickyPlayer owned `isPlaying` state and `audioRef` internally—CsvViewer had no way to control playback.
+**Problem:** Spacebar handler (line 560-567) only toggled player visibility, not actual playback. StickyPlayer owned `isPlaying` state and `audioRef` internally-CsvViewer had no way to control playback.
 
 **Solution - Ref-based callback pattern:**
 
 1. **useAudioPlayer.ts** additions:
    - `isPlaying: boolean` state
    - `setIsPlaying: (playing: boolean) => void` setter
-   - `togglePlaybackRef: React.MutableRefObject<(() => void) | null>` — ref populated by StickyPlayer
-   - `togglePlayback: () => void` — calls `togglePlaybackRef.current?.()`
+   - `togglePlaybackRef: React.MutableRefObject<(() => void) | null>` - ref populated by StickyPlayer
+   - `togglePlayback: () => void` - calls `togglePlaybackRef.current?.()`
 
 2. **StickyPlayer.tsx** additions:
    - `onTogglePlaybackRef?: React.MutableRefObject<(() => void) | null>` prop
@@ -99,11 +99,11 @@ Spacebar toggles audio play/pause (not just visibility), in-flight CSV loads can
     - CSV autosave check (line 237)
     - CSV parse request (line 253)
     - MP3 path resolution (line 265)
-  - Wrap in try/catch: `if (axios.isCancel(error)) return` — silent cancellation
+  - Wrap in try/catch: `if (axios.isCancel(error)) return` - silent cancellation
 
 - **performExport()** (line 488): Pass signal to training data export
   - `{ signal: abortRef.current?.signal }` on export POST
-  - `if (axios.isCancel(error)) return` — no error toast on cancellation
+  - `if (axios.isCancel(error)) return` - no error toast on cancellation
 
 **Unused variable cleanup:**
 
@@ -116,7 +116,7 @@ Spacebar toggles audio play/pause (not just visibility), in-flight CSV loads can
 7. **idx parameter**: Removed from map callback (track index calculated via findIndex instead)
 8. **selectedCsv null guard**: Added `if (selectedCsv)` check before loadExportedSegments call
 
-**isPlaying "unused" warning:** Documented with comment — variable is used indirectly via `setIsPlaying` callback (StickyPlayer updates it), not read directly in CsvViewer. This is intentional for the ref callback pattern.
+**isPlaying "unused" warning:** Documented with comment - variable is used indirectly via `setIsPlaying` callback (StickyPlayer updates it), not read directly in CsvViewer. This is intentional for the ref callback pattern.
 
 ## UX Requirements Completed
 

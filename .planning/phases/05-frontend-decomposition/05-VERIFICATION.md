@@ -7,10 +7,10 @@ score: 9/9 must-haves verified
 
 # Phase 5: Frontend Decomposition Verification Report
 
-**Phase Goal:** CsvViewer is maintainable — each component has single responsibility.
+**Phase Goal:** CsvViewer is maintainable - each component has single responsibility.
 **Verified:** 2026-01-29T19:00:00Z
 **Status:** PASSED
-**Re-verification:** No — initial verification
+**Re-verification:** No - initial verification
 
 ## Goal Achievement
 

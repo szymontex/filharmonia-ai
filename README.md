@@ -148,13 +148,13 @@ INFO: Using ONNX INT8 backend (3.2x speedup vs PyTorch CPU)
 
 **NVIDIA GPU:**
 ```
-INFO: GPU detected: NVIDIA CUDA 12.4 — GeForce RTX 3090
+INFO: GPU detected: NVIDIA CUDA 12.4 - GeForce RTX 3090
 INFO: Using PyTorch GPU backend with torch.compile
 ```
 
 **AMD GPU:**
 ```
-INFO: GPU detected: AMD ROCm 6.2 — Radeon RX 7900 XTX
+INFO: GPU detected: AMD ROCm 6.2 - Radeon RX 7900 XTX
 INFO: Using PyTorch GPU backend with torch.compile
 ```
 

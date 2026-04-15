@@ -2,20 +2,20 @@
 
 ## Current Position
 
-**Phase:** 6 of 6 — GPU & CPU Optimization (COMPLETE ✓)
+**Phase:** 6 of 6 - GPU & CPU Optimization (COMPLETE ✓)
 **Previous:** Phase 1-5 Complete ✓
 **Status:** Phase 6 complete (6/6 plans complete, verified)
 **Progress:** [████████████] 6/6 phases complete
 
-**Last activity:** 2026-01-29 — Completed Phase 6 (GPU & CPU Optimization)
+**Last activity:** 2026-01-29 - Completed Phase 6 (GPU & CPU Optimization)
 
 ## Project Reference
 
 See: .planning/PROJECT.md (updated 2026-01-21)
 
 **Core value:** Zamiast reczenie sluchac ~6-8h nagran/tyg, AI robi to za ciebie.
-**Current focus:** v0.9 — Polish & Stability
-**Current focus:** Phase 6 — GPU & CPU Optimization
+**Current focus:** v0.9 - Polish & Stability
+**Current focus:** Phase 6 - GPU & CPU Optimization
 **Next phase goal:** Inference runs optimally on CUDA, ROCm, or CPU without manual configuration.
 
 ## Phase 6 Progress
@@ -110,8 +110,8 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 
 ### Key Decisions
 - Brownfield improvement approach (refactor > rewrite)
-- Keep FastAPI (not Litestar) — bottleneck is I/O not API layer
-- Keep AST model — works well, no need to migrate
+- Keep FastAPI (not Litestar) - bottleneck is I/O not API layer
+- Keep AST model - works well, no need to migrate
 - Migrate pandas to Polars for CSV (5-30x faster)
 - Keep SQLite for job registry (adequate for single-user)
 - Use tempfile.gettempdir() for cross-platform temp directories
@@ -124,7 +124,7 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 - TTLCache for job dicts: 1h/100 for single jobs, 4h/50 for batch jobs
 - Atomic write pattern: temp file + os.replace (works on Unix and Windows)
 - POLL-001: 1.5x multiplier for exponential backoff polling (1s->1.5s->2.25s->10s max)
-- aiosqlite for job registry (not SQLAlchemy async) — simpler, no ORM overhead
+- aiosqlite for job registry (not SQLAlchemy async) - simpler, no ORM overhead
 - 5s timeout then force kill for process termination on shutdown
 - TimeoutMiddleware: 60s for all endpoints except /analyze (long-running by design)
 - Job lookup order: temp file -> TTLCache -> SQLite (most current to restart recovery)
@@ -184,52 +184,52 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 - Code cleanup: removed duplicate timeToSeconds, unused exportSelected function, and other unused variables
 - DeviceManager singleton: device_type strings "cuda_nvidia"/"cuda_amd"/"cpu" for downstream optimization branching
 - Device detection runs once at startup via get_device_manager(), not per-inference call
-- Keep waveform-data library (no wavesurfer.js migration) — current impl works well with server-side caching
+- Keep waveform-data library (no wavesurfer.js migration) - current impl works well with server-side caching
 - Confidence threshold auto-tuning: per-recording, localStorage persistence, default 0.7, range [0.3, 0.95], learning rate 0.05
 
 ### Research Completed (2026-01-20)
-- .planning/research/STACK.md — PyTorch/torchaudio recommendations
-- .planning/research/FEATURES.md — Table stakes vs differentiators
-- .planning/research/ARCHITECTURE.md — Component patterns
-- .planning/research/PITFALLS.md — ROCm Windows, CPU performance
-- .planning/research/SUMMARY.md — Synthesis with phase recommendations
+- .planning/research/STACK.md - PyTorch/torchaudio recommendations
+- .planning/research/FEATURES.md - Table stakes vs differentiators
+- .planning/research/ARCHITECTURE.md - Component patterns
+- .planning/research/PITFALLS.md - ROCm Windows, CPU performance
+- .planning/research/SUMMARY.md - Synthesis with phase recommendations
 
 ### Detailed Audit Completed (2026-01-20)
 - 60 specific issues identified with file:line references
-- .planning/DETAILED_AUDIT.md — Full findings
-- .planning/TECHNOLOGY_AUDIT.md — Migration recommendations
+- .planning/DETAILED_AUDIT.md - Full findings
+- .planning/TECHNOLOGY_AUDIT.md - Migration recommendations
 
 ### Plans Completed (2026-01-21 to 2026-01-28)
-- .planning/phases/01-foundation-stability/01-01-SUMMARY.md — Bare except replacement
-- .planning/phases/01-foundation-stability/01-02-SUMMARY.md — Path traversal prevention
-- .planning/phases/01-foundation-stability/01-03-SUMMARY.md — Exception handlers & type hints
-- .planning/phases/01-foundation-stability/01-04-SUMMARY.md — Cross-platform temp directories
-- .planning/phases/01-foundation-stability/01-05-SUMMARY.md — MP3 path resolution endpoint
-- .planning/phases/01-foundation-stability/01-06-SUMMARY.md — Remove hardcoded paths
-- .planning/phases/01-foundation-stability/01-07-SUMMARY.md — Audio backend startup validation
-- .planning/phases/03-backend-stability/03-01-SUMMARY.md — SQLite job registry
-- .planning/phases/03-backend-stability/03-02-SUMMARY.md — Memory leak & race condition fixes
-- .planning/phases/03-backend-stability/03-03-SUMMARY.md — Resource cleanup
-- .planning/phases/03-backend-stability/03-04-SUMMARY.md — Frontend exponential backoff
-- .planning/phases/04-performance-migration/04-01-SUMMARY.md — Performance prep (polars + regex)
-- .planning/phases/04-performance-migration/04-02-SUMMARY.md — Waveform caching
-- .planning/phases/04-performance-migration/04-03-SUMMARY.md — CSV parser polars migration
-- .planning/phases/04-performance-migration/04-04-SUMMARY.md — Uncertainty polars migration
-- .planning/phases/04-performance-migration/04-05-SUMMARY.md — Batch polars migration
-- .planning/phases/04-performance-migration/04-06-SUMMARY.md — Remove pandas dependency
-- .planning/phases/05-frontend-decomposition/05-01-SUMMARY.md — Code cleanup (training.py, howler, filename sanitization)
-- .planning/phases/05-frontend-decomposition/05-02-SUMMARY.md — Extract time calculation utilities
-- .planning/phases/05-frontend-decomposition/05-03-SUMMARY.md — Extract useTrackEditor hook
-- .planning/phases/05-frontend-decomposition/05-04-SUMMARY.md — Extract useAutosave hook
-- .planning/phases/05-frontend-decomposition/05-05-SUMMARY.md — Extract useAudioPlayer hook
-- .planning/phases/05-frontend-decomposition/05-06-SUMMARY.md — Extract CsvSelector & PlayerControls components
-- .planning/phases/05-frontend-decomposition/05-07-SUMMARY.md — Extract TrackTable & finalize refactor
-- .planning/phases/02-core-ux-polish/02-01-SUMMARY.md — Foundation hooks (useUndoRedo, useKeyboardShortcuts)
-- .planning/phases/02-core-ux-polish/02-02-SUMMARY.md — Toast System & Error Pipeline
-- .planning/phases/02-core-ux-polish/02-03-SUMMARY.md — Atomic CSV writes
-- .planning/phases/02-core-ux-polish/02-04-SUMMARY.md — Keyboard shortcuts & undo/redo integration
-- .planning/phases/02-core-ux-polish/02-05-SUMMARY.md — Progress indicators & CalendarBrowser navigation
-- .planning/phases/02-core-ux-polish/02-06-SUMMARY.md — Keyboard shortcut help panel (? key toggle)
+- .planning/phases/01-foundation-stability/01-01-SUMMARY.md - Bare except replacement
+- .planning/phases/01-foundation-stability/01-02-SUMMARY.md - Path traversal prevention
+- .planning/phases/01-foundation-stability/01-03-SUMMARY.md - Exception handlers & type hints
+- .planning/phases/01-foundation-stability/01-04-SUMMARY.md - Cross-platform temp directories
+- .planning/phases/01-foundation-stability/01-05-SUMMARY.md - MP3 path resolution endpoint
+- .planning/phases/01-foundation-stability/01-06-SUMMARY.md - Remove hardcoded paths
+- .planning/phases/01-foundation-stability/01-07-SUMMARY.md - Audio backend startup validation
+- .planning/phases/03-backend-stability/03-01-SUMMARY.md - SQLite job registry
+- .planning/phases/03-backend-stability/03-02-SUMMARY.md - Memory leak & race condition fixes
+- .planning/phases/03-backend-stability/03-03-SUMMARY.md - Resource cleanup
+- .planning/phases/03-backend-stability/03-04-SUMMARY.md - Frontend exponential backoff
+- .planning/phases/04-performance-migration/04-01-SUMMARY.md - Performance prep (polars + regex)
+- .planning/phases/04-performance-migration/04-02-SUMMARY.md - Waveform caching
+- .planning/phases/04-performance-migration/04-03-SUMMARY.md - CSV parser polars migration
+- .planning/phases/04-performance-migration/04-04-SUMMARY.md - Uncertainty polars migration
+- .planning/phases/04-performance-migration/04-05-SUMMARY.md - Batch polars migration
+- .planning/phases/04-performance-migration/04-06-SUMMARY.md - Remove pandas dependency
+- .planning/phases/05-frontend-decomposition/05-01-SUMMARY.md - Code cleanup (training.py, howler, filename sanitization)
+- .planning/phases/05-frontend-decomposition/05-02-SUMMARY.md - Extract time calculation utilities
+- .planning/phases/05-frontend-decomposition/05-03-SUMMARY.md - Extract useTrackEditor hook
+- .planning/phases/05-frontend-decomposition/05-04-SUMMARY.md - Extract useAutosave hook
+- .planning/phases/05-frontend-decomposition/05-05-SUMMARY.md - Extract useAudioPlayer hook
+- .planning/phases/05-frontend-decomposition/05-06-SUMMARY.md - Extract CsvSelector & PlayerControls components
+- .planning/phases/05-frontend-decomposition/05-07-SUMMARY.md - Extract TrackTable & finalize refactor
+- .planning/phases/02-core-ux-polish/02-01-SUMMARY.md - Foundation hooks (useUndoRedo, useKeyboardShortcuts)
+- .planning/phases/02-core-ux-polish/02-02-SUMMARY.md - Toast System & Error Pipeline
+- .planning/phases/02-core-ux-polish/02-03-SUMMARY.md - Atomic CSV writes
+- .planning/phases/02-core-ux-polish/02-04-SUMMARY.md - Keyboard shortcuts & undo/redo integration
+- .planning/phases/02-core-ux-polish/02-05-SUMMARY.md - Progress indicators & CalendarBrowser navigation
+- .planning/phases/02-core-ux-polish/02-06-SUMMARY.md - Keyboard shortcut help panel (? key toggle)
 
 ### Blockers
 (None)
@@ -279,17 +279,17 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 **Resume file:** None
 
 **If context is lost, read these files in order:**
-1. .planning/PROJECT.md — Core value and constraints
-2. .planning/ROADMAP.md — Phase structure and requirements
-3. .planning/STATE.md — Current position (this file)
-4. .planning/phases/05-frontend-decomposition/05-03-SUMMARY.md — Track editor hook
-5. .planning/phases/05-frontend-decomposition/05-07-SUMMARY.md — TrackTable & finalize refactor
-6. .planning/phases/02-core-ux-polish/02-01-SUMMARY.md — Foundation hooks
-7. .planning/phases/02-core-ux-polish/02-02-SUMMARY.md — Toast System & Error Pipeline
-8. .planning/phases/02-core-ux-polish/02-04-SUMMARY.md — Keyboard shortcuts & undo/redo
-9. .planning/phases/02-core-ux-polish/02-05-SUMMARY.md — Progress indicators & navigation
-10. .planning/phases/02-core-ux-polish/02-06-SUMMARY.md — Keyboard shortcut help panel
-11. .planning/phases/02-core-ux-polish/02-07-SUMMARY.md — Gap closure (spacebar + AbortController)
+1. .planning/PROJECT.md - Core value and constraints
+2. .planning/ROADMAP.md - Phase structure and requirements
+3. .planning/STATE.md - Current position (this file)
+4. .planning/phases/05-frontend-decomposition/05-03-SUMMARY.md - Track editor hook
+5. .planning/phases/05-frontend-decomposition/05-07-SUMMARY.md - TrackTable & finalize refactor
+6. .planning/phases/02-core-ux-polish/02-01-SUMMARY.md - Foundation hooks
+7. .planning/phases/02-core-ux-polish/02-02-SUMMARY.md - Toast System & Error Pipeline
+8. .planning/phases/02-core-ux-polish/02-04-SUMMARY.md - Keyboard shortcuts & undo/redo
+9. .planning/phases/02-core-ux-polish/02-05-SUMMARY.md - Progress indicators & navigation
+10. .planning/phases/02-core-ux-polish/02-06-SUMMARY.md - Keyboard shortcut help panel
+11. .planning/phases/02-core-ux-polish/02-07-SUMMARY.md - Gap closure (spacebar + AbortController)
 
 ---
-*State updated: 2026-01-29 — 06-03 complete (ONNX export pipeline, INT8 quantization, inference factory with automatic backend routing)*
+*State updated: 2026-01-29 - 06-03 complete (ONNX export pipeline, INT8 quantization, inference factory with automatic backend routing)*
