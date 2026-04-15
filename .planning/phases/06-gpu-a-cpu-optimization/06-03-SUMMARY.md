@@ -37,7 +37,7 @@ ONNX export pipeline with INT8 dynamic quantization and inference factory for au
 ## What Was Done
 
 ### Task 1: ONNX Export Script and INT8 Quantization
-- Created `backend/scripts/export_onnx.py` — standalone export script
+- Created `backend/scripts/export_onnx.py` - standalone export script
   - Loads PyTorch AST checkpoint, exports via `torch.onnx.export()` (opset 14)
   - Applies dynamic INT8 quantization with per-channel QInt8
   - Validates with `onnx.checker.check_model()`
@@ -47,7 +47,7 @@ ONNX export pipeline with INT8 dynamic quantization and inference factory for au
 - Added `AST_ONNX_MODEL_PATH` to config Settings
 
 ### Task 2: ONNX Inference Service and Inference Factory
-- Created `ASTInferenceONNXService` — drop-in replacement for CPU inference
+- Created `ASTInferenceONNXService` - drop-in replacement for CPU inference
   - Same interface as `ASTInferenceService` (load_model, predict_segment, predict_batch)
   - Uses `ort.InferenceSession` with CPUExecutionProvider, 2 threads
   - Startup benchmark compares ONNX INT8 vs eager PyTorch latency

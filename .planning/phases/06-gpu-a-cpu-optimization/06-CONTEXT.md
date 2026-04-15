@@ -14,9 +14,9 @@ Make inference run optimally across different hardware configurations (NVIDIA CU
 ## Implementation Decisions
 
 ### Device detection & fallback
-- Auto-detect only — no manual user override or configuration
-- Once at startup — detect device when server starts, use same device for entire session
-- Fallback with warning — if GPU fails (driver issue, OOM), log error, show user warning, automatically retry on CPU
+- Auto-detect only - no manual user override or configuration
+- Once at startup - detect device when server starts, use same device for entire session
+- Fallback with warning - if GPU fails (driver issue, OOM), log error, show user warning, automatically retry on CPU
 - Device priority order: Claude's discretion (will determine based on typical performance characteristics)
 
 ### Optimization strategies
@@ -56,7 +56,7 @@ Make inference run optimally across different hardware configurations (NVIDIA CU
 <specifics>
 ## Specific Ideas
 
-- User mentioned they cannot test ROCm configurations ("decyduj, nawet nie mam jak tego przetestowac wiec ...") — defer ROCm decisions to practical testing capabilities
+- User mentioned they cannot test ROCm configurations ("decyduj, nawet nie mam jak tego przetestowac wiec ...") - defer ROCm decisions to practical testing capabilities
 - Per-recording learning for confidence threshold: auto-adjust based on user corrections within each recording (not global across all recordings)
 - Auto-detect at startup, no manual device selection: users shouldn't need to configure hardware choices
 - Fallback with warning: transparency when GPU fails and CPU is used
@@ -66,7 +66,7 @@ Make inference run optimally across different hardware configurations (NVIDIA CU
 <deferred>
 ## Deferred Ideas
 
-None — discussion stayed within phase scope
+None - discussion stayed within phase scope
 
 </deferred>
 

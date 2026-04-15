@@ -60,9 +60,9 @@ completed: 2026-01-28
 
 ## Requirements Addressed
 
-- **CLEAN-01:** Delete unused `training.py` — ✓ Complete
-- **CLEAN-02:** Remove unused `howler` from package.json — ✓ Complete
-- **CLEAN-06:** Sanitize filenames in `export.py` — ✓ Complete
+- **CLEAN-01:** Delete unused `training.py` - ✓ Complete
+- **CLEAN-02:** Remove unused `howler` from package.json - ✓ Complete
+- **CLEAN-06:** Sanitize filenames in `export.py` - ✓ Complete
 
 ## Deviations from Plan
 
@@ -141,12 +141,12 @@ def generate_export_filename(song_name: str, timestamp: str, class_name: str, in
 None
 
 ### Modified
-- `backend/app/api/v1/export.py` — Added filename sanitization
-- `frontend/package.json` — Removed howler dependency
-- `frontend/pnpm-lock.yaml` — Updated after dependency removal
+- `backend/app/api/v1/export.py` - Added filename sanitization
+- `frontend/package.json` - Removed howler dependency
+- `frontend/pnpm-lock.yaml` - Updated after dependency removal
 
 ### Deleted
-- `backend/app/services/training.py` — Legacy Keras training service (535 lines)
+- `backend/app/services/training.py` - Legacy Keras training service (535 lines)
 
 ## Metrics
 
@@ -162,8 +162,8 @@ None
 
 **Plan:** `.planning/phases/05-frontend-decomposition/05-01-PLAN.md`
 **Commits:**
-- `7a70847` — Delete training.py and sanitize export filenames
-- `c977d5e` — Remove howler dependency
+- `7a70847` - Delete training.py and sanitize export filenames
+- `c977d5e` - Remove howler dependency
 
 ---
 

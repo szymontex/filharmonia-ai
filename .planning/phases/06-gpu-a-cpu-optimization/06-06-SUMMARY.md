@@ -35,18 +35,18 @@
 ## Files
 
 ### Created
-- `frontend/src/utils/confidenceThreshold.ts` — ConfidenceThresholdLearner class
-- `frontend/src/hooks/useConfidenceAdjust.ts` — React hook for threshold tracking
+- `frontend/src/utils/confidenceThreshold.ts` - ConfidenceThresholdLearner class
+- `frontend/src/hooks/useConfidenceAdjust.ts` - React hook for threshold tracking
 
 ### Modified
-- `frontend/src/pages/CsvViewer.tsx` — Import hook, wire corrections into delete/add
+- `frontend/src/pages/CsvViewer.tsx` - Import hook, wire corrections into delete/add
 
 ## Commits
-- `add2430` — feat(06-06): confidence threshold auto-tuning with localStorage persistence
+- `add2430` - feat(06-06): confidence threshold auto-tuning with localStorage persistence
 
 ## Deviations from Plan
 
-None — plan executed exactly as written.
+None - plan executed exactly as written.
 
 ## Verification
 

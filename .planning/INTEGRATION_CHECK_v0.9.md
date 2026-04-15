@@ -1,6 +1,6 @@
 # Milestone v0.9 Integration Check Report
 
-**Milestone:** v0.9 — Polish & Stability
+**Milestone:** v0.9 - Polish & Stability
 **Verified:** 2026-01-29T19:30:00Z
 **Checker:** Claude (gsd-integration-checker)
 **Status:** PASSED
@@ -9,7 +9,7 @@
 
 ## Executive Summary
 
-**Overall Status:** PASSED — All phases integrated, E2E flows working, no broken wiring detected
+**Overall Status:** PASSED - All phases integrated, E2E flows working, no broken wiring detected
 
 **Phase Verification Status:**
 - Phase 1 (Foundation Stability): PASSED (5/5 must-haves) ✓

@@ -705,7 +705,7 @@ const getCsvPath = (recording: Recording) => {
 }
 ```
 
-**Same fix as CsvViewer** — use backend API for path resolution.
+**Same fix as CsvViewer** - use backend API for path resolution.
 
 ---
 
@@ -997,11 +997,11 @@ class ASTTrainingService:
         self.cancel_flags: Dict[str, bool] = {}  # ← NEVER CLEANED
 ```
 
-**Same problem as analyze.py** — no cleanup of old jobs.
+**Same problem as analyze.py** - no cleanup of old jobs.
 
 ---
 
-### 24. Training Runs in Daemon Thread — Dies Silently
+### 24. Training Runs in Daemon Thread - Dies Silently
 
 **Location:** `backend/app/services/ast_training.py:103-108`
 
@@ -1057,7 +1057,7 @@ except:
 
 ### 26. Training Uses print() Extensively
 
-**Location:** `backend/app/services/ast_training.py` — 30+ print statements
+**Location:** `backend/app/services/ast_training.py` - 30+ print statements
 
 ```python
 print(f"[Training {job_id}] [{datetime.now().strftime('%H:%M:%S')}] Starting dataset preparation...", flush=True)
@@ -1126,7 +1126,7 @@ async def get_waveform_data(path: str = Query(...)):
         raise HTTPException(404, f"File not found: {path}")
 ```
 
-**Attack:** `GET /api/v1/waveform/data?path=/etc/passwd` — might reveal file existence
+**Attack:** `GET /api/v1/waveform/data?path=/etc/passwd` - might reveal file existence
 
 **FIX:** Same path validation as other endpoints.
 
@@ -1194,7 +1194,7 @@ async def export_training_data(request: ExportRequest):
         raise HTTPException(404, f"MP3 file not found: {mp3_path}")
 ```
 
-**Same issue** — arbitrary file access possible.
+**Same issue** - arbitrary file access possible.
 
 ---
 
@@ -1383,7 +1383,7 @@ const segmentEndSec = segmentStartSec + 2.97  // FRAME_DURATION_SEC ← HARDCODE
 
 ### 39. No Global Error Handler
 
-**Location:** `backend/app/main.py` — missing
+**Location:** `backend/app/main.py` - missing
 
 **Problem:** Unhandled exceptions return ugly 500 errors without error IDs for debugging.
 
@@ -1416,7 +1416,7 @@ async def global_exception_handler(request: Request, exc: Exception):
 
 ### 40. No Request Logging/Tracing
 
-**Location:** `backend/app/main.py` — missing
+**Location:** `backend/app/main.py` - missing
 
 **Problem:** No way to track which requests are slow or failing.
 
@@ -1496,7 +1496,7 @@ npm uninstall howler react-hook-form react-router-dom
 
 ---
 
-### 42. Legacy TensorFlow/Keras — 500MB+ Bloat
+### 42. Legacy TensorFlow/Keras - 500MB+ Bloat
 
 **Location:** `backend/requirements.txt`
 
@@ -1673,11 +1673,11 @@ strict = true
 ### 49. Multiple Implementations of Time Parsing
 
 **Locations:**
-- `backend/app/api/v1/csv_parser.py:203` — `time_to_seconds()`
-- `backend/app/api/v1/uncertainty.py:19` — `time_to_seconds()`
-- `frontend/src/pages/CsvViewer.tsx:340` — inline parsing
-- `frontend/src/pages/UncertaintyReview.tsx:22` — `timeToSeconds()`
-- `frontend/src/components/StickyPlayer.tsx:28` — `timeToSeconds()`
+- `backend/app/api/v1/csv_parser.py:203` - `time_to_seconds()`
+- `backend/app/api/v1/uncertainty.py:19` - `time_to_seconds()`
+- `frontend/src/pages/CsvViewer.tsx:340` - inline parsing
+- `frontend/src/pages/UncertaintyReview.tsx:22` - `timeToSeconds()`
+- `frontend/src/components/StickyPlayer.tsx:28` - `timeToSeconds()`
 
 **5 different implementations of the same function!**
 
@@ -1870,7 +1870,7 @@ files = await loop.run_in_executor(None, self._scan_sync)
 
 ### 56. No Rate Limiting
 
-**Location:** `backend/app/main.py` — missing
+**Location:** `backend/app/main.py` - missing
 
 **Problem:** Any endpoint can be called unlimited times. DoS attack trivial.
 
@@ -1947,7 +1947,7 @@ def get_device(self) -> torch.device:
 
 ### 59. Frontend Has No Error Boundaries
 
-**Location:** `frontend/src/App.tsx` — missing
+**Location:** `frontend/src/App.tsx` - missing
 
 **Problem:** Any component crash kills entire app with white screen.
 

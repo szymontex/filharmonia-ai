@@ -8,7 +8,7 @@
 - Created `backend/app/core/device_manager.py`
 - DeviceManager detects device once via `detect_device()`, distinguishing NVIDIA CUDA (`torch.version.cuda`) from AMD ROCm (`torch.version.hip`)
 - Automatic CPU fallback on GPU detection failure with logged warning
-- Singleton via `get_device_manager()` — detection runs on first call only
+- Singleton via `get_device_manager()` - detection runs on first call only
 - Properties: `is_gpu`, `supports_compile`, `device`, `device_type`, `device_name`
 - **Commit:** e19c2b1
 
@@ -21,7 +21,7 @@
 
 ## Deviations from Plan
 
-None — plan executed exactly as written.
+None - plan executed exactly as written.
 
 ## Decisions Made
 
@@ -32,17 +32,17 @@ None — plan executed exactly as written.
 
 ## Verification Results
 
-- `grep torch.cuda.is_available ast_inference.py` — no matches (moved to device_manager)
-- `grep get_device_manager ast_inference.py` — matches on import and usage
+- `grep torch.cuda.is_available ast_inference.py` - no matches (moved to device_manager)
+- `grep get_device_manager ast_inference.py` - matches on import and usage
 - `get_device_manager()` returns device_type "cpu" on test environment (no GPU)
 
 ## Key Files
 
 | File | Role |
 |------|------|
-| `backend/app/core/device_manager.py` | New — centralized device detection singleton |
-| `backend/app/services/ast_inference.py` | Modified — uses DeviceManager instead of inline detection |
-| `backend/app/main.py` | Modified — startup uses DeviceManager for device logging |
+| `backend/app/core/device_manager.py` | New - centralized device detection singleton |
+| `backend/app/services/ast_inference.py` | Modified - uses DeviceManager instead of inline detection |
+| `backend/app/main.py` | Modified - startup uses DeviceManager for device logging |
 
 ## Next Phase Readiness
 

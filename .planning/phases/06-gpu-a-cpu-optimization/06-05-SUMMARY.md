@@ -1,4 +1,4 @@
-# Plan 06-05: React 19 Upgrade — SUMMARY
+# Plan 06-05: React 19 Upgrade - SUMMARY
 
 **Status:** Complete (checkpoint verification skipped)
 **Wave:** 1
@@ -70,7 +70,7 @@ Upgraded React 18.3.1 → React 19.2.4 with all TypeScript compatibility fixes.
 
 Wave 2 plans will add:
 - torch.compile GPU acceleration (06-02)
-- ONNX CPU optimization with INT8 quantization (06-03) — **critical for CPU-only runs**
+- ONNX CPU optimization with INT8 quantization (06-03) - **critical for CPU-only runs**
 - ROCm support (06-04)
 
 These optimizations will make local runs (especially CPU-only) practical.
